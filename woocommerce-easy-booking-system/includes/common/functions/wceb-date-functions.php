@@ -3,7 +3,7 @@
 /**
 *
 * Date functions.
-* @version 3.3.1
+* @version 3.3.5
 *
 **/
 
@@ -119,10 +119,27 @@ function wceb_shift_date( $date, $offset, $action = 'plus' ) {
     }
 
     if ( $offset >= 1 ) {
-        $shift = $offset > 1 ? absint( $offset ) . ' days' : absint( $offset ) . ' day';
-        return $action === 'plus' ? date( 'Y-m-d', strtotime( $date . ' +' . $shift ) ) : date( 'Y-m-d', strtotime( $date . ' -' . $shift ) );
+
+        $date   = \DateTime::createFromFormat( 'Y-m-d', $date );
+        $modify = $action === 'plus' ? '+' . absint( $offset ) . ' days' : '-' . absint( $offset ) . ' days';
+
+        return $date->modify( $modify )->format( 'Y-m-d' );
+
     }
 
     return $date;
+
+}
+
+/**
+*
+* Get last available date, relative to current day.
+* @return date yyyy-mm-dd
+*
+**/
+function wceb_get_last_available_date() {
+
+    $current_date = new \DateTime();
+    return $current_date->modify( '+' . get_option( 'wceb_last_available_date' ) . ' days' )->format( 'Y-m-d' );
 
 }

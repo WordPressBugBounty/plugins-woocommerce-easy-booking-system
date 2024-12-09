@@ -3,12 +3,12 @@
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
 * Description: A powerful and easy to use booking plugin for your WooCommerce store.
-* Version: 3.3.4
+* Version: 3.3.5
 * Author: @_Ashanna
 * Author URI: https://easy-booking.pro/
 * Requires at least: 5.0
-* Tested up to: 6.6.2
-* WC tested up to: 9.3.2
+* Tested up to: 6.7.1
+* WC tested up to: 9.4.3
 * Requires Plugins: woocommerce
 * WC requires at least: 3.0
 * Text domain: woocommerce-easy-booking-system
@@ -50,7 +50,7 @@ class Easy_Booking {
             }
         } );
 
-        add_action( 'plugins_loaded', array( $this, 'init' ), 10 );
+        add_action( 'init', array( $this, 'init' ), 10 );
         add_filter( 'plugin_action_links_' . $plugin, array( $this, 'add_settings_link' ) );
 
         do_action( 'easy_booking_after_init' );
@@ -98,7 +98,7 @@ class Easy_Booking {
         // Define constants
         $this->define_constants();
 
-        // Load textdomain
+        // Load plugin textdomain
         load_plugin_textdomain( 'woocommerce-easy-booking-system', false, basename( dirname( __FILE__ ) ) . '/languages/' );
 
         // Common includes

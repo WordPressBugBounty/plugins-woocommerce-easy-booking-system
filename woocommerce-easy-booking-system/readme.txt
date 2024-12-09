@@ -3,9 +3,9 @@
 Contributors: @_Ashanna
 Tags: woocommerce, booking, rent, book, calendar
 Requires at least: 5.0
-Stable tag: 3.3.4
-Tested up to: 6.6.2
-WC tested up to: 9.3.2
+Stable tag: 3.3.5
+Tested up to: 6.7.1
+WC tested up to: 9.4.3
 License: GPLv3
 
 A powerful and easy to use booking plugin for WooCommerce.
@@ -20,7 +20,7 @@ It allows you to easily manage and keep an eye on processing or upcoming booking
 
 = Demo =
 
-Check the plugin demo [here](http://demo.easy-booking.me/).
+Check the plugin demo [here](http://demo.easy-booking.pro/).
 
 = PRO version =
 
@@ -57,6 +57,12 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 6. Reports
 
 == Changelog ==
+
+= 3.3.5 - 2024-12-09 =
+
+* Fix - Plugin textdomain loaded too early.
+* Tweak - Updated date functions using PHP DateTime class.
+* Tweak - Updated demo link in readme.txt.
 
 = 3.3.4 - 2024-09-19 =
 

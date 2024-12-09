@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Easy Booking for WooCommerce\n"
-"POT-Creation-Date: 2024-06-27 15:35+0200\n"
+"POT-Creation-Date: 2024-12-09 09:09+0100\n"
 "PO-Revision-Date: 2019-10-14 14:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.5\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop;__;_e;_n:1,2;esc_html_e;"
 "esc_html__\n"
 "X-Poedit-Basepath: .\n"
@@ -238,61 +238,59 @@ msgid ""
 "Please choose the quantity of items you wish to add to your cart&hellip;"
 msgstr ""
 
-#: includes/class-wceb-date-selection.php:41
-msgid "Please select a valid date."
-msgstr ""
-
-#: includes/class-wceb-date-selection.php:48
-#: includes/class-wceb-date-selection.php:52
-msgid "Please select valid dates."
-msgstr ""
-
-#: includes/class-wceb-date-selection.php:92
-msgid "Please choose valid dates"
-msgstr ""
-
-#: includes/class-wceb-date-selection.php:373
-msgid "night"
-msgid_plural "nights"
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/class-wceb-date-selection.php:373
-msgid "day"
-msgid_plural "days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/class-wceb-date-selection.php:378
-#, php-format
-msgid "Total booking duration: %s %s"
-msgstr ""
-
-#: includes/class-wceb-date-selection.php:391
-#, php-format
-msgid "Average price %s: %s"
-msgstr ""
-
 #: includes/common/abstract-wceb-booking.php:224
 msgid "Invalid product ID."
 msgstr ""
 
 #: includes/common/abstract-wceb-booking.php:239
-#: includes/common/abstract-wceb-booking.php:244
 msgid "Invalid start date."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:261
-#: includes/common/abstract-wceb-booking.php:266
+#: includes/common/abstract-wceb-booking.php:254
 msgid "Invalid end date."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:285
+#: includes/common/abstract-wceb-booking.php:271
 msgid "Invalid booking status."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:300
+#: includes/common/abstract-wceb-booking.php:286
 msgid "Invalid quantity."
+msgstr ""
+
+#: includes/common/class-wceb-date-selection.php:42
+msgid "Please select a valid date."
+msgstr ""
+
+#: includes/common/class-wceb-date-selection.php:49
+#: includes/common/class-wceb-date-selection.php:53
+msgid "Please select valid dates."
+msgstr ""
+
+#: includes/common/class-wceb-date-selection.php:93
+msgid "Please choose valid dates"
+msgstr ""
+
+#: includes/common/class-wceb-date-selection.php:374
+msgid "night"
+msgid_plural "nights"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/common/class-wceb-date-selection.php:374
+msgid "day"
+msgid_plural "days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/common/class-wceb-date-selection.php:379
+#, php-format
+msgid "Total booking duration: %s %s"
+msgstr ""
+
+#: includes/common/class-wceb-date-selection.php:392
+#, php-format
+msgid "Average price %s: %s"
 msgstr ""
 
 #: includes/common/class-wceb-order-booking.php:200
