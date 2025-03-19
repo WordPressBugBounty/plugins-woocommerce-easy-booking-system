@@ -3,9 +3,9 @@
 Contributors: @_Ashanna
 Tags: woocommerce, booking, rent, book, calendar
 Requires at least: 5.0
-Stable tag: 3.3.5
-Tested up to: 6.7.1
-WC tested up to: 9.4.3
+Stable tag: 3.3.6
+Tested up to: 6.7.2
+WC tested up to: 9.7.1
 License: GPLv3
 
 A powerful and easy to use booking plugin for WooCommerce.
@@ -57,6 +57,17 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 6. Reports
 
 == Changelog ==
+
+= 3.3.6 - 2025-03-19 =
+
+* Add - Compatibility with WooCommerce Single Product blocks. Allows having several products on the same page.
+* Add - Added booking_regular_price to improve compatibility with third-party plugins.
+* Fix - Added de.js calendar translation file for German translations.
+* Fix - Calendar z-index being too high for Safari.
+* Fix - Make sure object is a WC_Product when getting booking settings to avoid conflict with other plugins.
+* Fix - Avoid PHP errors when getting product meta data.
+* Tweak - Improved compatibility with WooCommerce Product Add-Ons
+* Tweak - Added "Close" translation for German language.
 
 = 3.3.5 - 2024-12-09 =
 
@@ -793,6 +804,10 @@ Get it now on http://herownsweetcode.com/product/easy-booking-availability-check
 * Initial Release
 
 == Upgrade Notice ==
+
+= 3.3.6 =
+
+*Important:* This update contains major changes. Please clear your website and/or browser cache after proceeding to the update. *PRO users:* Requires Easy Booking PRO version 1.2.3.
 
 = 3.0.0 =
 

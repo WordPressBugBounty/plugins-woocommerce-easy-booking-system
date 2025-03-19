@@ -102,7 +102,7 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   min-width: 176px;
   max-width: 466px;
   max-height: 0;
-  z-index: 10000;
+  z-index: 1000;
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
   filter: alpha(opacity=0);
   -moz-opacity: 0;
@@ -529,4 +529,9 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
 button.date-selection-needed {
   opacity: .5 !important;
   cursor: not-allowed;
+}
+
+.picker__title {
+  padding-top: 1em;
+  text-align:center;
 }

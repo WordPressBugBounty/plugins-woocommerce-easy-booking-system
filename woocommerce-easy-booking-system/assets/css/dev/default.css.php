@@ -44,7 +44,7 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   line-height: 1.2;
   color: <?php echo wc_format_hex( $text_color ); ?>;
   position: absolute;
-  z-index: 10000;
+  z-index: 1000;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
@@ -586,4 +586,9 @@ select.picker__select--year:focus {
 button.date-selection-needed {
   opacity: .5 !important;
   cursor: not-allowed;
+}
+
+.picker__title {
+  padding-top: 1em;
+  text-align:center;
 }

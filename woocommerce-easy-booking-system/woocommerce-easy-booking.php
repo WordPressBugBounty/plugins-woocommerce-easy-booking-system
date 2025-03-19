@@ -3,12 +3,12 @@
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
 * Description: A powerful and easy to use booking plugin for your WooCommerce store.
-* Version: 3.3.5
+* Version: 3.3.6
 * Author: @_Ashanna
 * Author URI: https://easy-booking.pro/
 * Requires at least: 5.0
-* Tested up to: 6.7.1
-* WC tested up to: 9.4.3
+* Tested up to: 6.7.2
+* WC tested up to: 9.7.1
 * Requires Plugins: woocommerce
 * WC requires at least: 3.0
 * Text domain: woocommerce-easy-booking-system
@@ -51,12 +51,34 @@ class Easy_Booking {
         } );
 
         add_action( 'init', array( $this, 'init' ), 10 );
+        add_action( 'init', array( $this, 'check_pro_version' ), 21 );
+
         add_filter( 'plugin_action_links_' . $plugin, array( $this, 'add_settings_link' ) );
 
         do_action( 'easy_booking_after_init' );
 
         register_activation_hook( __FILE__, array( $this, 'wceb_activate' ) );
 
+    }
+
+    /**
+    *
+    * Make sure Easy Booking PRO version is compatible, or deactivate it.
+    * Currently version 3.3.6 requires Easy Booking PRO to be at least 1.2.3.
+    *
+    **/
+    public function check_pro_version() {
+
+        if ( self::is_easy_booking_pro_active() && version_compare( self::get_easy_booking_pro_version(), '1.2.3', '<' ) ) {
+
+            add_action( 'admin_notices', function() {
+                include_once( 'includes/admin/views/notices/html-wceb-notice-update-pro-plugin.php' );
+            });
+
+            deactivate_plugins( 'easy-booking-pro/easy-booking-pro.php' );
+
+        }
+        
     }
 
     /**
@@ -90,6 +112,34 @@ class Easy_Booking {
 
     /**
     *
+    * Check if Easy Booking PRO is active.
+    * @return bool
+    *
+    **/
+    public static function is_easy_booking_pro_active() {
+
+        $active_plugins = (array) get_option( 'active_plugins', array() );
+
+        if ( is_multisite() ) {
+            $active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', array() ) );
+        }
+
+        return array_key_exists( 'easy-booking-pro/easy-booking-pro.php', $active_plugins ) || in_array( 'easy-booking-pro/easy-booking-pro.php', $active_plugins );
+
+    }
+
+    /**
+    *
+    * Get Easy Booking PRO version.
+    * @return str
+    *
+    **/
+    public static function get_easy_booking_pro_version() {
+        return function_exists( 'wceb_get_pro_version' ) ? wceb_get_pro_version() : '1.0.0';
+    }
+
+    /**
+    *
     * Init plugin
     *
     **/
@@ -99,7 +149,7 @@ class Easy_Booking {
         $this->define_constants();
 
         // Load plugin textdomain
-        load_plugin_textdomain( 'woocommerce-easy-booking-system', false, basename( dirname( __FILE__ ) ) . '/languages/' );
+        load_plugin_textdomain( 'woocommerce-easy-booking-system', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
         // Common includes
         $this->includes();

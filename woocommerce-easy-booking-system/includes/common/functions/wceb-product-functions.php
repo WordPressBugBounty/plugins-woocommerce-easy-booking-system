@@ -109,6 +109,10 @@ function wceb_get_product_booking_settings( $_product ) {
 **/
 function wceb_get_product_minimum_booking_duration( $_product ) {
 
+    if ( ! is_a( $_product, 'WC_Product' ) ) {
+        return false;
+    }
+
     // If product setting is empty or not defined, get global setting
     $global_booking_min  = get_option( 'wceb_booking_min' );
     $product_booking_min = $_product->get_meta( '_booking_min', true );
@@ -130,8 +134,13 @@ function wceb_get_product_minimum_booking_duration( $_product ) {
     // Get booking duration
     $booking_duration = wceb_get_product_booking_duration( $_product );
 
-    // Multiply by booking duration (remove 1 day in "Days" mode)
-    $booking_min = $booking_mode === 'days' ? $booking_min * $booking_duration - 1 : $booking_min * $booking_duration;
+    // Multiply by booking duration
+    $booking_min = $booking_min === '0' ? $booking_duration : $booking_min * $booking_duration;
+    
+    // Remove 1 day in "Days" mode as start date can be end date too
+    if( $booking_mode === 'days' ) {
+        $booking_min -= 1;
+    }
 
     // Force 1 in Nights mode and 0 in Days mode.
     if ( $booking_mode === 'nights' && $booking_min <= 0 ) {
@@ -152,6 +161,10 @@ function wceb_get_product_minimum_booking_duration( $_product ) {
 *
 **/
 function wceb_get_product_maximum_booking_duration( $_product ) {
+
+    if ( ! is_a( $_product, 'WC_Product' ) ) {
+        return false;
+    }
 
     // If product setting is empty or not defined, get global setting
     $global_booking_max  = get_option( 'wceb_booking_max' );
@@ -194,6 +207,10 @@ function wceb_get_product_maximum_booking_duration( $_product ) {
 **/
 function wceb_get_product_first_available_date( $_product ) {
 
+    if ( ! is_a( $_product, 'WC_Product' ) ) {
+        return false;
+    }
+
     // If product setting is empty or not defined, get global setting
     $global_first_available_date  = get_option( 'wceb_first_available_date' );
     $product_first_available_date = $_product->get_meta( '_first_available_date', true );
@@ -223,6 +240,10 @@ function wceb_get_product_first_available_date( $_product ) {
 **/
 function wceb_get_product_booking_duration( $_product ) {
     
+    if ( ! is_a( $_product, 'WC_Product' ) ) {
+        return false;
+    }
+
     $booking_duration = $_product->get_meta( '_booking_duration', true );
 
     // For grouped products and bundles single product pages, force the parent product value.
@@ -231,6 +252,10 @@ function wceb_get_product_booking_duration( $_product ) {
         // Get queried product ID. For grouped and bundled products, it will return the parent product ID.
         $current_id      = get_queried_object_id();
         $queried_product = wc_get_product( $current_id );
+        
+        if ( ! is_a( $queried_product, 'WC_Product' ) ) {
+            return $number_of_dates;
+        }
         
         // If it is a children or bundled product on the parent product page, return the parent data.
         if ( ( $queried_product->is_type( 'grouped' ) || $queried_product->is_type( 'bundle' ) ) && $current_id !== $_product->get_id() ) {
@@ -271,6 +296,10 @@ function wceb_get_product_booking_duration( $_product ) {
 **/
 function wceb_get_product_number_of_dates_to_select( $_product ) {
 
+    if ( ! is_a( $_product, 'WC_Product' ) ) {
+        return false;
+    }
+    
     $number_of_dates = $_product->get_meta( '_number_of_dates', true );
 
     // For grouped products and bundles single product pages, force the parent product value.
@@ -280,6 +309,10 @@ function wceb_get_product_number_of_dates_to_select( $_product ) {
     	$queried_id = get_queried_object_id();
     	$queried_product = wc_get_product( $queried_id );
         
+        if ( ! is_a( $queried_product, 'WC_Product' ) ) {
+            return $number_of_dates;
+        }
+
     	// If it is a children or bundled product on the parent product page, return the parent data.
 	    if ( ( $queried_product->is_type( 'grouped' ) || $queried_product->is_type( 'bundle' ) ) && $queried_id !== $_product->get_id() ) {
             $number_of_dates = $queried_product->get_meta( '_number_of_dates', true );

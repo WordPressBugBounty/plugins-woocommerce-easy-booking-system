@@ -178,7 +178,7 @@ class Ajax {
         **/
 
         $duration = Date_Selection::get_selected_booking_duration( $start, $end, $_product );
-
+        
         // Handle errors
         if ( is_wp_error( $duration ) ) {
             self::get_error_fragments( $duration );
@@ -304,7 +304,7 @@ class Ajax {
                     'session'               => true,
                     'booking_price'         => esc_attr( $new_price ),
                     'booking_regular_price' => ( $new_regular_price != $new_price ) ? esc_attr( $new_regular_price ) : '',
-                    'p.booking_details'     => '<p class="booking_details">' . wp_kses_post( $details ) . '</p>',
+                    'div.booking_details'   => '<div class="booking_details">' . wp_kses_post( $details ) . '</div>',
                     'input.wceb_nonce'      => '<input type="hidden" name="_wceb_nonce" class="wceb_nonce" value="' . wp_create_nonce( 'set-dates' ) . '">'
                 ),
                 $booking_data,

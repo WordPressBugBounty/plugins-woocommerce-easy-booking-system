@@ -1,17 +1,29 @@
-(function($) {
+"use strict";
 
-	$(document).ready(function() {
+( function( $, window ) {
 
-		wceb.dateFormat      = wceb_object.booking_dates;
-		wceb.firstDate       = parseInt( wceb_object.first_date );
-		wceb.bookingMin      = parseInt( wceb_object.min );
-		wceb.bookingMax      = wceb_object.max === '' ? '' : parseInt( wceb_object.max );
-		wceb.bookingDuration = parseInt( wceb_object.booking_duration );
-		wceb.priceHtml       = wceb_object.prices_html;
+	EasyBooking.SimpleDatepickers = ( function() {
+		
+		class SimpleDatepickers extends EasyBooking.datepickersClass( 'simple' ) {
 
-		wceb.pickers.init();
-		wceb.pickers.render();
+			constructor( $cart ) {
+				super( $cart );
+			}
+
+		}
+
+		return SimpleDatepickers;
+
+	}());
+
+	$( function() {
+
+		$('body').find( 'form.cart:not( .variations_form, .grouped_form, .bundle_form, .bundle_data )' ).each( function() {
+
+			const datepickers = new EasyBooking.SimpleDatepickers( $(this) );
+
+		});
 
 	});
 
-})(jQuery);
+}(jQuery, window));

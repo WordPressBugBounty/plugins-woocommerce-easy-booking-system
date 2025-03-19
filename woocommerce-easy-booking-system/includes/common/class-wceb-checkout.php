@@ -87,7 +87,12 @@ class Checkout {
     **/
     public function display_booking_dates_in_checkout( $html, $item, $args ) {
 
-        $product   = $item->get_product();
+        $product = is_callable( array( $item, 'get_product' ) ) ? $item->get_product() : false;
+
+        if ( ! $product ) {
+            return $html;
+        }
+
         $strings   = array();
         $meta_data = array();
         

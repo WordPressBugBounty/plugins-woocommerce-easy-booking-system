@@ -110,12 +110,12 @@ class Date_Selection {
 
         $booking_data = array();
         $_product_id  = $_product->get_id();
-
+        
         // Get product price and (if on sale) regular price
         foreach ( array( 'price', 'regular_price' ) as $price_type ) {
 
             $price = $_product->{'get_' . $price_type}();
-
+            
             if ( $price === '' ) {
                 continue;
             }
@@ -329,12 +329,12 @@ class Date_Selection {
     *
     **/
 	public static function calculate_booking_price( $price, $data, $price_type, $product, $_product ) {
-
+ 
         if ( true === wceb_is_bookable( $_product ) && apply_filters( 'easy_booking_calculate_booking_price', true, $_product ) ) {
                 
             $number_of_dates = wceb_get_product_number_of_dates_to_select( $_product );
             $dates = $number_of_dates === 'one' ? 'one_date' : 'two_dates';
-
+            
             $price = apply_filters(
                 'easy_booking_' . $dates . '_price',
                 $price * $data['duration'],
@@ -342,7 +342,7 @@ class Date_Selection {
             );
 
         }
-
+        
 	    return apply_filters( 'easy_booking_new_' . $price_type, wc_format_decimal( $price ), $data, $product, $_product );
 
 	}
@@ -372,7 +372,8 @@ class Date_Selection {
             $duration *= $booking_duration;
             
             $unit = $booking_mode === 'nights' ? _n( 'night', 'nights', $duration, 'woocommerce-easy-booking-system' ) : _n( 'day', 'days', $duration, 'woocommerce-easy-booking-system' );
-
+            
+            $details .= '<p>';
             $details .= apply_filters(
                 'easy_booking_total_booking_duration_text',
                 sprintf(
@@ -382,10 +383,11 @@ class Date_Selection {
                 ),
                 $duration, $unit
             );
+            $details .= '</p>';
 
             // Maybe display average price (if there are price variations. E.g Duration discounts or custom pricing)
             if ( true === apply_filters( 'easy_booking_display_average_price', false, $product->get_id() ) ) {
-                $details .= '<br />';
+                $details .= '<p>';
                 $details .= apply_filters(
                     'easy_booking_average_price_text',
                     sprintf(
@@ -395,6 +397,7 @@ class Date_Selection {
                     ),
                     $product, $average_price
                 );
+                $details .= '</p>';
             }
             
         }

@@ -1,183 +1,91 @@
-(function($) {
+"use strict";
 
-	$(document).ready(function() {
+( function( $, window ) {
 
-		wceb.dateFormat            = wceb_object.booking_dates;
-		wceb.firstDate             = parseInt( wceb_object.first_date );
-		wceb.bookingMin            = parseInt( wceb_object.min );
-		wceb.bookingMax            = wceb_object.max === '' ? '' : parseInt( wceb_object.max );
-		wceb.bookingDuration       = parseInt( wceb_object.booking_duration );
-		wceb.priceHtml             = wceb_object.prices_html;
+	EasyBooking.GroupedDatepickers = ( function() {
 
-		$pickerWrap   = $('.wceb_picker_wrap');
-		$reset_dates  = $pickerWrap.find('a.reset_dates');
-		$bookingPrice = $('.booking_price');
+		class GroupedDatepickers extends EasyBooking.datepickersClass( 'grouped' ) {
 
-		$pickerWrap.hide();
+			constructor( $cart ) {
+				
+				super( $cart );
+				
+				this.$picker_wrap.hide();
 
-		wceb.pickers.init();
-		
-		$('.cart').on( 'change', '.quantity input.qty, .wc-grouped-product-add-to-cart-checkbox', function() {
-
-			var children = wceb.get.childrenIds();
-
-			// Get previously selected items
-			var prev_items = $reset_dates.attr( 'data-ids' );
-
-			if ( prev_items !== "" ) {
-
-				// Parse JSON to object
-				prev_items = JSON.parse( prev_items );
-
-				// Compare previously selected and currently selected item IDS, if they are different = init
-				 if ( true === hasUpdatedSelection( Object.keys( children ), Object.keys( prev_items ) ) ) {
-				 	action = 'init';
-				 } else {
-
-					// Loop through each selected item to see if quantity has changed (to avoid triggering ajax request twice because of PB)
-					$.each( children, function( id, quantity ) {
-
-						if ( prev_items[id] !== quantity ) {
-							action = 'update'; // If quantity has changed = update price
-							return false;
-						} else {
-							action = false; // If nothing has changed = do nothing
-							return true;
-						}
-
-					});
-
-				}
-
-			} else {
-				action = 'init'; // First selection = init
 			}
 
-			// Store selected ids and quantity
-			$reset_dates.attr( 'data-ids', JSON.stringify( children ) );
+			events() {
 
-			if ( action === 'init' ) {
-				resetPickers();
-			} else if ( action === 'update' ) {
-				maybeRecalculateBookingPrice();
-			}
+				super.events();
 
-		});
+				var self = this;
 
-		/**
-		* Check if bundle selection has been updated.
-		**/
-		function hasUpdatedSelection( current, previous ) {
+				// Reset dates: reset group price
+				self.$reset_dates.on({
+					click: () => {
+						self.updatePrice( self.product.group_totals.price, self.product.group_totals.regular_price );
+					}
+				});
 
-            current.sort(); 
-            previous.sort(); 
-              
-            if ( current.length != previous.length ) {
-                return true; 
-            }
-              
-            for ( var i = 0; i < current.length; i++ ) {
+				// Change product quantity: update selected items
+				self.$cart.find( 'input.qty, .wc-grouped-product-add-to-cart-checkbox' ).on({
 
-                if ( current[i] != previous[i] ) {
-                    return true; 
-                }
+					change: () => {
 
-            }
+						// Store previously selected items
+						let previouslySelectedIDs = Object.assign( {}, self.product.selectedIDs );
 
-            return false;
+						// Store group totals
+						self.product.group_totals = { price: 0, regular_price: 0 }
 
-        } 
+						// Reset selected IDs
+						self.product.selectedIDs = {};
 
-        /**
-		* Reset pickers and clear booking session.
-		**/
-		function resetPickers() {
+						$.each( self.product.children, function( index, child ) {
 
-			// Reset pickers
-			wceb.pickers.reset();
+							let $child_input = self.$cart.find( `input[name="quantity[${child}]"]` );
+							let quantity     = $child_input.val();
+	
+							if ( $child_input.is( '.wc-grouped-product-add-to-cart-checkbox' ) ) {
+								quantity = $child_input.is( ':checked' ) ? 1 : 0; // Sold individually products
+							}
+							
+							if ( quantity > 0 ) {
 
-			wceb.clearBookingSession();
-			$reset_dates.hide();
+								self.product.selectedIDs[child] = parseFloat( quantity );
 
-			updateTotalPrice();
-			
-		}
+								self.product.group_totals.price += parseFloat( self.product.prices[child] * quantity );
+								self.product.group_totals.regular_price += parseFloat( self.product.regular_prices[child] * quantity );
 
-		/**
-		* If dates are selected, trigger ajax request to recalculate price, otherwise reset pickers.
-		**/
-		function maybeRecalculateBookingPrice() {
+							}
+	
+						});
 
-			if ( wceb.dateFormat === 'two' && wceb.checkIf.datesAreSet() ) {
-				wceb.setPrice();
-			} else if ( wceb.dateFormat === 'one' && wceb.checkIf.dateIsSet( 'start' ) ) {
-				wceb.picker.set();
-			} else {
-				resetPickers();
-			}
+						this.$cart.trigger( 'wceb_update_group_selection' );
 
-		}
+						self.handleMultipleProductSelection( previouslySelectedIDs, self.product.group_totals.price, self.product.group_totals.regular_price );
 
-		function updateTotalPrice() {
+						// Get highest quantity selected and hide date inputs if no quantity is selected
+						Math.max.apply( Math, Object.values( self.product.selectedIDs ) ) > 0 ? self.$picker_wrap.slideDown( 200 ) : self.$picker_wrap.hide();
 
-			var $this      = $(this),
-				quantities = [];
-
-			totalGroupedPrice = 0;
-			totalGroupedRegularPrice = 0;
-
-			var children = wceb.get.childrenIds();
-
-			$.each( children, function( id, qty ) {
-
-				var price = wceb_object.product_price[id];
-				var regular_price = wceb_object.product_regular_price[id];
-
-				if ( qty > 0 ) {
-					totalGroupedPrice += parseFloat( price * qty );
-
-					if ( regular_price !== '' ) {
-						totalGroupedRegularPrice += parseFloat( regular_price * qty );
-					} else {
-						totalGroupedRegularPrice += parseFloat( price * qty );
 					}
 
-				}
+				});
 
-				quantities.push( qty );
-
-			});
-
-			// Get highest quantity selected
-			max_qty = Math.max.apply( Math, quantities );
-
-			// Hide date inputs if no quantity is selected
-			( max_qty > 0 ) ? $pickerWrap.slideDown( 200 ) : $pickerWrap.hide();
-			
-			// Update data-booking_price attribute
-			$bookingPrice.attr('data-booking_price', totalGroupedPrice );
-
-			// Update total price, maybe including addons
-			var formatted_total = wceb.formatPrice( wceb.get.basePrice() );
-			var formatted_price = '<span class="woocommerce-Price-amount amount">' + formatted_total + '</span>';
-
-			// If product is on sale
-			if ( totalGroupedPrice !== totalGroupedRegularPrice ) {
-
-				// Update data-booking_regular_price attribute
-				$bookingPrice.attr('data-booking_regular_price', totalGroupedRegularPrice );
-
-				// Update total regular price, maybe including addons
-				var formatted_regular_price = wceb.formatPrice( wceb.get.regularPrice() );
-				var formatted_price = '<del><span class="woocommerce-Price-amount amount">' + formatted_regular_price + '</span></del> <ins><span class="woocommerce-Price-amount amount">' + formatted_total + '</span></ins>';
-				
 			}
 
-			// Update price
-			$bookingPrice.html( '<span class="price">' + formatted_price + '</span>' );
-
 		}
+
+		return GroupedDatepickers;
+
+	})();
+
+	jQuery( function() {
+
+		$('body').find('.cart.grouped_form').each( function() {
+			const datepickers = new EasyBooking.GroupedDatepickers( $(this) );
+		});
 
 	});
 
-})(jQuery);
+})(jQuery, window);

@@ -23,13 +23,13 @@ defined( 'ABSPATH' ) || exit;
     <?php // Start datepicker ?>
     <p class="form-row form-row-wide">
         <label for="start_date"><?php esc_html_e( $start_date_text ); ?></label>
-        <input type="text" name="start_date" id="start_date" class="wceb_datepicker wceb_datepicker_start" data-value="" placeholder="<?php esc_attr_e( $start_date_text ); ?>">
+        <input type="text" name="start_date" id="start_date-<?php echo $product_id; ?>" class="wceb_datepicker wceb_datepicker_start" data-value="" placeholder="<?php esc_attr_e( $start_date_text ); ?>">
     </p>
 
     <?php // End datepicker | For one date selection products, we need to keep the end datepicker, but it is hidden with CSS ?>
     <p class="form-row form-row-wide show_if_two_dates" style="display:<?php echo ( $number_of_dates === 'one' ) ? 'none' : 'block'; ?>">
         <label for="end_date"><?php esc_html_e( $end_date_text ); ?></label>
-        <input type="text" name="end_date" id="end_date" class="wceb_datepicker wceb_datepicker_end" data-value="" placeholder="<?php esc_attr_e( $end_date_text ); ?>">
+        <input type="text" name="end_date" id="end_date-<?php echo $product_id; ?>" class="wceb_datepicker wceb_datepicker_end" data-value="" placeholder="<?php esc_attr_e( $end_date_text ); ?>">
     </p>
 
     <?php do_action( 'easy_booking_after_datepickers', $product ); ?>
@@ -44,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
 
 <?php do_action( 'easy_booking_before_booking_details', $product ); ?>
 
-<p class="booking_details"></p>
+<div class="booking_details"></div>
 
 <?php do_action( 'easy_booking_before_booking_price', $product ); ?>
 

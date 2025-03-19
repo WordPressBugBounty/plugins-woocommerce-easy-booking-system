@@ -20,11 +20,12 @@ function wceb_single_product_html() {
     // Product is bookable
     if ( wceb_is_bookable( $product ) ) {
         
+        $product_id      = $product->get_id();
         $start_date_text = wceb_get_start_text( $product );
         $end_date_text   = wceb_get_end_text( $product );
         $number_of_dates = wceb_get_product_number_of_dates_to_select( $product );
 
-        include_once( wceb_load_template( 'includes/views', 'html-wceb-single-product.php' ) );
+        include( wceb_load_template( 'includes/views', 'html-wceb-single-product.php' ) );
        
     }
 
@@ -34,15 +35,14 @@ add_action( 'woocommerce_before_add_to_cart_button', 'wceb_single_product_html',
 
 /**
 *
-* Use a different hook to display datepickers on variable product pages.
+* Quick fix for grouped product and Single product blocks which has nulled global $product variable.
 *
 **/
-function wceb_variable_product_html() {
-    remove_action( 'woocommerce_before_add_to_cart_button', 'wceb_single_product_html', 20 );
-    add_action( 'woocommerce_single_variation', 'wceb_single_product_html', 18 );
+function wceb_fix_grouped_product_block( $grouped_product_columns, $quantites_required, $product ) {
+    wc_setup_product_data( get_post( $product->get_id() ) );
 }
 
-add_action( 'woocommerce_before_variations_form', 'wceb_variable_product_html', 10 );
+add_action( 'woocommerce_grouped_product_list_after', 'wceb_fix_grouped_product_block', 10, 3 );
 
 /**
 *

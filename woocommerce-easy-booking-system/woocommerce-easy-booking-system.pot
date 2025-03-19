@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Easy Booking for WooCommerce\n"
-"POT-Creation-Date: 2024-12-09 09:09+0100\n"
+"POT-Creation-Date: 2025-01-29 09:38+0100\n"
 "PO-Revision-Date: 2019-10-14 14:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -309,14 +309,14 @@ msgstr ""
 msgid "Please select dates before adding this product to your cart."
 msgstr ""
 
-#: includes/common/functions/wceb-product-functions.php:330
+#: includes/common/functions/wceb-product-functions.php:338
 #, php-format
 msgid " / night"
 msgid_plural " / %s nights"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/common/functions/wceb-product-functions.php:330
+#: includes/common/functions/wceb-product-functions.php:338
 #, php-format
 msgid " / day"
 msgid_plural " / %s days"
@@ -611,6 +611,6 @@ msgstr ""
 msgid "Clear dates"
 msgstr ""
 
-#: includes/wceb-single-product.php:60
+#: includes/wceb-single-product.php:62
 msgid "Select date(s)"
 msgstr ""

@@ -1,709 +1,92 @@
-var wceb = {
+"use strict";
 
-	// General settings
-	productType  : wceb_object.product_type,
-	calcMode     : wceb_object.calc_mode, // Days or Nights
-	maxOption    : new Date( wceb_object.last_date + 'T00:00:00' ), // December 31st of max year
-	firstWeekday : wceb_object.first_weekday,
-	allowDisabled: wceb_object.allow_disabled, // Allow disabled dates inside booking period
+( function( $, window ) {
 
-	// Checking functions
-	checkIf: {
-		isDate     : null,
-		isDay      : null,
-		isArray    : null,
-		isObject   : null,
-		isDisabled : null,
-		dateIsSet  : null,
-		datesAreSet: null
-	},
+	window.EasyBooking = window.EasyBooking || {};
 
-	get: {
-		firstAvailableDate: null,
-		basePrice         : null,
-		additionalCosts   : null,
-		childrenIds       : null,
-		minAndMax         : null,
-		closestDisabled   : null,
-		closest           : null
-	},
+	EasyBooking.calcMode      = EASYBOOKING.calc_mode; // Days or Nights
+	EasyBooking.maxOption     = new Date( EASYBOOKING.last_date + 'T00:00:00' ); // December 31st of max year
+	EasyBooking.firstWeekday  = EASYBOOKING.first_weekday !== '0' ? 'monday' : 'sunday'; // Sunday or Monday
+	EasyBooking.allowDisabled = EASYBOOKING.allow_disabled; // Allow disabled dates inside booking period
+	EasyBooking.ajaxUrl       = location.protocol === 'https:' ? 'https:' : 'http:' + EASYBOOKING.ajax_url; // Fix to force http/https for ajax requests.
+	
+	EasyBooking.Helper = {
 
-	createDateObject    : null,
-	clearBookingSession : null,
-	applyBookingDuration: null,
-	formatPrice         : null,
-	setPrice            : null,
+		/**
+		* Format price with currency symbol, decimal and thousand separators
+		* @param {number} price
+		* @return {string}
+		**/
+		formatPrice: function( price ) {
 
-	// Picker functions
-	picker: {
-		close: null,
-		set  : null
-	},
+			return accounting.formatMoney( price, {
+				symbol 		: EASYBOOKING.currency_format_symbol,
+				decimal 	: EASYBOOKING.currency_format_decimal_sep,
+				thousand	: EASYBOOKING.currency_format_thousand_sep,
+				precision 	: EASYBOOKING.currency_format_num_decimals,
+				format		: EASYBOOKING.currency_format
+			} );
 
-	// Pickers functions
-	pickers: {
-		init       : null,
-		render     : null,
-		reset      : null,
-		clearSecond: null,
-		set        : null
+		}
+
 	}
-
-};
-
-(function($) {
-
-	$(document).ready( function() {
-
-		// Fix to force http/https for ajax requests.
-		wceb_ajax_url = ( location.protocol === 'https:' ? 'https:' : 'http:' ) + wceb_object.ajax_url;
-
-		$body               = $('body');
-		$cart               = $('.cart');
-		$qty_input          = $cart.find('input[name="quantity"]');
-		$booking_price      = $('.booking_price');
-		$add_to_cart_button = $('.single_add_to_cart_button');
-		$reset_dates        = $('a.reset_dates');
-
-		product_id = $('input[name="add-to-cart"], button[name="add-to-cart"]').val();
-		$variation_input = $('.variations_form').find('input[name="variation_id"]');
-
-		// Start picker
-		$inputStart = $('.wceb_datepicker_start').pickadate();
-		pickerStart = $inputStart.pickadate('picker');
-		pickerStartItem = pickerStart.component.item;
-
-		// End picker
-		$inputEnd   = $('.wceb_datepicker_end').pickadate();
-		pickerEnd   = $inputEnd.pickadate('picker');
-		pickerEndItem   = pickerEnd.component.item;
-
-		var selectedDates = {
-			startFormat: null,
-			endFormat  : null
-		};
+	
+	EasyBooking.DateHelper = {
 
 		/**
-		* Check if is date (date object)
-		*/
-		wceb.checkIf.isDate = function( date ) {
+		* Check if date is a Date object
+		* @param {mixed} date
+		* @return {boolean}
+		**/
+		isDate: function( date ) {
 			return ( date instanceof Date );
-		}
+		},
 
 		/**
-		* Check if is weekday (1,2,3,4,5,6,7)
-		*/
-		wceb.checkIf.isDay = function( date ) {
+		* Check if date is a weekday (e.g. 1, 2, 3, 4, 5, 6, 7)
+		* @param {mixed} date
+		* @return {boolean}
+		**/
+		isDay: function( date ) {
 			return ( ! isNaN( date ) && ( date >= 1 && date <= 7 ) );
-		}
+		},
 
 		/**
-		* Check if is array ([1,0,2016])
-		*/
-		wceb.checkIf.isArray = function( date ) {
+		* Check if date is an array (e.g. [2025,1,1])
+		* @param {mixed} date
+		* @return {boolean}
+		**/
+		isArray: function( date ) {
 			return ( date instanceof Array );
-		}
+		},
 
 		/**
-		* Check if is an object and not a date (from: [1,0,2016]; to: [1,0,2016])
-		*/
-		wceb.checkIf.isObject = function( date ) {
+		* Check if date is an object (e.g. {from: [2025,1,1], to: [2025,1,1]})
+		* @param {mixed} date
+		* @return {boolean}
+		**/
+		isObject: function( date ) {
 			return ( ( typeof date === 'object' ) && ! ( date instanceof Date ) );
-		}
+		},
 
 		/**
-		* Check if the date is disabled
-		*/
-		wceb.checkIf.isDisabled = function( disabled, dateToEnable ) {
-
-			if ( typeof disabled === 'undefined' ) {
-				return false;
-			}
-
-		 	var d = false;
-
-		 	var timeToEnable = dateToEnable.pick;
-
-			$.each( disabled, function( index, dateObject ) {
-
-				// [year, month, date, type]
-				if ( wceb.checkIf.isArray( dateObject ) ) {
-
-					dateObject = new Date( dateObject[0], dateObject[1], dateObject[2] );
-
-					if ( timeToEnable === dateObject.getTime() ) {
-						d = true;
-						return;
-					}
-
-				// { from: [year, month, date], to: [year, month, date], type: type }
-				} else if ( wceb.checkIf.isObject( dateObject ) ) {
-
-					start = new Date( dateObject['from'][0], dateObject['from'][1], dateObject['from'][2] );
-					end   = new Date( dateObject['to'][0], dateObject['to'][1], dateObject['to'][2] );
-
-					if ( timeToEnable >= start.getTime() && timeToEnable <= end.getTime() ) {
-						d = true;
-						return;
-					}
-
-				// 1, 2, 3, 4, 5, 6, 7
-				} else if ( wceb.checkIf.isDay( dateObject ) ) {
-
-					var day = dateToEnable.day;
-
-					if ( wceb.firstWeekday === '1' && day === 0 ) {
-						day = 7;
-					} else if ( wceb.firstWeekday !== '1' ) { // If first weekday is Sunday, add 1 day (because date object day starts at 0 and JS calendar start at 1)
-						day += 1;
-					}
-
-					if ( dateObject === day ) {
-						d = true;
-						return;
-					}
-
-				// Date object
-				} else if ( wceb.checkIf.isDate( dateObject ) ) { 
-
-					if ( timeToEnable === dateObject.getTime() ) {
-						d = true;
-						return;
-					}
-
-				}
-
-			});
-
-			return d;
-
-		}
-
-		/**
-		* Check if a date is set
-		*/
-		wceb.checkIf.dateIsSet = function( date ) {
-
-			// If the calendar is specified, get the selected date corresponding
-			if ( date === 'start' ) {
-				var date = pickerStart.get('select');
-			} else if ( date === 'end' ) {
-				var date = pickerEnd.get('select');
-			}
-
-			return ( typeof date !== 'undefined' && date !== null );
-		}
-
-		/**
-		* Check if both dates (start and end) are set
-		*/
-		wceb.checkIf.datesAreSet = function() {
-			var startSelected = pickerStart.get('select'),
-				endSelected   = pickerEnd.get('select');
-
-			return ( ( startSelected !== null && typeof startSelected !== 'undefined' ) && ( endSelected !== null && typeof endSelected !== 'undefined' ) );
-		}
-
-		/**
-		* Get the first available date
-		*/
-		wceb.get.firstAvailableDates = function() {
-
-			var dates = {};
-			var firstDay = + parseInt( wceb.firstDate );
-
-			if ( firstDay <= 0 ) {
-				var firstDay = false;
-			}
-
-			// Get first available date
-			var first = wceb.createDateObject( false, firstDay );
-
-			// Get start picker disabled dates
-			var disabled = pickerStartItem.disable;
-
-			// If first available date is disabled, check the next date until one is available
-			while ( true === wceb.checkIf.isDisabled( disabled, first ) ) {
-				var first = wceb.createDateObject( first.obj, 1 );
-			}
-
-			dates['start'] = first;
-
-			if ( wceb.dateFormat === 'two' ) {
-
-				var startFirst = new Date( first.pick );
-
-				// Get end picker first available date
-				var endFirst = wceb.createDateObject( startFirst, wceb.bookingMin );
-
-				// Get end picker disabled dates
-				var endDisabled = pickerEndItem.disable;
-
-				// If end picker first available date is disabled, check the next date until one is available
-				while ( true === wceb.checkIf.isDisabled( endDisabled, endFirst ) ) {
-					var endFirst = wceb.createDateObject( endFirst.obj, 1 );
-				}
-
-				dates['end'] = endFirst;
-
-			}
-
-			return dates;
-
-		}
-
-		/**
-		* Get product booking price (price + maybe addons + maybe quantity)
-		*/
-		wceb.get.basePrice = function() {
-
-			var product_price = parseFloat( $booking_price.attr( 'data-booking_price' ) );
-
-			// If dates are not set, get price + addons * qty, otherwise get stored price (calculated in backend)
-			if ( ( wceb.dateFormat === 'two' && ! wceb.checkIf.datesAreSet() ) || ( wceb.dateFormat === 'one' && ! wceb.checkIf.dateIsSet( 'start' ) ) ) {
-
-				var qty         = ( $qty_input.length ) ? parseFloat( $qty_input.val() ) : 1,
-					addon_costs = wceb.get.additionalCosts(),
-					total_price = parseFloat( ( addon_costs + product_price ) * qty );
-
-			} else {
-
-				var total_price = product_price;
-
-			}
-
-			return total_price;
-
-		}
-
-		/**
-		* Get produt booking regular price, multiplied by quantity selected
-		*/
-		wceb.get.regularPrice = function() {
-
-			var product_price = parseFloat( $booking_price.attr( 'data-booking_regular_price' ) );
-
-			// If dates are not set, get price + addons * qty, otherwise get stored price (calculated in backend)
-			if ( ( wceb.dateFormat === 'two' && ! wceb.checkIf.datesAreSet() ) || ( wceb.dateFormat === 'one' && ! wceb.checkIf.dateIsSet( 'start' ) ) ) {
-
-				var qty         = ( $qty_input.length ) ? parseFloat( $qty_input.val() ) : 1,
-					addon_costs = wceb.get.additionalCosts(),
-					total_price = parseFloat( ( addon_costs + product_price ) * qty );
-
-			} else {
-
-				var total_price = product_price;
-
-			}
-
-			return total_price;
-
-		}
-
-		/**
-		* WooCommerce Product Add-ons compatibility
-		*/
-		wceb.get.additionalCosts = function( format, context ) {
-
-			// Context can be price or raw-price
-			if ( typeof context === 'undefined' ) {
-				var context = 'price';
-			}
-
-			var total = 0;
-			var costs = {};
-			
-			if ( wceb.productType === 'bundle' && format === 'each' ) {
-				$selector = $('.product').find('form.cart').find('.cart');
-			} else if ( wceb.productType === 'bundle' && format !== 'each' ) {
-				$selector = $('.product').find('.cart.bundle_data');
-			} else {
-				$selector = $('.product').find('form.cart');
-			}
-			
-			$selector.each( function() {
-
-				$( this ).find( '.wc-pao-addon-field' ).each( function() {
-
-					var addon_cost = 0;
-					var $this      = $(this);
-					var $parent    = $this.parents('.cart');
-
-					if ( typeof $parent.data( 'bundle_id' ) !== 'undefined' ) {
-
-						// Item ID for bundled products
-						var id        = $parent.data( 'product_id' );
-						var bundle_id = $parent.data( 'bundled_item_id' );
-					
-					}
-
-					if ( $this.is( '.wc-pao-addon-custom-price' ) ) {
-
-						addon_cost = $this.val();
-
-					} else if ( $this.is( '.wc-pao-addon-input-multiplier' ) ) {
-
-						// Avoid converting empty strings to 0.
-						if ( '' !== $this.val() ) {
-							$this.val( Math.ceil( $this.val() ) );
-						}
-
-						addon_cost = $this.data( context ) * $this.val();
-
-					} else if ( $this.is( '.wc-pao-addon-checkbox, .wc-pao-addon-radio' ) ) {
-
-						if ( $this.is(':checked') ) {
-							addon_cost = $this.data( context );
-						}
-
-					} else if ( $this.is( '.wc-pao-addon-image-swatch-select, .wc-pao-addon-select' ) ) {
-
-						if ( $this.val() ) {
-							// Get selected value index
-							var index  = $this.prop('selectedIndex') - 1; // Remove 1 because of the "none" option.
-							addon_cost = $this.find( 'option:selected' ).data( context );
-						}
-
-					} else {
-
-						if ( $this.val() ) {
-							addon_cost = $this.data( context );
-						}
-
-					}
-
-					total += addon_cost;
-
-					// Not bundle products
-					if ( typeof id === 'undefined' ) {
-						var variation_id = $variation_input.val();
-						var id = ( typeof variation_id !== 'undefined' ) ? variation_id : product_id;
-					}
-
-					if ( typeof id !== 'undefined' && id !== '' && $this.val() != "" ) {
-
-						// Get field name
-						var inputName = $this.attr( 'name' );
-
-						// Remove addon- prefix and brackets
-						var addonFieldName = inputName.replace( / *\[[^\]]*]/, '' ).replace( 'addon-', '' );
-
-						// Tweak for bundled items: replace bundle item ID with product ID
-						if ( typeof bundle_id !== 'undefined' ) {
-							var addonFieldName = addonFieldName.replace( bundle_id + '-', id + '-' );
-						}
-
-						// Tweak for select inputs, pass the index
-						if ( typeof index !== 'undefined' ) {
-
-							var obj = {};
-							obj[index] = addon_cost;
-							costs[addonFieldName] = obj;
-
-						} else {
-
-							if ( costs.hasOwnProperty( addonFieldName ) ) {
-								costs[addonFieldName].push( addon_cost );
-						    } else {
-						    	costs[addonFieldName] = [addon_cost];
-						    }
-
-					    }
-
-					}
-
-				});
-
-			});
-
-			// If format is specified to "Array" return array, otherwise return total addon costs
-			return ( format === 'each' ) ? costs : total;
-
-		}
-
-		wceb.get.childrenIds = function() {
-			var children = {};
-
-			// Get IDs
-			if ( wceb.productType === 'grouped' ) {
-
-				var productChildren = wceb_object.children;
-
-				$.each( productChildren, function( index, child ) {
-
-					$child_input = $('input[name="quantity[' + child + ']"]');
-
-					// Sold individually products
-					if ( $child_input.is( '.wc-grouped-product-add-to-cart-checkbox' ) ) {
-
-						if ( $child_input.is( ':checked' ) ) {
-							quantity = 1;
-						} else {
-							quantity = 0;
-						}
-
-					} else {
-						quantity = $child_input.val();
-					}
-
-					if ( quantity > 0 ) {
-						children[child] = quantity;
-					}
-
-				});
-
-			}  else if ( wceb.productType === 'bundle' ) {
-
-				var $bundle_data = $('.cart.bundle_data');
-				var item_id      = $bundle_data.data('bundle_id');
-
-				if ( $bundle_data.find( 'input[name="quantity"]').length ) {
-					var bundle_qty = $bundle_data.find( 'input[name="quantity"]').val();
-				} else {
-					var bundle_qty = 1;
-				}
-
-				// Store parent ID
-				children[item_id] = bundle_qty;
-
-				var $bundled_items = $body.find('.bundled_product .cart');
-
-				$bundled_items.each( function() {
-
-					$this     = $(this);
-					optional  = $this.data('optional');
-					bundle    = $this.data('bundled_item_id');
-					child     = $this.data('product_id');
-					variation = $this.find('input[name="bundle_variation_id_' + bundle + '"]').val();
-					quantity  = $this.find('.bundled_qty').val();
-
-					var id = ( typeof variation === 'undefined' ) ? child : variation;
-
-					if ( optional === 'yes' ) {
-
-						var checked = $('input[name="bundle_selected_optional_' + bundle + '"]').is(':checked');
-
-						if ( false === checked ) {
-							quantity = 0;
-						}
-
-					}
-
-					if ( id !== '' && quantity > 0 ) {
-
-						children[id] = quantity;
-
-					}
-
-				});
-
-			}
-
-			return children;
-
-		}
-
-		/**
-		* Get min and max from a given date, 'operator' depends on the picker set when the function is called (plus or minus)
-		*/
-		wceb.get.minAndMax = function( disabledDate, operator ) {
-
-            var selectedMinDate = new Date( disabledDate.year, disabledDate.month, disabledDate.date ); // Selected date
-            var selectedMaxDate = new Date( disabledDate.year, disabledDate.month, disabledDate.date ); // Selected date
-            
-			var firstAvailableDates = wceb.get.firstAvailableDates();
-			var firstAvailableDate  = operator === 'minus' ? firstAvailableDates['start'].obj : firstAvailableDates['end'].obj; // First available date
-
-			// After setting the end date, if there is no maximum booking duration
-			if ( operator === 'minus' && wceb.bookingMax === '' ) {
-				// Set min to the first available date
-				var selectedMinDate = firstAvailableDate;
-			}
-
-			// After setting start date
-			if ( operator === 'plus' ) {
-
-				selectedMinDate.setDate( selectedMinDate.getDate() + wceb.bookingMin );
-
-				if ( wceb.bookingMax !== '' ) {
-					selectedMaxDate.setDate( selectedMaxDate.getDate() + wceb.bookingMax );
-				}
-
-			// After setting end date (reverse min and max)
-			} else {
-
-				selectedMaxDate.setDate( selectedMaxDate.getDate() - wceb.bookingMin );
-
-				// If a maxium booking duration is set
-				if ( wceb.bookingMax !== '' ) {
-					selectedMinDate.setDate( selectedMinDate.getDate() - wceb.bookingMax );
-				}
-
-			}
-			
-			// Check if minimum date is not inferior to the first available date
-			if ( firstAvailableDate > selectedMinDate ) {
-				selectedMinDate = firstAvailableDate; // If it is, set minimum to first available day
-			}
-
-			// If no maximum booking duration is set, set it to false
-			if ( operator === 'plus' && wceb.bookingMax === '' ) {
-				selectedMaxDate = false;
-			}
-
-			// Set maximum to maximum option (max year) if false
-			if ( ! selectedMaxDate || wceb.maxOption < selectedMaxDate ) {
-				selectedMaxDate = wceb.maxOption;
-			}
-
-			var minAndMax = {};
-	 		minAndMax['min'] = selectedMinDate;
-	 		minAndMax['max'] = selectedMaxDate;
-
-			return minAndMax;
-
-		}
-
-		/**
-		* Get the closest disabled date from a given date, 'direction' depends on the picker set when the function is called ('inferior' or 'superior')
-		*/
-		wceb.get.closestDisabled = function( time, picker, otherPicker, direction ) {
-			var selectedDate = new Date( time ), // Get Selected date
-				selectedDay  = selectedDate.getDay(); // Get selected day (1, 2, 3, 4, 5, 6, 7)
-
-			if ( wceb.firstWeekday !== '1' ) { // If first weekday is Sunday, add 1 day (because date object day starts at 0 and JS calendar start at 1)
-				selectedDay += 1;
-			}
-
-			var pickerDisabled      = picker.get('disable'),
-				otherPickerDisabled = otherPicker.get('disable'),
-				disabled            = wceb.allowDisabled === 'no' ? pickerDisabled.concat( otherPickerDisabled ) : pickerDisabled,
-				disabledTime        = [];
-
-			$.each( disabled, function( index, date ) {
-
-				// [year, month, day, type]
-				if ( wceb.checkIf.isArray( date ) ) {
-
-					// Backward compatibility - Availability Check | Disable dates
-					if ( typeof date[3] === 'undefined' ) {
-						date[3] = date['type'];
-					}
-
-					if ( date[3] === 'booked' || wceb.allowDisabled === 'no' ) {
-						var getDate = new Date( date[0], date[1], date[2] );
-						disabledTime.push( getDate.getTime() );
-					}
-
-				// { from: date, to: date, type: type }
-				} else if ( wceb.checkIf.isObject( date ) ) {
-
-					var getDate = direction === 'superior' ? new Date( date.from[0], date.from[1], date.from[2] ) : new Date( date.to[0], date.to[1], date.to[2] );
-					
-					if ( date.type === 'booked' || wceb.allowDisabled === 'no' ) {
-						disabledTime.push( getDate.getTime() );
-					}
-
-				// Date object
-				} else if ( wceb.checkIf.isDate( date ) ) {
-
-					disabledTime.push( date.getTime() );
-
-				// 1, 2, 3, 4, 5, 6, 7
-				} else if ( wceb.allowDisabled === 'no' && wceb.checkIf.isDay( date ) ) {
-
-					if ( direction === 'superior' ) {
-
-						var interval = Math.abs( selectedDay - date );
-
-						if ( interval === 0 )
-							interval = 7;
-
-						if ( date < selectedDay && interval !== 7 )
-							interval = 7 - interval;
-
-						var nextDisabledDay = selectedDate.setDate( selectedDate.getDate() + interval );
-						
-						disabledTime.push( nextDisabledDay );
-						selectedDate = new Date( time ); // Reset selected date
-
-					} else if ( direction === 'inferior' ) {
-
-						var interval = Math.abs( selectedDay - date );
-
-						if ( interval === 0 )
-							interval = 7;
-
-						if ( selectedDay < date && interval !== 7 )
-							interval = 7 - interval;
-						
-						previousDisabledDay = selectedDate.setDate( selectedDate.getDate() - interval );
-						disabledTime.push( previousDisabledDay );
-
-					}
-
-				}
-
-			});
-			
-			disabledTime.sort();
-			var closestDisabled = wceb.get.closest( disabledTime, time, direction );
-
-			return closestDisabled;
-
-		}
-
-		/**
-		* Get the closest date from a given date
-		*/
-		wceb.get.closest = function( arr, closestTo, direction ) {
-
-			minClosest = false;
-
-		    for ( var i = 0; i < arr.length; i++ ) { // Loop the array
-
-		    	if ( direction === 'superior' ) {
-
-		    		if ( arr[i] > closestTo ) { // Check if it's higher than the date
-			    		minClosest = arr[i];
-			    		break;
-			    	} else {
-			    		minClosest = false;
-			    	}
-
-		    	} else if ( direction === 'inferior' ) {
-
-		    		if ( arr[i] < closestTo ) { // Check if it's lower than the date
-			    		minClosest = arr[i];
-			    	}
-
-		    	}
-
-		    }
-
-		    return minClosest;
-			
-		}
-
-		/**
-		* Create date object ({date, day, month, object, pick, year})
-		*/
-		wceb.createDateObject = function( date, add ) {
-			var dateObject = {};
-
-			// If not date, get current date
+		* Create date object for pickadate.js
+		* @param {mixed} date
+		* @return {object}
+		**/
+		createDateObject: function( date ) {
+
+			let dateObject = {};
+
+			// If no date, get current date
 			if ( ! date ) {
-				var date = new Date();
-			}
-
-			// Maybe add days
-			if ( add ) {
-				date.setDate( date.getDate() + add );
+				date = new Date();
 			}
 
 			// Create infinity object
 			if ( date === 'infinity' ) {
-				var dateObject = {
+
+				dateObject = {
 					date : Infinity,
 					day  : Infinity,
 					month: Infinity,
@@ -713,18 +96,19 @@ var wceb = {
 				}
 
 				return dateObject;
+
 			}
 
 			// Check if is valid date
-			if ( ! wceb.checkIf.isDate( date ) ) {
+			if ( ! EasyBooking.DateHelper.isDate( date ) ) {
 				return dateObject;
 			}
 
 			// Set date to 00:00
-			date.setHours(0,0,0,0);
+			date.setHours( 0,0,0,0 );
 
 			// Create date object
-			var dateObject = {
+			dateObject = {
 				date : date.getDate(),
 				day  : date.getDay(),
 				month: date.getMonth(),
@@ -734,808 +118,1207 @@ var wceb = {
 			}
 
 			return dateObject;
-		}
+
+		},
 
 		/**
-		* Clear session
-		*/
-		wceb.clearBookingSession = function() {
+		* Check if date is disabled
+		* @param {array} disabled array of disabled dates from current datepicker
+		* @param {date} dateToCheck 
+		* @return {boolean}
+		**/
+		isDisabled: function( disabled, dateToCheck ) {
 
-			$booking_price.find('.price').html('');
-			$('.booking_details').html('');
-			$add_to_cart_button.addClass( 'date-selection-needed' );
-
-		}
-
-		/**
-		* Apply booking duration after settings one of the pickers
-		*/
-		wceb.applyBookingDuration = function( picker, pickerItem, selected ) {
-
-			var alreadyDisabled = pickerItem.disable, // Get already disabled dates
-				thingToCheck    = picker === 'end' ? pickerItem.max : pickerItem.min;
-
-			// Get selected date on the other datepicker
-			var selectedDate = new Date( selected.year, selected.month, selected.date );
-
-			// Get last, current and next month duration (in days), relative to the current view
-			var view                   = pickerItem.view, // Get current view on the current picker
-				lastDayOfPreviousMonth = new Date( view.year, view.month, 0 ).getDate(), // Number of days of last month (relative to view)
-				lastDayOfTheMonth      = new Date( view.year, view.month + 1, 0 ).getDate(), // Number of days of viewed month
-				lastDayOfNextMonth     = new Date( view.year, view.month + 2, 0 ).getDate(); // Number of days of next month (relative to view)
-
-			// Get the total of days to disable dates (3 months)
-			var remainingDays = parseInt( lastDayOfPreviousMonth + lastDayOfTheMonth + lastDayOfNextMonth );
-
-			// Difference between the selected day and the view (in days)
-			var diff = Math.abs( Math.round( ( view.pick - selected.pick ) / 86400000 ) );
-
-			// Number of days to start counting
-			var diffMinus = picker === 'end' ? parseInt( diff - lastDayOfPreviousMonth ) : parseInt( diff - lastDayOfTheMonth - lastDayOfNextMonth );
-
-			// Number of days to end counting
-			var diffPlus = picker === 'end' ? parseInt( diff - lastDayOfPreviousMonth + remainingDays ) : parseInt( diff - lastDayOfNextMonth + remainingDays );
-			
-			if ( picker === 'end' && diff < lastDayOfPreviousMonth ) {
-				var diffMinus = wceb.bookingDuration;
-				var diffPlus  = parseInt( diff + lastDayOfTheMonth + lastDayOfNextMonth );
+			if ( typeof disabled === 'undefined' || ! EasyBooking.DateHelper.isDate( dateToCheck ) ) {
+				return false;
 			}
 
-			if ( picker === 'start' && diffMinus < lastDayOfNextMonth ) {
-				var diffMinus = wceb.bookingDuration;
-				var diffPlus  = parseInt( diff + lastDayOfTheMonth + lastDayOfPreviousMonth );
-			}
+			// Set date to 00:00
+			dateToCheck.setHours( 0,0,0,0 );
 
-			if ( diffMinus < 0 ) {
-				diffMinus = 0;
-			}
+			const timeToCheck = dateToCheck.getTime();
+			const dayToCheck  = dateToCheck.getDay();
 
-			if ( diffMinus < wceb.bookingDuration ) {
+			return disabled.some( function( dateObject ) {
 
-				diffMinus = wceb.bookingDuration;
+				// [year, month, date, type]
+				if ( EasyBooking.DateHelper.isArray( dateObject ) ) {
 
-			} else {
+					dateObject = new Date( dateObject[0], dateObject[1], dateObject[2] );
 
-				var j;
-				var multiples = [];
+					if ( timeToCheck === dateObject.getTime() ) {
+						return true;
+					}
 
-				// Get the closest multiple of the booking duration
-				for ( j = 0; j <= diffMinus; j+= wceb.bookingDuration ) {
-					multiples.push( j );
+				// { from: [year, month, date], to: [year, month, date], type: type }
+				} else if ( EasyBooking.DateHelper.isObject( dateObject ) ) {
+
+					let start = new Date( dateObject['from'][0], dateObject['from'][1], dateObject['from'][2] );
+					let end   = new Date( dateObject['to'][0], dateObject['to'][1], dateObject['to'][2] );
+					
+					if ( timeToCheck >= start && dateToCheck <= end ) {
+						return true;
+					}
+
+				// 1, 2, 3, 4, 5, 6, 7
+				} else if ( EasyBooking.DateHelper.isDay( dateObject ) ) {
+					
+					let day = dayToCheck;
+					
+					// If first weekday is Sunday, add 1 day (because date object day starts at 0 and JS calendar start at 1)
+					if ( EasyBooking.firstWeekday === 'monday' && day === 0 ) {
+						day = 7;
+					} else if ( EasyBooking.firstWeekday === 'sunday' ) { 
+						day += 1;
+					}
+					
+					if ( dateObject === day ) {
+						return true;
+					}
+
+				// Date object
+				} else if ( EasyBooking.DateHelper.isDate( dateObject ) ) { 
+
+					if ( timeToCheck === dateObject.getTime() ) {
+						return true;
+					}
+
 				}
 
-				var diffMinus = multiples.slice(-1)[0]; // Get last value
-
-			}
-
-			if ( wceb.calcMode === 'days' ) {
-				diffMinus -= 1;
-			}
-
-			var i;
-			var enabled = [1,2,3,4,5,6,7]; // Disable every day
-
-			first = false;
-
-			for ( i = diffMinus; i <= diffPlus; i+= wceb.bookingDuration ) {
-
-				var baseSelectedDate = new Date( selected.year, selected.month, selected.date ); // Selected date in the other picker
-
-				if ( picker === 'start' ) {
-					baseSelectedDate.setDate( selectedDate.getDate() - i ); // Remove booking duration
-				} else if ( picker === 'end' ) {
-					baseSelectedDate.setDate( selectedDate.getDate() + i ); // Add booking duration
-				}
-
-				dateToEnable = wceb.createDateObject( baseSelectedDate );
-
-				// If the date is before the minimum set or after the maximum set, stop
-				if ( ( picker === 'end' && dateToEnable.obj > thingToCheck.obj ) || ( picker === 'start' && dateToEnable.obj < thingToCheck.obj ) ) {
-					break;
-				}
-
-				// Check if the date is disabled
-				if ( typeof alreadyDisabled !== 'undefined' && alreadyDisabled.length > 0 ) {
-					var d = wceb.checkIf.isDisabled( alreadyDisabled, dateToEnable );
-				}
-
-				// If it is disabled, don't enable it
-				if ( true === d ) {
-					continue;
-				}
-				
-				enabled.push( [dateToEnable.year, dateToEnable.month, dateToEnable.date, 'inverted'] ); // add 'inverted' to enable date
-			}
-
-			pickerItem.disable = alreadyDisabled.concat( enabled ); // Merge arrays
-
-			return false;
-		}
-
-		/**
-		* Format price
-		*/
-		wceb.formatPrice = function( price ) {
-
-			formatted_price = accounting.formatMoney( price, {
-				symbol 		: wceb_object.currency_format_symbol,
-				decimal 	: wceb_object.currency_format_decimal_sep,
-				thousand	: wceb_object.currency_format_thousand_sep,
-				precision 	: wceb_object.currency_format_num_decimals,
-				format		: wceb_object.currency_format
 			} );
 
-			return formatted_price;
+		},
+
+		/**
+		* Add days to a date
+		* @param {date} date
+		* @param {number} days 
+		* @return {date}
+		**/
+		addDays: function( date, days ) {
+
+			let newDate = new Date( date );
+
+			newDate.setDate( newDate.getDate() + days );
+
+			// Set date to 00:00
+			newDate.setHours( 0,0,0,0 );
+
+			return newDate;
+
+		},
+
+		/**
+		* Remove days from date
+		* @param {date} date
+		* @param {number} days 
+		* @return {date}
+		**/
+		removeDays: function( date, days ) {
+
+			let newDate = new Date( date );
+
+			newDate.setDate( newDate.getDate() - days );
+
+			// Set date to 00:00
+			newDate.setHours( 0,0,0,0 );
+
+			return newDate;
 
 		}
 
-		/**
-		* Ajax request to calculate and return price, and store booking session
-		*/
-		wceb.setPrice = function() {
+	}
 
-			var variation_id = $variation_input.val();
+	EasyBooking.Datepickers = ( function() {
 
-			children = wceb.get.childrenIds();
-			
-			selectedDates = {};
+		class Datepickers {
 
-			var format = $.fn.pickadate.defaults.format;
+			/**
+			* Datepicker abstract class
+			* @constructor
+			* @param {object} $cart
+			**/
+			constructor( $cart ) {
 
-			// Start date
-			selectedDates['startFormat'] = pickerStart.get('select', 'yyyy-mm-dd'); // yyyy-mm-dd
+				// Make sure we don't instatiate this class, as it needs to be extended for each product type
+				if ( new.target === Datepickers ) {
+					throw new Error('You cannot instantiate an abstract class!');
+				}
 
-			// End date
-			selectedDates['endFormat'] = pickerEnd.get('select', 'yyyy-mm-dd'); // yyyy-mm-dd
-
-			// WooCommerce Product Add-ons compatibility
-			var additionalCost = wceb.get.additionalCosts( 'each', 'raw-price' );
-
-			var data = {
-				security       : document.getElementsByName('_wceb_nonce')[0].value,
-				product_id     : $('input[name="add-to-cart"], button[name="add-to-cart"]').val(),
-				quantity       : $qty_input.val(),
-				variation_id   : variation_id,
-				children       : children,
-				start_format   : selectedDates['startFormat'],
-				end_format     : selectedDates['endFormat'],
-				additional_cost: additionalCost
-			};
-
-			if ( typeof wc_pb_bundle_scripts !== 'undefined' && typeof wc_pb_bundle_scripts[data.product_id] !== 'undefined' ) {
-
-				var bundle = wc_pb_bundle_scripts[data.product_id],
-					bundle_configuration = bundle.api.get_bundle_configuration();
-
-				$.each( bundle_configuration, function ( id, bundle_data ) {
-
-					if ( bundle_data['quantity'] > 0 ) {
-
-						data['bundle_quantity_' + id] = bundle_data['quantity'];
-
-						if ( typeof bundle_data['variation_id'] !== 'undefined' ) {
-							data['bundle_variation_id_' + id] = bundle_data['variation_id'];
-						}
-
-						var $bundled_item_cart = $('body').find('.cart[data-bundled_item_id="' + id + '"]');
-
-						if ( $bundled_item_cart.data( 'optional' ) === 'yes' || $bundled_item_cart.data( 'optional' ) === 1 ) {
-							data['bundle_selected_optional_' + id] = 'yes';
-						}
-
-					}
-
-				});
-				
-			}
-
-			$('form.cart, form.bundle_form').fadeTo('400', '0.6').css( 'cursor', 'wait' );
-
-			$.post( wceb_ajax_url.toString().replace( '%%endpoint%%', 'set_booking_session' ), data, function( response ) {
-
-				$('.woocommerce-error, .woocommerce-message').remove();
-				fragments = response.fragments;
-				error     = response.error;
-
-				// If error, reset pickers
-				if ( error ) {
-
-					$('.wceb_picker_wrap').prepend( '<div class="wceb_error woocommerce-error">' + error + '</div>' );
-
-					// Reset pickers
-					wceb.pickers.reset();
-
-					$reset_dates.hide();
-
-					// Unblock
-					$('form.cart, form.bundle_form').fadeTo( 0, '1' ).css( 'cursor', 'auto' );
-
+				if ( ! $cart.length ) {
 					return false;
+				}
+
+				this.$cart               = $cart;
+				this.$picker_wrap        = this.$cart.find('.wceb_picker_wrap');
+				this.$reset_dates        = this.$cart.find('a.reset_dates');
+				this.$booking_price      = this.$cart.find('.booking_price');
+				this.$add_to_cart_button = this.$cart.find('.single_add_to_cart_button');
+				this.$qty_input          = this.$cart.find('input[name="quantity"]');
+
+				// Create corresponding product object
+				this.createProduct();
+
+				// Product Add-Ons compatibility
+				this.PAO_form = typeof WC_PAO !== 'undefined' ? WC_PAO.initialized_forms.find( item => item.$el[0].isEqualNode( this.$cart[0] ) ) : undefined;
+				this.addons   = {};
+
+				if ( typeof this.product.id !== 'undefined' ) {
+
+					// Start picker
+					this.$inputStart = this.$cart.find('.wceb_datepicker_start').pickadate();
+
+					// End picker
+					this.$inputEnd = this.$cart.find('.wceb_datepicker_end').pickadate();
+
+					// Create pickers
+					this.createPickers();
+
+					// Bind other picker object to each picker
+					this.StartPicker.otherPicker = this.EndPicker;
+					this.EndPicker.otherPicker   = this.StartPicker;
+
+					this.events();
+
+					this.init();
 
 				}
 
-				if ( fragments ) {
+			}
 
-					$.each( fragments, function( key, value ) {
-						$( key ).replaceWith( value );
-					});
+			/**
+			* Create product object
+			**/
+			createProduct() {
+				this.product = new Product( this );
+			}
+
+			/**
+			* Create pickers objects
+			**/
+			createPickers() {
+				this.StartPicker = new Picker( this, 'start' );
+				this.EndPicker   = new Picker( this, 'end' );
+			}
+
+			/**
+			* Datepicker events
+			**/
+			events() {
+
+				var self = this;
+
+				// Reset dates button
+				self.$reset_dates.on(
+					'click',
+					function (e) {
+						e.preventDefault();
+						self.init();
+					}
+				).hide();
+
+				// Quantity change
+				self.$qty_input.on(
+					'change',
+					function (e) {
+
+						self.updateTotals();
+						e.stopPropagation();
+
+					}
+
+				);
+
+				self.$cart.on(
+					'clear_start_date clear_end_date',
+					function() {
+						self.clearBookingPrice();
+					}
+				);
+
+				// WooCommerce Product Add-ons compatibility
+				self.$cart.on( 'updated_addons', function() {
 					
-					// Multiply booking price by quantity selected
-					var new_price = wceb.formatPrice( fragments.booking_price );
-					var price_html = '<span class="woocommerce-Price-amount amount">' + new_price + '</span>' + wceb_object.price_suffix;
-
-					// If the product is on sale
-					if ( fragments.booking_regular_price !== '' ) {
-						var new_regular_price = wceb.formatPrice( fragments.booking_regular_price );
-						var price_html = '<del><span class="woocommerce-Price-amount amount">' + new_regular_price + wceb_object.price_suffix + '</span></del> <ins><span class="woocommerce-Price-amount amount">' + new_price + wceb_object.price_suffix + '</span></ins>';
-						$booking_price.attr('data-booking_regular_price', fragments.booking_regular_price );
-					} else {
-						$booking_price.attr('data-booking_regular_price', fragments.booking_price );
+					if ( typeof self.PAO_form === 'undefined' ) {
+						return;
 					}
 
-					// Update price
-					$booking_price.attr('data-booking_price', fragments.booking_price )
-								       .find('.price').html( price_html );
+					// Event is triggered even if addon selection hasn't changed so we need to compare before and after values to prevent multiple ajax requests.
+					if ( JSON.stringify( self.addons ) === JSON.stringify( self.PAO_form.totals.addons_price_data ) ) {
+						return;
+					}
 
-				}
+					// Store previously selected items
+					self.addons = Object.assign( [], self.PAO_form.totals.addons_price_data );
+					
+					self.updateTotals();
+					
+				});
 
-				$body.trigger( 'update_price', [ data, response ] );
+				self.$add_to_cart_button.on( 'click', function(e) {
+		
+					if ( $(this).is( '.disabled, .date-selection-needed' ) && ! $(this).hasClass( 'wc-variation-selection-needed' ) && ! $(this).hasClass( 'wc-variation-is-unavailable' ) ) {
+		
+						e.preventDefault();
+						window.alert( self.product.select_dates_message );
+						e.stopPropagation();
+		
+					}
+		
+				});
 
-				// Unblock
-				$('form.cart, form.bundle_form').fadeTo( 0, '1' ).css( 'cursor', 'auto' );
-			
-			});
-		}
-
-		/**
-		* Set picker (one date only)
-		*/
-		wceb.picker.set = function() {
-			
-			var variation_id = $variation_input.val();
-
-			children = wceb.get.childrenIds();
-
-			selectedDates['startFormat'] = pickerStart.get('select', 'yyyy-mm-dd'); // yyyy-mm-dd
-
-			var data = {
-				security       : document.getElementsByName('_wceb_nonce')[0].value,
-				product_id     : $('input[name="add-to-cart"], button[name="add-to-cart"]').val(),
-				quantity       : $qty_input.val(),
-				variation_id   : variation_id,
-				children       : children,
-				start_format   : selectedDates['startFormat'],
-				additional_cost: wceb.get.additionalCosts( 'each', 'raw-price' )
-			};
-			
-			if ( typeof wc_pb_bundle_scripts !== 'undefined' && typeof wc_pb_bundle_scripts[data.product_id] !== 'undefined' ) {
-
-				var bundle = wc_pb_bundle_scripts[data.product_id],
-					bundle_configuration = bundle.api.get_bundle_configuration();
-
-				$.each( bundle_configuration, function ( id, bundle_data ) {
-
-					if ( bundle_data['quantity'] > 0 ) {
-
-						data['bundle_quantity_' + id] = bundle_data['quantity'];
-
-						if ( typeof bundle_data['variation_id'] !== 'undefined' ) {
-							data['bundle_variation_id_' + id] = bundle_data['variation_id'];
+				// pickadate.js events for start datepicker
+				self.StartPicker.pickerObject.on({
+					
+					before_render: function () {
+						
+						if ( self.product.booking_dates === 'two' && self.EndPicker.isSet() ) {	
+							self.StartPicker.applyBookingDuration( true );
 						}
 
-						var $bundled_item_cart = $('body').find('.cart[data-bundled_item_id="' + id + '"]');
+					},
+					after_render: function () {},
+					render: function () {
 
-						if ( $bundled_item_cart.data( 'optional' ) === 'yes' || $bundled_item_cart.data( 'optional' ) === 1 ) {
+						self.StartPicker.display();
 
-							data['bundle_selected_optional_' + id] = 'yes';
+						// Reset disabled dates
+						if ( self.product.booking_dates === 'two' ) {
+							self.StartPicker.pickerItem.disable = self.StartPicker.getDisabled();
 						}
 
+					},
+					set: function ( data ) {
+						
+						self.StartPicker.set( data );
+
+						if ( typeof data.select !== 'undefined' && data.select !== null && self.hasSelectedDates() ) {
+							self.calcBookingPrice(); // Ajax request to calculate price and store session data
+						}
+
+					},
+					close: function () {
+						self.StartPicker.close();
 					}
 
 				});
-				
+
+				// pickadate.js events for end datepicker
+				self.EndPicker.pickerObject.on({
+
+					before_render: function () {
+						
+						if ( self.product.booking_dates === 'two' && self.StartPicker.isSet() ) {
+							self.EndPicker.applyBookingDuration();
+						}
+
+					},
+					render: function () {
+
+						self.EndPicker.display();
+
+						// Reset disabled dates
+						if ( self.product.booking_dates === 'two' ) {
+							self.EndPicker.pickerItem.disable = self.EndPicker.getDisabled(); // Reset disabled dates
+						}
+
+					},
+					after_render: function () {},
+					set: function ( data ) {
+
+						self.EndPicker.set( data );
+
+						// If both pickers are set
+						if ( typeof data.select !== 'undefined' && data.select !== null && self.hasSelectedDates() ) {
+							self.calcBookingPrice(); // Ajax request to calculate price and store session data
+						}
+
+					},
+					close: function () {
+						self.EndPicker.close();
+					}
+
+				});
+
 			}
 
-			$('form.cart, form.bundle_form').fadeTo('400', '0.6').css( 'cursor', 'wait' );
+			/**
+			* Reset everything
+			* After clicking 'Reset dates' button or when updating product selection (variable, grouped, bundle products)
+			**/
+			init() {
 
-			$.post( wceb_ajax_url.toString().replace( '%%endpoint%%', 'set_booking_session' ), data, function( response ) {
+				// Reset pickers
+				this.initPickers();
 
-				$('.woocommerce-error, .woocommerce-message').remove();
-				fragments = response.fragments;
-				error    = response.error;
+				// Clear session
+				this.clearBookingPrice();
 
-				if ( error ) {
+				// Hide reset dates button
+				this.$reset_dates.hide();
 
-					$('.wceb_picker_wrap').prepend( '<div class="wceb_error woocommerce-error">' + error + '</div>' );
+			}
 
-					// Reset pickers
-					wceb.pickers.reset();
+			/**
+			* Reset datepickers
+			**/
+			initPickers() {
 
-					$reset_dates.hide();
+				this.$cart.trigger( 'pickers_init', this );
 
-					// Unblock
-					$('form.cart, form.bundle_form').fadeTo( 0, '1' ).css( 'cursor', 'auto' );
+				// We must clear each picker seperately before resetting to default values
+				this.StartPicker.clear();
+				this.EndPicker.clear();
 
-					return false;
+				this.StartPicker.reset();
+				this.EndPicker.reset();
 
+				this.$cart.trigger( 'after_pickers_init', this );
+
+			}
+
+			/**
+			* Clear booking price and booking details
+			**/
+			clearBookingPrice() {
+
+				this.$booking_price.find( '.price' ).html('');
+
+				this.$cart.find( '.booking_details' ).html('');
+				this.$add_to_cart_button.addClass( 'date-selection-needed' );
+
+			}
+			
+			/**
+			* Calculate booking price
+			* Ajax request to calculate price and get booking details
+			**/
+			calcBookingPrice() {
+
+				var self = this;
+
+				let data = {
+					security       : document.getElementsByName('_wceb_nonce')[0].value,
+					product_id     : self.product.id,
+					quantity       : self.$qty_input.val(),
+					variation_id   : self.product.variation_id,
+					children       : self.product.selectedIDs,
+					start_format   : self.StartPicker.pickerObject.get( 'select', 'yyyy-mm-dd' ),
+					additional_cost: self.getAdditionalCosts( 'each' )
+				};
+
+				// Maybe add end date
+				if ( self.product.booking_dates === 'two' ) {
+					data.end_format = self.EndPicker.pickerObject.get( 'select', 'yyyy-mm-dd' );
 				}
 
-				if ( fragments ) {
+				// Block
+				self.$cart.fadeTo( '400', '0.6' ).css( 'cursor', 'wait' );
 
-					$.each(fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
+				$.post( EasyBooking.ajaxUrl.toString().replace( '%%endpoint%%', 'set_booking_session' ), data, function ( response ) {
 
-					if ( fragments.booking_price ) {
+					self.$cart.find( '.woocommerce-error, .woocommerce-message' ).remove();
 
-						// Multiply booking price by quantity selected
-						var new_price = wceb.formatPrice( fragments.booking_price );
-						var price_html = '<span class="woocommerce-Price-amount amount">' + new_price + '</span>' + wceb_object.price_suffix;
+					let fragments = response.fragments;
+					let error     = response.error;
 
-						// If the product is on sale
-						if ( fragments.booking_regular_price !== '' ) {
-							var new_regular_price = wceb.formatPrice( fragments.booking_regular_price );
-							var price_html = '<del><span class="woocommerce-Price-amount amount">' + new_regular_price + '</span></del> <ins><span class="woocommerce-Price-amount amount">' + new_price + '</span></ins>';
-							$booking_price.attr('data-booking_regular_price', fragments.booking_regular_price );
-						}
+					// Manage errors
+					if ( error ) {
+
+						// Display error
+						self.$picker_wrap.prepend( `<div class="wceb_error woocommerce-error">${error}</div>` );
+
+						// Reset pickers
+						self.init();
+
+						// Unblock
+						self.$cart.fadeTo( 0, '1' ).css( 'cursor', 'auto' );
+
+						return false;
+
+					}
+
+					// No error
+					if ( fragments ) {
+
+						// Replace fragments (booking details)
+						$.each( fragments, function ( key, value ) {
+							self.$cart.find( key ).replaceWith( value );
+						});
 
 						// Update price
-						$booking_price.attr('data-booking_price', fragments.booking_price )
-									       .find('.price').html( price_html );
+						self.updatePrice( fragments.booking_price, fragments.booking_regular_price !== '' ? fragments.booking_regular_price : fragments.booking_price, false );
 
 					}
 
-				}
+					// Trigger event for Easy Booking PRO
+					self.$cart.trigger( 'update_price', response );
 
-				$body.trigger( 'update_price', [ data, response ] );
+					// Allow add to cart
+					self.$add_to_cart_button.removeClass( 'date-selection-needed' );
 
-				// Unblock
-				$('form.cart, form.bundle_form').fadeTo( 0, '1' ).css( 'cursor', 'auto' );
-			
-			});
-		}
+					// Unblock
+					self.$cart.fadeTo( 0, '1' ).css( 'cursor', 'auto' );
 
-		/**
-		* Open the second picker when selecting a date
-		*/
-		wceb.picker.close = function( picker, secondPicker ) {
-
-			// Bug fix
-			$( document.activeElement ).blur();
-
-			if ( wceb.dateFormat === 'two' ) {
-
-				var thisSet   = picker.get('select'),
-					secondSet = secondPicker.get('select');
-
-				// Open other picker if current picker is set and other not
-				if ( wceb.checkIf.dateIsSet( thisSet ) && ! wceb.checkIf.dateIsSet( secondSet ) ) {
-					setTimeout( function() { secondPicker.open(); }, 250 );
-				}
+				});
 
 			}
 
-		}
-
-		/**
-		* Init or reset pickers
-		*/
-		wceb.pickers.init = function() {
-
-			// Reset disabled dates
-			pickerStartItem.disable = [];
-
-			if ( wceb.dateFormat === 'two' ) {
-				pickerEndItem.disable   = [];
-			}
-
-			var firstAvailableDates = wceb.get.firstAvailableDates();
-
-			var firstDay = firstAvailableDates['start'];
-
-			var minObject = firstDay,
-				max       = wceb.createDateObject( wceb.maxOption ),
-				view      = wceb.createDateObject( new Date( minObject.year, minObject.month, 1 ) );
-
-			pickerStartItem.clear     = null;
-			pickerStartItem.select    = undefined;
-			pickerStartItem.min       = minObject;
-			pickerStartItem.max       = max;
-			pickerStartItem.highlight = minObject;
-			pickerStartItem.view      = view;
-
-			pickerStart.$node.val('');
-
-			if ( wceb.dateFormat === 'two' ) {
-
-				var endFirstDay = firstAvailableDates['end'];
-
-				var endMinObject = endFirstDay,
-					endView      = wceb.createDateObject( new Date( endMinObject.year, endMinObject.month, 1 ) );
-			
-				pickerEndItem.clear     = null;
-				pickerEndItem.select    = undefined;
-				pickerEndItem.min       = endMinObject;
-				pickerEndItem.max       = max;
-				pickerEndItem.highlight = endMinObject;
-				pickerEndItem.view      = endView;
-
-				pickerEnd.$node.val('');
-
-			}
-
-			$add_to_cart_button.addClass( 'date-selection-needed' );
-
-			return false;
-
-		}
-
-		/**
-		* Renders pickers and triggers event
-		*/
-		wceb.pickers.render = function( ids ) {
-
-			$body.trigger( 'pickers_init', ids );
-
-			pickerStart.render();
-			pickerEnd.render();
-			
-			$body.trigger( 'after_pickers_init', ids );
-
-		}
-
-		/**
-		* Inits and renders pickers
-		*/
-		wceb.pickers.reset = function() {
-
-			wceb.pickers.init();
-
-			if ( wceb.productType === 'variable' ) {
-				var variation_id = $variation_input.val();
-				var variation = {};
-				variation['variation_id'] = variation_id;
-				wceb.pickers.render( variation );
-			} else if ( wceb.productType === 'grouped' || wceb.productType === 'bundle' ) {
-				var ids = $reset_dates.attr('data-ids');
-				
-				if ( ids !== "" ) {
-					ids = JSON.parse( ids );
-				}
-				
-				wceb.pickers.render( ids );
-				
-			} else {
-				wceb.pickers.render();
-			}
-
-		}
-
-		/**
-		* Clear the other picker
-		*/
-		wceb.pickers.clearSecond = function( picker, secondPicker, secondPickerObject ) {
-
-			var secondPickerItem = secondPickerObject.component.item,
-				firstAvailableDates = wceb.get.firstAvailableDates(),
-				min  = firstAvailableDates[secondPicker],
-				max  = wceb.createDateObject( wceb.maxOption ),
-				view = wceb.createDateObject( new Date( min.year,min.month,01 ) );
-
-			secondPickerItem.disable = [];
-			secondPickerItem.min     = min;
-			secondPickerItem.max     = max;
-
-			if ( secondPickerObject.get('select') === null ) {
-				secondPickerItem.highlight = min;
-				secondPickerItem.view      = view;
-			}
-
-			$body.trigger( 'clear_' + picker + '_picker', secondPickerItem );
-
-			secondPickerObject.render();
-
-		}
-
-		/**
-		* Set the other picker and call Ajax function if both pickers are set
-		*/
-		wceb.pickers.set = function( picker, pickerObject, secondPickerObject, secondPickerItem ) {
-
-			var selectedObject       = pickerObject.get('select'), // Array [year,month,date,day,obj,pick]
-				secondSelectedObject = secondPickerObject.get('select'); // Array [year,month,date,day,obj,pick]
-
-			if ( selectedObject === null ) {
-				return;
-			}
-
-			var direction = picker === 'start' ? 'superior' : 'inferior',
-				calc      = picker === 'start' ? 'plus' : 'minus';
-
-			var selectedTimestamp = selectedObject.pick; // Unix timestamp
-
-			var minAndMax = wceb.get.minAndMax( selectedObject, calc ),
-				min       = minAndMax.min,
-				max       = minAndMax.max;
-
-			var thingToSet = picker === 'start' ? max : min;
-
-			// If no maximum date is set, set max to maximum year
-			if ( ! max ) {
-				max = wceb.maxOption;
-			}
-
-			// Get the closest disabled date
-			var closestDisabled = wceb.get.closestDisabled( selectedTimestamp, secondPickerObject, pickerObject, direction );
-
-			// If a date is disabled, maybe set it as min and/or max (depending on calendar)
-			if ( closestDisabled ) {
-
-				var closestAvailable = new Date( closestDisabled ); // Convert to date
-
-				if ( ( picker === 'start' && closestDisabled < thingToSet ) || ( picker === 'end' && closestDisabled > thingToSet ) ) {
-					var thingToSet = closestAvailable;
-				}
-
-			}
-
-			var min  = picker === 'start' ? wceb.createDateObject( min ) : wceb.createDateObject( thingToSet ),
-				max  = picker === 'start' ? wceb.createDateObject( thingToSet ) : wceb.createDateObject( max ),
-				view = wceb.createDateObject( new Date( min.year, min.month, 1 ) );
-
-			secondPickerItem.min  = min;
-			secondPickerItem.max  = max;
-			secondPickerItem.view = view;
-
-			// If other picker is not set
-			if ( typeof secondSelectedObject === 'undefined' || secondSelectedObject === null ) {
-				secondPickerItem.highlight = min;
-			}
-
-			$body.trigger('set_' + picker + '_picker', [secondPickerItem, selectedTimestamp] );
-
-			secondPickerObject.render();
-
-			// If both pickers are set
-			if ( wceb.checkIf.datesAreSet() ) {
-				wceb.setPrice(); // Ajax request to calculate price and store session data
-			}
-
-		}
-
-		pickerStart.on({
-			render: function() {
-
-				// Display picker title
-				pickerStart.$root.find('.picker__header').prepend('<div class="picker__title">' + wceb_object.start_text + '</div>');
-
-			},
-			set: function( startTime ) {
-
-				// If picker is cleared
-				if ( typeof startTime.clear !== 'undefined' && startTime.clear === null ) {
-
-					if ( wceb.dateFormat === 'two' ) {
-						// Reset min, max and disabled dates on other picker
-						wceb.pickers.clearSecond( 'start', 'end', pickerEnd );
-
-						if ( ! wceb.checkIf.dateIsSet( 'end' ) ) {
-							$reset_dates.hide();
-						}
-					}
-
-					selectedDates['startFormat'] = null;
-
-					$body.trigger( 'clear_start_date' );
-
-				}
-
-				// If picker is set
-				if ( wceb.dateFormat === 'two' && wceb.checkIf.dateIsSet( startTime.select ) ) {
-					wceb.pickers.set( 'start', pickerStart, pickerEnd, pickerEndItem );
-					$reset_dates.show();
-				} else if ( wceb.dateFormat === 'one' && wceb.checkIf.dateIsSet( startTime.select ) ) {
-					wceb.picker.set();
-				}
-				
-			},
-			close: function() {
-				wceb.picker.close( pickerStart, pickerEnd );
-			}
-		});
-
-		pickerEnd.on({
-			render: function() {
-
-				// Display picker title
-				pickerEnd.$root.find('.picker__header').prepend('<div class="picker__title">' + wceb_object.end_text + '</div>');
-				
-			},
-			set: function( endTime ) {
-
-				// If picker is cleared
-				if ( typeof endTime.clear !== 'undefined' && endTime.clear === null ) {
-
-					// Reset min, max and disabled dates on other picker
-					wceb.pickers.clearSecond( 'end', 'start', pickerStart );
-
-					if ( ! wceb.checkIf.dateIsSet( 'start' ) ) {
-						$reset_dates.hide();
-					}
-
-					selectedDates['endFormat'] = null;
-
-					$body.trigger( 'clear_end_date' );
-
-				}
-
-				// If picker is set
-				if ( wceb.dateFormat === 'two' && wceb.checkIf.dateIsSet( endTime.select ) ) {
-					wceb.pickers.set( 'end', pickerEnd, pickerStart, pickerStartItem );
-					$reset_dates.show();
+			/**
+			* Check if dates are selected.
+			* One-date selection only checks for start date, two-dates selection checks for start and end dates.
+			* @return {boolean}
+			**/
+			hasSelectedDates() {
+
+				if ( ( this.product.booking_dates === 'one' && this.StartPicker.isSet() )
+					|| ( this.product.booking_dates === 'two' && this.StartPicker.isSet() && this.EndPicker.isSet() ) ) {
+					return true;
 				}
 
 				return false;
+
+			}
+
+			/**
+			* Get price (raw or calculated)
+			* @param {string} type price or regular price
+			* @return {number}
+			**/
+			getPrice( type = 'price' ) {
+
+				let price = parseFloat( this.$booking_price.attr( ( type === 'regular' ? 'data-booking_regular_price' : 'data-booking_price' ) ) );
+
+				// If dates are not set, get (price + addons) * qty, otherwise get stored price (calculated in backend)
+				if ( ! this.hasSelectedDates() ) {
+
+					price += parseFloat( this.getAdditionalCosts( 'total' ) );
+					price *= this.$qty_input.length ? parseFloat( this.$qty_input.val() ) : 1;
+
+				}
 				
-			},
-			close: function() {
-				wceb.picker.close( pickerEnd, pickerStart );
-			}
-		});
-
-		$body.on('pickers_init', function( e, variation ) {
-
-			var firstAvailableDates = wceb.get.firstAvailableDates();
-
-			var first = firstAvailableDates['start'];
-
-			pickerStartItem.view = wceb.createDateObject( new Date( first.year,first.month,01 ) ); // First day of the first available date month
-			pickerStartItem.highlight = first; // First available date
-
-			if ( wceb.dateFormat === 'two' ) {
-
-				var endFirst = firstAvailableDates['end'];
-
-				pickerEndItem.view = wceb.createDateObject( new Date( endFirst.year,endFirst.month,01 ) ); // First day of the first available date month
-				pickerEndItem.highlight = endFirst; // First available date
-				pickerEndItem.min = endFirst; // First available date
+				return price;
 
 			}
 
-			return false;
-		});
+			/**
+			* Get regular price (raw or calculated)
+			* @return {number}
+			**/
+			getRegularPrice() {
+				return this.getPrice( 'regular' );
+			}
 
-		/**
-		* Before rendering the start picker
-		*/
-		pickerStart.on( 'before_rendering', function() {
+			/**
+			* Get formatted price HTML
+			* @param {boolean} perDay maybe add suffix (/ day, / night, etc.)
+			* @return {string}
+			**/
+			getPriceHtml( perDay = true ) {
 
-			if ( wceb.dateFormat === 'two' ) {
+				let price        = this.getPrice();
+				let regularPrice = this.getRegularPrice();
 
-				var selected = pickerEnd.get('select'); // Get selected date on the End picker
+				//let price_html = '<span class="woocommerce-Price-amount amount">' + EasyBooking.Helper.formatPrice( price ) + '</span>' + this.product.price_suffix;
+				let price_html = `<span class="woocommerce-Price-amount amount">${EasyBooking.Helper.formatPrice( price )}</span>${this.product.price_suffix}`;
 
-				startPickerDisabled = pickerStartItem.disable; // Store already disabled dates
+				if ( price !== regularPrice ) {
 
-				if ( wceb.checkIf.dateIsSet( selected ) && wceb.bookingDuration > 1  ) {
-					wceb.applyBookingDuration( 'start', pickerStartItem, selected );
+					let regular_price_html = `<span class="woocommerce-Price-amount amount">${EasyBooking.Helper.formatPrice( regularPrice )}</span>${this.product.price_suffix}`;
+
+					price_html = `<del>${regular_price_html}</del> <ins>${price_html}</ins>`;
+
+				}
+				
+				return `<span class="price">${price_html}${perDay ? ` <span class="wceb_price_format">${this.product.prices_html}</span>` : ""}</span>`;
+
+			}
+
+			/**
+			* Update price HTML and data attributes
+			* @param {number} price
+			* @param {number} regularPrice
+			* @param {boolean} perDay maybe add suffix (/ day, / night, etc.)
+			**/
+			updatePrice( price, regularPrice, perDay = true ) {
+				
+				// Update booking_price and booking_regular_price data-attributes
+				this.$booking_price.attr( 'data-booking_price', parseFloat( price ) );
+				this.$booking_price.attr( 'data-booking_regular_price', parseFloat( regularPrice ) );
+
+				// Update price HTML
+				this.$booking_price.html( this.getPriceHtml( perDay ) );
+
+			}
+
+			/**
+			* Update total price
+			* If dates are selected recalculate price, otherwise display raw price
+			**/
+			updateTotals() {
+
+				if ( this.hasSelectedDates() ) {
+
+					this.calcBookingPrice();
+
+				} else {
+
+					this.$booking_price.find('.price .amount').html( EasyBooking.Helper.formatPrice( this.getPrice() ) );
+					this.$booking_price.find('.price del .amount').html( EasyBooking.Helper.formatPrice( this.getRegularPrice() ) );
+
 				}
 
 			}
 
-		});
+			/**
+			* UHandle multiple product selection (gouped and bundle products)
+			* @param {object} previouslySelected
+			* @param {number} price
+			* @param {number} regularPrice
+			**/
+			handleMultipleProductSelection( previouslySelected, price, regularPrice ) {
 
-		/**
-		* After rendering the start picker
-		*/
-		pickerStart.on( 'after_rendering', function() {
+				var self = this;
 
-			if ( wceb.dateFormat === 'two' ) {
-				pickerStartItem.disable = startPickerDisabled; // Reset disabled dates
+				let action = 'init';
+
+				let currentIDs  = Object.keys( self.product.selectedIDs );
+				let previousIDs = Object.keys( previouslySelected );
+
+				// Check if we updated selected products
+				if ( currentIDs.length === previousIDs.length && currentIDs.every( ( value, index ) => value === previousIDs[index] ) ) {
+
+					// If not, loop through each selected item to see if quantity has changed
+					$.each( self.product.selectedIDs, function( id, quantity ) {
+
+						// If not, set action to false to avoid triggering ajax request twice because of PB, otherwise update
+						action = previouslySelected[id] !== quantity ? 'update' : false;
+						return action !== 'update';
+
+					});
+
+				}
+				
+				if ( action === 'init' ) {
+
+					self.init();
+					self.updatePrice( price, regularPrice );
+
+				} else if ( action === 'update' ) {
+
+					// If dates are selected and we only adjust quantity, recalculate price, otherwise update price HTML
+					self.hasSelectedDates() ? self.calcBookingPrice() : self.updatePrice( price, regularPrice );
+
+				}
+
 			}
 
-		});
+			/**
+			* Product Add-Ons compatibility
+			* @param {string} format total or each
+			* @return {number|object} total cost or array of additional costs
+			**/
+			getAdditionalCosts( format = 'total' ) {
 
-		/**
-		* Before rendering the end picker
-		*/
-		pickerEnd.on( 'before_rendering', function() {
+				var self = this;
 
-			var selected = pickerStart.get('select'); // Get selected date on the Start picker
+				if ( typeof self.PAO_form === 'undefined' ) {
+					return 0;
+				}
 
-			endPickerDisabled = pickerEndItem.disable; // Store already disabled dates
+				if ( format === 'total' ) {
+					return self.PAO_form.totals.total;
+				}
 
-			if ( wceb.checkIf.dateIsSet( selected ) && wceb.bookingDuration > 1 ) {
-				wceb.applyBookingDuration( 'end', pickerEndItem, selected );
-			}
+				let costs = [];
 
-		});
+				$.each( self.PAO_form.totals.addons_price_data, function( i, data ) {
 
-		/**
-		* After rendering the end picker
-		*/
-		pickerEnd.on( 'after_rendering', function() {
-			pickerEndItem.disable = endPickerDisabled; // Reset disabled dates
-		});
+					let addonName  = data.nameFormattedHTML.split('<span class="wc-pao-addon-name">').pop().split('</span>')[0];
+					let addonValue = data.nameFormattedHTML.split('<span class="wc-pao-addon-value">').pop().split('</span>')[0];
 
-		/**
-		* Update booking price when changing product quantity
-		*/
-		$cart.on('change', 'input[name="quantity"]', function( e ) {
+					let id = self.$cart.find( `.wc-pao-addon-name[data-addon-name="${addonName}"]` )
+							.parents( '.wc-pao-addon' )
+							.attr( 'class' )
+							.match( /(?:^|\s)wc-pao-addon-id-([^- ]+)(?:\s|$)/ )[1];
 
-			if ( wceb.dateFormat === 'two' && wceb.checkIf.datesAreSet() ) {
-				wceb.setPrice();
-			} else if ( wceb.dateFormat === 'one' && wceb.checkIf.dateIsSet( 'start' ) ) {
-				wceb.picker.set();
-			} else {
-				var formatted_total = wceb.formatPrice( wceb.get.basePrice() );
-				$booking_price.find('.price .amount').html( formatted_total );
+					costs.push( { id: id, cost: data.cost_raw, value: addonValue } );
 
-				formatted_regular_price = wceb.formatPrice( wceb.get.regularPrice() );
-				$booking_price.find('.price del .amount').html( formatted_regular_price );
-			}
+				});
 
-			e.stopPropagation();
+				return costs;
 
-		});
-
-		$body.on( 'update_price', function() {
-			$add_to_cart_button.removeClass( 'date-selection-needed' );
-		});
-
-		/**
-		* WooCommerce Product Add-ons compatibility
-		*/
-		$cart.on( 'updated_addons', function() {
-
-			if ( wceb.dateFormat === 'two' && wceb.checkIf.datesAreSet() ) {
-				wceb.setPrice();
-			} else if ( wceb.dateFormat === 'one' && wceb.checkIf.dateIsSet( 'start' ) ) {
-				wceb.picker.set();
-			} else {
-				var formatted_total = wceb.formatPrice( wceb.get.basePrice() );
-				$booking_price.find('.price .amount').html( formatted_total );
-
-				formatted_regular_price = wceb.formatPrice( wceb.get.regularPrice() );
-				$booking_price.find('.price del .amount').html( formatted_regular_price );
 			}
 			
-		});
+		}
 
-		$body.on( 'clear_start_date clear_end_date', function() {
+		class Product {
 
-			// Clear session
-			wceb.clearBookingSession();
+			/**
+			* Product class
+			* @constructor
+			* @param {object} Datepickers
+			**/
+			constructor( Datepickers ) {
 
-		});
+				if ( $.isEmptyObject( Datepickers ) ) {
+					return false;
+				}
 
+				// Get product ID
+				this.id = Datepickers.$cart.find('input[name="add-to-cart"], button[name="add-to-cart"]').val();
 
-		$add_to_cart_button.on( 'click', function(e) {
+				if ( typeof this.id === 'undefined' ) {
+					return false;
+				}
 
-			$this = $(this);
+				// Map parameters
+				this.booking_dates        = EASYBOOKING.product_params[this.id].booking_dates;
+				this.booking_duration     = parseInt( EASYBOOKING.product_params[this.id].booking_duration );
+				this.children             = EASYBOOKING.product_params[this.id].children;
+				this.end_text             = EASYBOOKING.product_params[this.id].end_text;
+				this.first_date           = parseInt( EASYBOOKING.product_params[this.id].first_date );
+				this.max                  = EASYBOOKING.product_params[this.id].max !== '' ? parseInt( EASYBOOKING.product_params[this.id].max ) : '';
+				this.min                  = parseInt( EASYBOOKING.product_params[this.id].min );
+				this.price_suffix         = EASYBOOKING.product_params[this.id].price_suffix;
+				this.prices_html          = EASYBOOKING.product_params[this.id].prices_html;
+				this.product_type         = EASYBOOKING.product_params[this.id].product_type;
+				this.select_dates_message = EASYBOOKING.product_params[this.id].select_dates_message;
+				this.start_text           = EASYBOOKING.product_params[this.id].start_text;
+				this.prices               = EASYBOOKING.product_params[this.id].prices;
+				this.regular_prices       = EASYBOOKING.product_params[this.id].regular_prices;
+				this.selectedIDs          = {};
 
-		    if ( $this.is( '.disabled,.date-selection-needed' ) && ! $this.hasClass( 'wc-variation-selection-needed' ) && ! $this.hasClass( 'wc-variation-is-unavailable' ) ) {
+			}
 
-		        e.preventDefault();
-		        window.alert( wceb_object.select_dates_message );
-		        e.stopPropagation();
+		}
 
-		    }
+		class Picker {
 
-		});
+			/**
+			* Picker class
+			* @constructor
+			* @param {object} Datepickers
+			* @param {string} type start or end
+			**/
+			constructor( Datepickers, type = 'start' ) {
 
-		$reset_dates.on( 'click', function(e) {
-			e.preventDefault();
+				this.type         = type;
+				this.$cart        = Datepickers.$cart;
+				this.$reset_dates = Datepickers.$reset_dates;
+				this.$input       = this.type === 'start' ? Datepickers.$inputStart : Datepickers.$inputEnd;
 
-			// Reset pickers
-			wceb.pickers.reset();
+				this.pickerObject = this.$input.pickadate( 'picker' );
+				this.pickerItem   = this.pickerObject.component.item;
 
-			// Clear session
-			wceb.clearBookingSession();
+				this.product = Datepickers.product;
 
-			$(this).hide();
+				// Store disabled dates in another variable for later use
+				this.disabled = [];
+				
+			}
+
+			/**
+			* Clear picker selection
+			**/
+			clear() {
+
+				this.pickerItem.clear  = null;
+				this.pickerItem.select = undefined;
+
+				this.pickerObject.$node.val('');
+
+			}
+
+			/**
+			* Reset picker
+			**/
+			reset() {
+
+				let min = this.getMinimum();
+				let max = this.getMaximum();
+				
+				// Reset disabled dates
+				this.pickerItem.disable = this.getDisabled();
+
+				// Set default values
+				this.pickerItem.min       = EasyBooking.DateHelper.createDateObject( min );
+				this.pickerItem.max       = EasyBooking.DateHelper.createDateObject( max );
+				this.pickerItem.highlight = EasyBooking.DateHelper.createDateObject( min );
+				this.pickerItem.view      = EasyBooking.DateHelper.createDateObject( new Date( min.getFullYear(), min.getMonth(), 1 ) );
+
+				this.pickerObject.render();
+
+			}
+
+			/**
+			* Display picker title
+			**/
+			display() {
+
+				this.pickerObject.$root
+					.find( '.picker__box' )
+					.prepend( `<div class="picker__title">${( this.type === 'start' ? this.product.start_text : this.product.end_text )}</div>` );
+
+			}
+
+			/**
+			* Set picker (clear or select date)
+			* @param {object} data
+			**/
+			set( data ) {
+
+				if ( typeof data.clear !== 'undefined' && data.clear === null ) {
+
+					if ( this.product.booking_dates === 'two' ) {
+
+						// If picker is cleared, maybe reset other picker
+						this.otherPicker.reset();
+
+						if ( ! this.otherPicker.isSet() ) {
+							this.$reset_dates.hide();
+						}
+
+					}
+
+					this.$cart.trigger( `clear_${this.type}_date` );
+
+				} else if ( typeof data.select !== 'undefined' ) {
+
+					// If picker is set, maybe update other picker
+					if ( this.product.booking_dates === 'two' ) {
+
+						this.otherPicker.update();
+						this.$reset_dates.show();
+
+					}
+
+				}
+
+			}
+
+			/**
+			* Update picker depending on other picker date selection
+			**/
+			update() {
+
+				if ( ! this.otherPicker.isSet() ) {
+					return;
+				}
+
+				let min = this.getMinimum();
+				let max = this.getMaximum();
+
+				// Get the closest disabled date
+				let closestDisabled = this.getClosestDisabled();
+
+				// If a date is disabled, maybe set it as min and/or max (depending on calendar)
+				if ( closestDisabled ) {
+
+					if ( ( this.type === 'end' && closestDisabled < max ) 
+					|| ( this.type === 'start' && closestDisabled > min )) {
+
+						this.type === 'end' ? max = closestDisabled : min = closestDisabled;
+
+					}
+
+				}
+
+				this.pickerItem.min  = EasyBooking.DateHelper.createDateObject( min );
+				this.pickerItem.max  = EasyBooking.DateHelper.createDateObject( max );
+
+				let highlight = new Date( min );
+
+				while ( true === EasyBooking.DateHelper.isDisabled( this.getDisabled(), highlight ) ) {
+					highlight.setDate( highlight.getDate() + 1 );
+				}
+
+				this.pickerItem.highlight = EasyBooking.DateHelper.createDateObject( highlight );
+				this.pickerItem.view      = EasyBooking.DateHelper.createDateObject( new Date( highlight.getFullYear(), highlight.getMonth(), 1 ) );
+
+				this.$cart.trigger( `set_${this.type}_picker` );
+
+				this.pickerObject.render();
+
+			}
+
+			/**
+			* Maybe open other picker after closing current picker
+			**/
+			close() {
+
+				var self = this;
+
+				// Bug fix
+				$( document.activeElement ).trigger( 'blur' );
+
+				// Open other picker if current picker is set and the other not
+				if ( self.product.booking_dates === 'two' && self.isSet() && ! self.otherPicker.isSet() ) {
+					setTimeout( function () { self.otherPicker.pickerObject.open(); }, 250 );
+				}
+
+			}
+
+			/**
+			* Get picker selected date
+			* @return {date|boolean}
+			**/
+			getSelected() {
+				return this.isSet() ? new Date( this.pickerItem.select.pick ) : false;
+			}
+
+			/**
+			* Get picker first available date
+			* Maybe add minimum booking duration on end calendar
+			* @return {date}
+			**/
+			getFirstAvailableDate() {
+
+				let first = new Date();
+				let add   = this.type === 'start' ? +parseInt( this.product.first_date ) : parseInt( this.product.first_date + this.product.min );
+
+				if ( add > 0 ) {
+					first.setDate( first.getDate() + add );
+				}
+
+				// If first available date is disabled, check the next date until one is available
+				while ( true === EasyBooking.DateHelper.isDisabled( this.getDisabled(), first ) ) {
+					first.setDate( first.getDate() + 1 );
+				}
+
+				return ( first instanceof Date ) ? first : new Date( first );
+
+			}
+
+			/**
+			* Get picker minimum date
+			* @return {date}
+			**/
+			getMinimum() {
+
+				// Maybe get other picker selected date
+				let selected = this.otherPicker.getSelected();
+				let min      = selected ? selected : new Date();
+				
+				if ( selected ) {
+
+					if ( this.type === 'start' ) {
+
+						// After setting end date, remove maximum booking duration from selected date
+						min = this.product.max !== '' ? EasyBooking.DateHelper.removeDays( selected, this.product.max ) : this.getFirstAvailableDate();
+
+					} else if ( this.type === 'end' ) {
+						
+						// After setting start date, maybe add minimum booking duration to selected date
+						min = EasyBooking.DateHelper.addDays( selected, this.product.min );
+	
+					}
+
+				} else {
+
+					let add = this.type === 'start' ? +parseInt( this.product.first_date ) : parseInt( this.product.first_date + this.product.min );
+	
+					if ( add > 0 ) {
+						min = EasyBooking.DateHelper.addDays( min, add );
+					}
+
+				}
+				
+				// If first available date is disabled, check the next date until one is available
+				while ( true === EasyBooking.DateHelper.isDisabled( this.getDisabled(), min ) ) {
+					min = EasyBooking.DateHelper.addDays( min, 1 );
+					
+				}
+				
+				return ( min instanceof Date ) ? min : new Date( min );
+
+			}
+
+			/**
+			* Get picker maximum date
+			* @return {date}
+			**/
+			getMaximum() {
+
+				// Maybe get other picker selected date
+				let selected = this.otherPicker.getSelected();
+				let max      = selected ? selected : EasyBooking.maxOption;
+
+				if ( this.type === 'start' ) {
+
+					// After setting end date, add minimum booking duration to selected date
+					max.setDate( max.getDate() - this.product.min );
+
+				} else if ( this.type === 'end' ) {
+
+					// After setting start date, maybe add maximum booking duration to selected date, or set minimum to last available date
+					max = this.product.max !== '' ? max.setDate( max.getDate() + this.product.max ) : EasyBooking.maxOption;
+
+				}
+
+				// If last available date is before maximum date, set maximum date to last available date
+				if ( EasyBooking.maxOption < max ) {
+					max = EasyBooking.maxOption;
+				}
+
+				return ( max instanceof Date ) ? max : new Date( max );
+
+			}
+
+			/**
+			* Get picker disabled dates
+			* @return {array}
+			**/
+			getDisabled() {
+				return this.disabled;
+			}
+
+			/**
+			* Maybe apply booking duration to other calendar
+			* @param {bool} reverse apply booking duration in reverse (end to start)
+			**/
+			applyBookingDuration( reverse = false ) {
+
+				// Get selected date on other picker
+				let selected = this.otherPicker.getSelected();
+
+				if ( ! selected || this.product.booking_duration === 1 ) {
+					return;
+				}
+
+				/*
+				* Get first and last date from viewed month (1 to 28-29-30-31)
+				*/
+				let viewFirst = new Date( this.pickerItem.view.pick );
+				let viewLast  = new Date( this.pickerItem.view.year, this.pickerItem.view.month + 1, 0 );
+
+				/*
+				* Get number of days to remove from 1st day of viewed month to get first date shown on calendar
+				*
+				* If week starts on Monday we need to shift day number from:
+				* Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0
+				* To:
+				* Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5, Sunday: 6
+				* Week starts on Sunday, no change:
+				* Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6
+				*/
+				let remove = viewFirst.getDay();
+
+				if ( EasyBooking.firstWeekday === 'monday' ) {
+					remove = remove === 0 ? 6 : remove - 1;
+				}
+				
+				/*
+				* Get number of days to add to last day of viewed month to get last date shown on calendar
+				* daysInCal is the total of days shown (always 42)
+				*/
+				let add = 42 - ( viewLast.getDate() + remove );
+
+				/*
+				* Get first and last viewed dates on calendar
+				* After setting End calendar (reverse = true), we go backwards (first becomes last and last becomes first)
+				* Make sure first date is not superior or inferior to selected date
+				*/
+				let first, last;
+
+				if ( reverse ) {
+
+					first = EasyBooking.DateHelper.addDays( viewLast, add );
+					last  = EasyBooking.DateHelper.removeDays( viewFirst, remove );
+
+					if ( first > selected ) {
+						first = selected;
+					}
+
+				} else {
+
+					first = EasyBooking.DateHelper.removeDays( viewFirst, remove );
+					last  = EasyBooking.DateHelper.addDays( viewLast, add );
+
+					if ( first < selected ) {
+						first = selected;
+					}
+
+				}
+
+				// Get number of days between first viewed date and selected date
+				let diff = Math.abs( Math.round( ( selected.getTime() - first.getTime() ) / 86400000 ) );
+
+				// Add one day in Days mode because we need to count selected date
+				if ( EasyBooking.calcMode === 'days' ) {
+					diff += 1;
+				}
+
+				// See how many booking durations can fit and get number of days left
+				let remain = diff % this.product.booking_duration;
+
+				/*
+				* Get first date to enable
+				* If we don't have a complete booking duration, add/remove days left
+				*/
+				let firstToEnable = first;
+
+				if ( remain > 0 ) {
+
+					firstToEnable = reverse
+						? EasyBooking.DateHelper.removeDays( first, this.product.booking_duration - remain )
+						: EasyBooking.DateHelper.addDays( first, this.product.booking_duration - remain );
+
+				}
+
+				/*
+				* Get dates to disable on viewed calendar
+				* First disable all dates, then enable dates corresponding to booking duration
+				*/
+				let disabled = this.getDisabled();
+				let enable   = reverse ? [{ from: last, to: first }] : [{ from: first, to: last }];
+				let j = true;
+				let highlight = firstToEnable;
+
+				for ( let i = 0; i < 42; i += this.product.booking_duration ) {
+
+					let dateToEnable = i === 0 ? firstToEnable : reverse
+						? EasyBooking.DateHelper.removeDays( firstToEnable, i )
+						: EasyBooking.DateHelper.addDays( firstToEnable, i );
+
+					// Make sure date is not disabled for other reasons (out of stock or disabled in settings)
+					if ( typeof disabled !== 'undefined' && disabled.length > 0
+					&& true === EasyBooking.DateHelper.isDisabled( disabled, dateToEnable ) ) {
+						continue;
+					}
+					
+					if ( j ) {
+						highlight = dateToEnable;
+					}
+
+					// Add 'inverted' parameter to enable date instead of disabling it
+					enable.push( [
+						dateToEnable.getFullYear(),
+						dateToEnable.getMonth(),
+						dateToEnable.getDate(),
+						'inverted']
+					);
+
+					j = false;
+					
+				}
+
+				this.pickerItem.highlight = EasyBooking.DateHelper.createDateObject( new Date( highlight.getFullYear(), highlight.getMonth(), highlight.getDate() ) );
+
+				// Merge with already disabled dates
+				this.pickerItem.disable = disabled.concat( enable );
+
+			}
+
+			/**
+			* Get closest disabled date from selected date (on other calendar)
+			* @param {date|boolean}
+			**/
+			getClosestDisabled() {
+
+				const selectedTime = this.otherPicker.pickerItem.select.pick;
+				const selectedDate = new Date( selectedTime );
+				
+				let selectedDay = selectedDate.getDay();
+
+				// If first weekday is Sunday, add 1 day (because date object day starts at 0 and JS calendar start at 1)
+				if ( EasyBooking.firstWeekday === 'sunday' ) {
+					selectedDay += 1;
+				}
+
+				const pickerDisabled      = this.pickerObject.get('disable');
+				const otherPickerDisabled = this.otherPicker.pickerObject.get('disable');
+
+				const disabled      = EasyBooking.allowDisabled === 'no' ? pickerDisabled.concat(otherPickerDisabled) : pickerDisabled;
+				const disabledTimes = new Set();
+
+				// Loop through each disabled date to store time
+				disabled.forEach( date => {
+
+					// [year, month, day, type]
+					if ( EasyBooking.DateHelper.isArray( date ) && ( date[3] === 'booked' || EasyBooking.allowDisabled === 'no') ) {
+
+						disabledTimes.add( new Date( date[0], date[1], date[2] ).getTime() );
+
+					// { from: date, to: date, type: type }
+					} else if ( EasyBooking.DateHelper.isObject( date ) && ( date.type === 'booked' || EasyBooking.allowDisabled === 'no' ) ) {
+
+						const getDate = this.type === 'end' ? new Date( date.from[0], date.from[1], date.from[2] ) : new Date( date.to[0], date.to[1], date.to[2] );
 			
-		}).hide();
+						disabledTimes.add( getDate.getTime() );
 
-	});
+					// Date object
+					} else if ( EasyBooking.DateHelper.isDate( date ) ) {
 
-}(jQuery));
+						disabledTimes.add( date.getTime() );
+
+					// 1, 2, 3, 4, 5, 6, 7
+					} else if ( EasyBooking.allowDisabled === 'no' && EasyBooking.DateHelper.isDay( date ) ) {
+
+						let interval = Math.abs( selectedDay - date );
+
+						interval = interval === 0 ? 7 : interval;
+
+						if ( this.type === 'end' ) {
+
+							if ( date < selectedDay && interval !== 7 ) interval = 7 - interval;
+							disabledTimes.add( selectedDate.setDate( selectedDate.getDate() + interval ) );
+
+						} else if ( this.type === 'start' ) {
+
+							if ( selectedDay < date && interval !== 7 ) interval = 7 - interval;
+							disabledTimes.add( selectedDate.setDate( selectedDate.getDate() - interval ) );
+
+						}
+
+						 // Reset selected date
+						selectedDate.setTime( selectedTime );
+
+					}
+
+				});
+				
+				const sortedDisabledTimes = Array.from( disabledTimes ).sort( ( a, b ) => this.type === 'end' ? a - b : b - a );
+				const closestDisabledTime = sortedDisabledTimes.find( time => this.type === 'end' ? time > selectedTime : time < selectedTime );
+
+				return closestDisabledTime ? new Date( closestDisabledTime ) : false;
+
+			}
+
+			/**
+			* Check if picker is set
+			* @param {boolean}
+			**/
+			isSet() {
+				return typeof this.pickerItem.select !== 'undefined' && this.pickerItem.select !== null;
+			}
+
+		}
+
+		return {Datepickers, Picker};
+
+	}());
+
+	/**
+	* Get datepicker class to extend
+	* Check if Easy Booking PRO is active, otherwise use Easy Booking
+	* @param {string} type Product type
+	* @return {class}
+	**/
+	EasyBooking.datepickersClass = ( type ) => {
+		
+		const types = [ 'simple', 'variable', 'grouped', 'bundle' ];
+
+		if ( types.includes( type ) ) {
+
+			return typeof EasyBookingPro !== 'undefined' ?
+			EasyBookingPro[`${type.charAt(0).toUpperCase() + type.slice(1)}Datepickers`] :
+			EasyBooking.Datepickers.Datepickers;
+
+		} else {
+			throw new Error( 'Product type is incorrect!' );
+		}
+
+	}
+
+}(jQuery, window));

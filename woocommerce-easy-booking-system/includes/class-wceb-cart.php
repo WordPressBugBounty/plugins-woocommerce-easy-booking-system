@@ -40,8 +40,8 @@ class Cart {
     * @param bool - $passed
     * @param int - $product_id
     * @param int - $quantity
-    * @param (optional) int - $variation_id
-    * @param (optional) array - $variations
+    * @param int - $variation_id
+    * @param array - $variations
     * @return bool - $passed
     *
     **/
@@ -94,14 +94,18 @@ class Cart {
     public function check_dates_in_cart() {
 
         foreach ( WC()->cart->get_cart() as $cart_item_key => $values ) {
-            
+
             if ( isset( $values['_booking_start_date'] ) ) {
 
                 $_product = $values['data'];
                 $start    = $values['_booking_start_date'];
                 $end      = isset( $values['_booking_end_date'] ) ? $values['_booking_end_date'] : false;
 
-                $valid_dates = Date_Selection::check_selected_dates( $start, $end, $_product );
+                if ( isset( $values['bundled_by'] ) ) {
+                    $bundle = WC()->cart->get_cart_item( $values['bundled_by'] );
+                }
+
+                $valid_dates = Date_Selection::check_selected_dates( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
 
                 if ( is_wp_error( $valid_dates ) ) {
 
@@ -111,7 +115,7 @@ class Cart {
 
                 }
 
-                $valid_booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, $_product );
+                $valid_booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
 
                 if ( is_wp_error( $valid_booking_duration ) ) {
 
@@ -141,7 +145,8 @@ class Cart {
     function get_cart_item_booking_data_from_session( $session_data, $values ) {
 
         if ( isset( $values['_booking_price'] ) ) {
-            $session_data['_booking_price'] = $values['_booking_price'];
+            $session_data['_booking_price']         = $values['_booking_price'];
+            $session_data['_booking_regular_price'] = isset( $values['_booking_regular_price'] ) ? $values['_booking_regular_price'] : $values['_booking_price'];
         }
 
         if ( isset( $values['_booking_duration'] ) ) {
@@ -187,7 +192,7 @@ class Cart {
         $_product_id  = empty( $variation_id ) ? $product_id : $variation_id;
         $product      = wc_get_product( $product_id );
         $_product     = wc_get_product( $_product_id );
-
+        
         // Return if product is not bookable, or if start date is not set
         if ( ! wceb_is_bookable( $_product ) || ! isset( $post_data['start_date_submit'] ) ) {
             return $cart_item_meta;
@@ -196,8 +201,12 @@ class Cart {
         $start = $post_data['start_date_submit'];
         $end   = isset( $post_data['end_date_submit'] ) ? $post_data['end_date_submit'] : false;
 
-        $booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, $_product );
+        if ( isset( $cart_item_meta['bundled_by'] ) ) {
+            $bundle = WC()->cart->get_cart_item( $cart_item_meta['bundled_by'] );
+        }
 
+        $booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $product );
+        
         $data = array(
             'start'    => $start,
             'duration' => $booking_duration,
@@ -207,7 +216,7 @@ class Cart {
         if ( isset( $end ) && ! empty( $end ) ) {
             $data['end'] = $end;
         }
-
+        
         $booking_data = Date_Selection::{'get_' . $product->get_type() . '_product_booking_data'}( $data, $product, $_product );
 
         $cart_item_meta['_booking_price']      = wc_format_decimal( $booking_data[$_product_id]['new_price'] );
@@ -215,7 +224,11 @@ class Cart {
         $cart_item_meta['_booking_end_date']   = sanitize_text_field( $post_data['end_date_submit'] );
         $cart_item_meta['_booking_duration']   = absint( $booking_duration );
 
-        return apply_filters( 'easy_booking_add_cart_item_booking_data', $cart_item_meta );
+        if ( isset( $booking_data[$_product_id]['new_regular_price'] ) ) {
+            $cart_item_meta['_booking_regular_price'] = wc_format_decimal( $booking_data[$_product_id]['new_regular_price'] );
+        }
+
+        return apply_filters( 'easy_booking_add_cart_item_booking_data', $cart_item_meta, $booking_data[$_product_id] );
 
     }
 
@@ -231,17 +244,30 @@ class Cart {
 
         if ( isset( $cart_item['_booking_price'] ) && $cart_item['_booking_price'] >= 0 ) {
 
-            $cart_item['_booking_price'] = apply_filters(
+            $booking_price = apply_filters(
                 'easy_booking_set_booking_price',
                 $cart_item['_booking_price'],
                 $cart_item
             );
+            
+            // Set product price.
+            $cart_item['data']->set_price( (float) $booking_price );
+
+            if ( isset( $cart_item['_booking_regular_price'] ) ) {
+
+                $booking_regular_price = apply_filters(
+                    'easy_booking_set_booking_regular_price',
+                    $cart_item['_booking_regular_price'],
+                    $cart_item
+                );
+    
+                $cart_item['data']->set_regular_price( (float) $cart_item['_booking_regular_price'] );
+                $cart_item['data']->set_sale_price( (float) $booking_price );
+    
+            }
 
             // Filter for third-party plugins.
             $cart_item = apply_filters( 'easy_booking_cart_item', $cart_item );
-
-            // Set product price.
-            $cart_item['data']->set_price( (float) $cart_item['_booking_price'] );
 
         }
 

@@ -3,7 +3,7 @@
 /**
 *
 * Action hooks and filters related to WooCommerce Product Add-Ons.
-* @version 3.1.7
+* @version 3.3.6
 *
 **/
 
@@ -203,19 +203,18 @@ add_filter( 'woocommerce_product_addons_option_price', 'wceb_pao_product_addons_
 * Maybe add additional costs to booking price after selecting dates (not in cart).
 * @param str - $price
 * @param int - $_product_id
-* @param array - $data
+* @param array - $booking_data
 * @return str - $price
 *
 **/
-function wceb_pao_add_selected_addons_cost( $price, $_product_id, $data ) {
+function wceb_pao_add_selected_addons_cost( $price, $_product_id, $booking_data ) {
 
     $_product = wc_get_product( $_product_id );
 
-    // Get additional cost (from WooCommerce Product Addons)
-    $additional_cost = EasyBooking\Pao_Functions::get_selected_addons_cost( $_product, $data, $price );
+    $addons_data = EasyBooking\Pao_Functions::get_selected_addons_data( $_product, $booking_data );
 
-    if ( $additional_cost && ! empty( $additional_cost ) ) {
-        $price += $additional_cost;
+    if ( $addons_data && ! empty( $addons_data ) ) foreach ( $addons_data as $addon_data ) {
+        $price += $addon_data['cost'] / $booking_data['quantity'];
     }
 
     return wc_format_decimal( $price );
@@ -228,69 +227,124 @@ add_filter( 'easy_booking_new_regular_price_to_display', 'wceb_pao_add_selected_
 /**
 *
 * WooCommerce Product Add-Ons compatibilty.
-* Don't adjust addons price in cart if product is bookable. We will be calculating it later.
-* @param bool - $adjust
-* @param array - $cart_item_data
-* @return bool - $adjust
+* Adjust product booking price in cart with addons.
+* @param float - $booking_price
+* @param array - $cart_item
+* @return float - $booking_price
 *
 **/
-function wceb_pao_product_addons_adjust_price( $adjust, $cart_item_data ) {
+function wceb_pao_add_addons_price_to_booking_price( $booking_price, $cart_item ) {
 
-    if ( isset( $cart_item_data['_booking_price'] ) ) {
-        $adjust = false;
+    if ( isset( $cart_item['addons'] ) && ! empty( $cart_item['addons'] ) ) {
+
+        foreach ( $cart_item['addons'] as $i => $addon ) {
+            $booking_price += $addon['price_type'] === 'flat_fee' ? ( $cart_item['quantity'] > 0 ? (float) ( $addon['price'] / $cart_item['quantity'] ) : 0 ) : (float) $addon['price'];      
+        }
+
     }
 
-    return $adjust;
+    return $booking_price;
 
 }
 
-add_filter( 'woocommerce_product_addons_adjust_price', 'wceb_pao_product_addons_adjust_price', 99, 2 );
+add_filter( 'easy_booking_set_booking_price', 'wceb_pao_add_addons_price_to_booking_price', 10, 2 );
+add_filter( 'easy_booking_set_booking_regular_price', 'wceb_pao_add_addons_price_to_booking_price', 10, 2 );
 
 /**
 *
 * WooCommerce Product Add-Ons compatibilty.
-* Maybe adjust addons prices and booking price.
+* Adjust product booking price with addons in cart.
+* @param array - $updated_product_prices
+* @param array - $cart_item
+* @param array - $prices
+* @return array - $updated_product_prices
+*
+**/
+function wceb_pao_addons_price_in_cart( $updated_product_prices, $cart_item, $prices ) {
+    
+    if ( ! isset( $cart_item['_booking_price'] ) ) {
+        return $updated_product_prices;
+    }
+    
+    // Check if there are addons in cart
+    if ( isset( $cart_item['addons'] ) && ! empty( $cart_item['addons'] ) ) {
+
+        $booking_price         = (float) $cart_item['_booking_price'];
+        $booking_regular_price = (float) isset( $cart_item['_booking_regular_price'] ) ? $cart_item['_booking_regular_price'] : $cart_item['_booking_price'];
+        $booking_sale_price    = (float) $cart_item['_booking_price'];
+        
+        $flat_fees = 0;
+
+        foreach ( $cart_item['addons'] as $i => $addon ) {
+
+            switch ( $addon['price_type'] ) {
+
+                case 'flat_fee':
+
+                    $flat_fee = $cart_item['quantity'] > 0 ? (float) ( $addon['price'] / $cart_item['quantity'] ) : 0;
+
+                    $booking_price         += $flat_fee;
+                    $booking_regular_price += $flat_fee;
+                    $booking_sale_price    += $flat_fee;
+                    $flat_fees             += $flat_fee;
+                    break;
+
+                default:
+
+                    $booking_price         += (float) $addon['price'];
+                    $booking_regular_price += (float) $addon['price'];
+                    $booking_sale_price    += (float) $addon['price'];
+                    break;
+
+            }
+            
+        }
+
+        $updated_product_prices['price']                = $booking_price;
+        $updated_product_prices['regular_price']        = $booking_regular_price;
+        $updated_product_prices['sale_price']           = $booking_sale_price;
+        $updated_product_prices['addons_flat_fees_sum'] = $flat_fees;
+
+    }
+    
+    return $updated_product_prices;
+
+}
+
+add_filter( 'woocommerce_product_addons_update_product_price', 'wceb_pao_addons_price_in_cart', 20, 3 );
+
+/**
+*
+* WooCommerce Product Add-Ons compatibilty.
+* Calculate and store addons prices when adding a product to cart.
 * @param array - $cart_item
 * @return array - $cart_item
 *
 **/
 function wceb_pao_cart_item( $cart_item ) {
 
+    if ( ! isset( $cart_item['_booking_price'] ) ) {
+        return $cart_item;
+    }
+
     // Check if there are addons in cart
     if ( isset( $cart_item['addons'] ) && ! empty( $cart_item['addons'] ) ) {
 
-        // Store booking price before addons for future use.
-        if ( ! isset( $cart_item['addons_price_before_calc'] ) ) {
-            $cart_item['addons_price_before_calc'] = (float) $cart_item['_booking_price'];
-        }
-        
-        $booking_price = $cart_item['addons_price_before_calc'];
-
         foreach ( $cart_item['addons'] as $i => $addon ) {
 
-            // The function runs several times so we need to make sure to get "raw" addon price.
-            $addon_price = isset( $addon['raw_addon_price'] ) ? $addon['raw_addon_price'] : $addon['price'];
+            // The function runs several times so we need to get raw addon price.
+            $price = isset( $addon['raw_addon_price'] ) ? $addon['raw_addon_price'] : $addon['price'];
 
             // Calculate addon price depending on booking duration.
-            $addon_price = EasyBooking\Pao_Functions::calc_addon_cost( $addon_price, $addon['price_type'], $booking_price, $cart_item['_booking_duration'], $cart_item['quantity'], $addon['multiply'] );
+            $addon_price = EasyBooking\Pao_Functions::calc_addon_cost( $price, $addon, $cart_item['_booking_price'], $cart_item['_booking_duration'], $cart_item['quantity'] );
 
-            // Add addon price to product booking price.
-            $booking_price += $addon_price; 
+            // Store addon price before updating it to new calculated price.
+            $cart_item['addons'][$i]['raw_addon_price'] = $addon['price'];
 
-            // For percentage based addons, cost will never change (for example: 10%) so we adjust only flat fees and quantity based.
-            if ( 'percentage_based' !== $addon['price_type'] ) {
-
-                // Store addon price before updating it to new calculated price.
-                $cart_item['addons'][$i]['raw_addon_price'] = $addon['price'];
-
-                // Store new addon price.
-                $cart_item['addons'][$i]['price'] = strval( $addon_price );
-
-            }
+            // Store new addon price.
+            $cart_item['addons'][$i]['price'] = strval( $addon_price );
             
         }
-
-        $cart_item['_booking_price'] = (float) $booking_price;
 
     }
 
@@ -317,7 +371,7 @@ function wceb_pao_product_addon_cart_item_data( $data, $addon, $product_id, $pos
     $maybe_multiply = isset( $addon['multiply_by_booking_duration'] ) ? $addon['multiply_by_booking_duration'] : 0;
 
     foreach ( $data as $i => $addon_data ) {
-        $data[$i]['multiply'] = intval( $maybe_multiply );
+        $data[$i]['multiply_by_booking_duration'] = intval( $maybe_multiply );
     }
 
     return $data;
@@ -325,3 +379,127 @@ function wceb_pao_product_addon_cart_item_data( $data, $addon, $product_id, $pos
 }
 
 add_filter( 'woocommerce_product_addon_cart_item_data', 'wceb_pao_product_addon_cart_item_data', 10, 4 );
+
+/**
+*
+* WooCommerce Product Add-Ons compatibilty
+* Hide addons total on product page to avoid confusion (detail is shown after selecting dates)
+*
+* @param bool - $show
+* @param WC_Product - $product
+* @return bool - $show
+*
+**/
+function wceb_pao_hide_addons_total( $show, $product ) {
+    return wceb_is_bookable( $product ) ? false : $show;
+}
+
+add_filter( 'woocommerce_product_addons_show_grand_total', 'wceb_pao_hide_addons_total', 10, 2 );
+
+/**
+*
+* WooCommerce Product Add-Ons compatibilty
+* Display addons price in cart.
+*
+**/
+
+add_filter( 'woocommerce_addons_add_cart_price_to_value', '__return_true' );
+
+/**
+*
+* WooCommerce Product Add-Ons compatibilty
+* Display booking price (without addons price) in cart.
+*
+* @param array - $other_data
+* @param array - $cart_item
+* @return array - $other_data
+*
+**/
+function wceb_pao_display_booking_price_in_cart( $other_data, $cart_item ) {
+
+    // Display booking price only if there are addons in cart
+    if ( isset( $cart_item['_booking_price'] ) && ( isset( $cart_item['addons'] ) && ! empty( $cart_item['addons'] ) ) ) {
+
+        $other_data[] = array(
+            'name'  => esc_html__( 'Booking price', 'woocommerce-easy-booking-system' ),
+            'value' => wc_price( $cart_item['_booking_price'] )
+        );
+
+    }
+
+    return $other_data;
+
+}
+
+add_filter( 'woocommerce_get_item_data', 'wceb_pao_display_booking_price_in_cart', 5, 2 );
+
+/**
+*
+* WooCommerce Product Add-Ons compatibilty
+* Display booking price and addons price details after selecting dates.
+*
+* @param str - $details
+* @param WC_Product - $product
+* @param array - $booking_data
+* @return str - $details
+*
+**/
+function wceb_pao_addons_price_details( $details, $product, $booking_data ) {
+
+    $addons_data = EasyBooking\Pao_Functions::get_selected_addons_data( $product, $booking_data );
+    
+    if ( empty( $addons_data ) ) {
+        return $details;
+    }
+
+    $details .= '<p><span>';
+
+    $details .= sprintf(
+        esc_html__( 'Booking price: %s', 'woocommerce-easy-booking-system' ),
+        wc_price( $booking_data['new_price'] * $booking_data['quantity'] )
+    );
+
+    $details .= '</span></br>';
+
+    foreach ( $addons_data as $addon_data ) {
+
+        $details .= '<span>';
+
+        $details .= sprintf(
+            esc_html__( '%s: %s', 'woocommerce-easy-booking-system' ),
+            wptexturize( $addon_data['name'] ),
+            wc_price( \WC_Product_Addons_Helper::get_product_addon_price_for_display( $addon_data['cost'] ) ),
+        );
+
+        $details .= '</span></br>';
+
+    }
+
+    $details .= '</p>';
+
+    return $details;
+    
+}
+
+add_filter( 'easy_booking_booking_price_details', 'wceb_pao_addons_price_details', 10, 3 );
+
+/**
+*
+* WooCommerce Product Add-Ons compatibilty
+* Make sure to load addons.js script before main Easy Booking script.
+*
+* @param array - $dependencies
+* @return array - $dependencies
+*
+**/
+function wceb_add_addons_script_dependency( $dependencies ) {
+
+    if ( true === EasyBooking\Third_Party_Plugins::wc_pao_is_active() ) {
+        $dependencies[] = 'woocommerce-addons';
+    }
+
+    return $dependencies;
+
+}
+
+add_filter( 'easy_booking_script_dependencies', 'wceb_add_addons_script_dependency', 10, 1 );

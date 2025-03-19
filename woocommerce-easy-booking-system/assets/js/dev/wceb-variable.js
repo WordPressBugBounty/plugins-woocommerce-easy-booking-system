@@ -1,93 +1,129 @@
-(function($) {
+"use strict";
 
-	$(document).ready(function() {
-		
-		$pickerWrap   = $('.wceb_picker_wrap');
-		$priceText    = $('.price, .product-addon').find('.wceb-price-format');
-		$bookingPrice = $('.booking_price');
-		$body         = $('body');
-		$reset_dates  = $('.reset_dates');
+( function( $, _window ) {
 
-		$pickerWrap.hide();
-		$priceText.hide();
+	EasyBooking.VariableDatepickers = ( function() {
 
-		// Hide datepickers when reseting variations.
-		$body.on( 'reset_data', '.variations_form', function( e ) {
-			$pickerWrap.hide();
-		});
+		/**
+		 * VariableDatepickers class handles the datepicker functionality for variable products in the EasyBooking system.
+		 * It extends either ProDatepickers or Datepickers class based on their availability.
+		 * 
+		 * @param {object} $cart - jQuery object representing the cart element.
+		 */
+		class VariableDatepickers extends EasyBooking.datepickersClass( 'variable' ) {
 
-		// Reset pickers when changing variation.
-		$body.on( 'update_variation_values', '.variations_form', function( e ) {
+			constructor( $cart ) {
 
-			$pickerWrap.find( '.wceb_error' ).remove();
-			wceb.pickers.reset();
-			wceb.clearBookingSession();
-			$reset_dates.hide();
+				super( $cart );
 
-		});
-
-		// Reset pickers when changing variation.
-		$body.on( 'found_variation', '.variations_form', function( e, variation ) {
-
-			variationId = variation.variation_id;
-			priceHtml   = wceb_object.prices_html[variationId];
-
-			if ( ! variation.is_bookable ) {
-				$add_to_cart_button.removeClass( 'date-selection-needed' );
-			}
-
-			if ( ! variation.is_purchasable || ! variation.is_in_stock || ! variation.variation_is_visible || ! variation.is_bookable ) {
-
-				$pickerWrap.hide();
+				this.$price_text = this.$cart.find( '.wceb-price-format' );
 				
-			} else {
-
-				$pickerWrap.slideDown( 200 );
-				
-				var variationPrice = parseFloat( variation.display_price );
-				var variationRegularPrice = parseFloat( variation.display_regular_price );
-
-				$bookingPrice.attr('data-booking_price', variationPrice );
-				$bookingPrice.attr('data-booking_regular_price', variationRegularPrice );
-
-				var additional_costs = wceb.get.additionalCosts();
-
-				if ( $('.cart').find('input[name="quantity"]').length ) {
-					var qty = parseFloat( $('.cart').find('input[name="quantity"]').val() );
-				} else {
-					var qty = 1;
-				}
-
-				var variationPrice           = parseFloat( ( variationPrice + additional_costs ) * qty  );
-				var variationRegularPrice    = parseFloat( ( variationRegularPrice + additional_costs ) * qty  );
-
-				var price = '<span class="amount">' + wceb.formatPrice( variationPrice ) + '</span>' + wceb_object.price_suffix;
-
-				if ( variationPrice !== variationRegularPrice ) {
-					var price = '<del><span class="woocommerce-Price-amount amount">' + wceb.formatPrice( variationRegularPrice ) + wceb_object.price_suffix + '</span></del> <ins><span class="woocommerce-Price-amount amount">' + wceb.formatPrice( variationPrice ) + wceb_object.price_suffix + '</span></ins>';
-				}
-
-				$bookingPrice.html('<span class="price">' + price + '</span>');
-
-				// Get selected variation booking settings
-				wceb.dateFormat            = wceb_object.booking_dates[variationId];
-				wceb.firstDate             = parseInt( wceb_object.first_date[variationId] );
-				wceb.bookingMin            = parseInt( wceb_object.min[variationId] );
-				wceb.bookingMax            = wceb_object.max[variationId] === '' ? '' : parseInt( wceb_object.max[variationId] );
-				wceb.bookingDuration       = parseInt( wceb_object.booking_duration[variationId] );
-
-				( wceb.dateFormat === 'one' ) ? $pickerWrap.find('.show_if_two_dates').hide() : $pickerWrap.find('.show_if_two_dates').show();
-
-				wceb.pickers.init();
-				wceb.pickers.render( variation );
+				this.$picker_wrap.hide();
+				this.$price_text.hide();
 
 			}
 
-			// Hide "/ day" or "/ night" if variation is not bookable
-			( ! variation.is_bookable ) ? $priceText.hide() : $priceText.html( priceHtml ).show();
+			events() {
 
+				super.events();
+				
+				this.$reset_dates.on({
+
+					// Reset dates: reset variation price
+					click: () => {
+						
+						if ( typeof this.product.variation !== 'undefined' ) {
+							this.updatePrice( this.product.variation.display_price, this.product.variation.display_regular_price );
+						}
+
+					}
+
+				});
+				
+				this.$cart.on({
+
+					// Update variation value: init
+					update_variation_values: () => {
+						
+						this.init();
+						
+						// Remove any error
+						this.$picker_wrap.find( '.wceb_error' ).remove();
+
+					},
+
+					// No variation found: init
+					reset_data: () => {
+
+						delete this.product.variation;
+						delete this.product.variation_id;
+
+						this.init();
+						
+						this.$picker_wrap.hide();
+
+					},
+
+					// Variation found: reset pickers with current variation data
+					found_variation: ( _e, variation ) => {
+
+						this.product.variation    = variation;
+						this.product.variation_id = variation.variation_id;
+
+						this.product.prices_html = "";
+
+						if ( ! variation.is_bookable ) {
+							this.$add_to_cart_button.removeClass( 'date-selection-needed' );
+						}
+
+						if ( ! variation.is_purchasable || ! variation.is_in_stock || ! variation.variation_is_visible || ! variation.is_bookable ) {
+
+							this.$picker_wrap.hide();
+							
+						} else {
+
+							this.$picker_wrap.slideDown( 200 );
+							
+							// Get selected variation booking settings
+							this.product.booking_dates    = EASYBOOKING.product_params[variation.variation_id].booking_dates;
+							this.product.first_date       = parseInt( EASYBOOKING.product_params[variation.variation_id].first_date );
+							this.product.min              = parseInt( EASYBOOKING.product_params[variation.variation_id].min );
+							this.product.max              = EASYBOOKING.product_params[variation.variation_id].max === '' ? '' : parseInt( EASYBOOKING.product_params[variation.variation_id].max );
+							this.product.booking_duration = parseInt( EASYBOOKING.product_params[variation.variation_id].booking_duration );
+							this.product.prices_html      = EASYBOOKING.product_params[variation.variation_id].prices_html;
+
+							this.$cart.trigger( 'wceb_update_variation', variation );
+
+							this.product.booking_dates === 'one' ? this.$picker_wrap.find( '.show_if_two_dates' ).hide() : this.$picker_wrap.find( '.show_if_two_dates' ).show();
+							
+							this.updatePrice( variation.display_price, variation.display_regular_price );
+							this.initPickers();
+
+						}
+
+						this.$cart.trigger( 'wceb_found_variation', variation );
+
+						// Hide "/ day" or "/ night" if variation is not bookable
+						( ! variation.is_bookable ) ? this.$price_text.hide() : this.$price_text.html( this.product.prices_html ).show();
+
+					}
+
+				});
+
+			}
+
+		}
+
+		return VariableDatepickers;
+
+	}());
+
+	$( function() {
+
+		$('body').find( '.cart.variations_form:not( .bundled_item_cart_content )' ).each( function () {
+			const datepickers = new EasyBooking.VariableDatepickers( $(this) );
 		});
 
 	});
 
-})(jQuery);
+}(jQuery, window));

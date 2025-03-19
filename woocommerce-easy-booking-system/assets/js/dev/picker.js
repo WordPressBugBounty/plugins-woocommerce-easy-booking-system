@@ -169,7 +169,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
              */
             render: function( entireComponent ) {
 
-                P.trigger( 'before_rendering' );
+                P.trigger( 'before_render' );
 
                 // Insert a new component holder in the root or box.
                 if ( entireComponent ) {
@@ -181,7 +181,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
                 // Trigger the queued “render” events.
                 P.trigger( 'render' )
-                P.trigger( 'after_rendering' );
+                P.trigger( 'after_render' );
 
                 return;
             }, //render
