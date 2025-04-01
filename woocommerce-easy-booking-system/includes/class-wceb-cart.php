@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Cart action hooks and filters.
-* @version 3.3.2
+* @version 3.3.8
 *
 **/
 
@@ -205,8 +205,8 @@ class Cart {
             $bundle = WC()->cart->get_cart_item( $cart_item_meta['bundled_by'] );
         }
 
-        $booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $product );
-        
+        $booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
+
         $data = array(
             'start'    => $start,
             'duration' => $booking_duration,

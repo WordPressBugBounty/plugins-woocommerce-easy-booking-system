@@ -3,7 +3,7 @@
 Contributors: @_Ashanna
 Tags: woocommerce, booking, rent, book, calendar
 Requires at least: 5.0
-Stable tag: 3.3.7
+Stable tag: 3.3.8
 Tested up to: 6.7.2
 WC tested up to: 9.7.1
 License: GPLv3
@@ -57,6 +57,10 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 6. Reports
 
 == Changelog ==
+
+= 3.3.8 - 2025-04-01 =
+
+* Fix - Wrong price calculation in cart for variable products.
 
 = 3.3.7 - 2025-03-19 =
 
