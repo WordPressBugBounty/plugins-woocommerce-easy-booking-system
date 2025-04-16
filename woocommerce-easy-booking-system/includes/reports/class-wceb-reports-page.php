@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Admin: Reports page.
-* @version 3.3.2
+* @version 3.3.9
 *
 **/
 
@@ -99,6 +99,7 @@ class Reports_Page {
         wp_register_style(
             'wceb-calendar-reports-picker',
             wceb_get_file_path( 'admin', 'wceb-calendar-reports-picker', 'css', WCEB_PLUGIN_FILE ),
+            array( WC_ADMIN_APP ),
             true
         );
 

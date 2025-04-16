@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Load frontend assets.
-* @version 3.3.6
+* @version 3.3.9
 *
 **/
 
@@ -21,6 +21,8 @@ class Frontend_Assets {
 
     public function enqueue_scripts() {
         global $post;
+
+        if ( is_null( $post ) ) return;
 
         $IDS = array();
 
