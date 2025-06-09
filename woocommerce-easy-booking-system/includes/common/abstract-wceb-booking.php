@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Abstract Booking class.
-* @version 3.3.3
+* @version 3.4.1
 *
 **/
 
@@ -282,7 +282,7 @@ abstract class Booking {
     **/
 	public function check_qty( $qty ) {
 
-		if ( $qty <= 0 ) {
+		if ( ! apply_filters( 'easy_booking_allow_negative_qty_in_imports', false ) && $qty <= 0 ) {
 			throw new \Exception( __( 'Invalid quantity.', 'woocommerce-easy-booking-system' ) );
 		}
 

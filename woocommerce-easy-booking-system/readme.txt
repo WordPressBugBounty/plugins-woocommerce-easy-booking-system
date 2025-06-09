@@ -3,9 +3,9 @@
 Contributors: @_Ashanna
 Tags: woocommerce, booking, rent, book, calendar
 Requires at least: 5.0
-Stable tag: 3.4.0
-Tested up to: 6.8
-WC tested up to: 9.8.1
+Stable tag: 3.4.1
+Tested up to: 6.8.1
+WC tested up to: 9.8.5
 License: GPLv3
 
 A powerful and easy to use booking plugin for WooCommerce.
@@ -57,6 +57,12 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 6. Reports
 
 == Changelog ==
+
+= 3.4.1 - 2025-06-09 =
+
+* Fix - Error caused by wrong action hook when deleting an order item.
+* Tweak - Added "easy_booking_allow_negative_qty_in_imports" to allow manual stock increase on given dates.
+* Tweak - Added PRO version link to plugins page.
 
 = 3.4.0 - 2025-04-16 =
 

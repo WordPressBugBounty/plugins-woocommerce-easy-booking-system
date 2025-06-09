@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Orders action hooks.
-* @version 3.3.4
+* @version 3.4.1
 *
 **/
 
@@ -19,7 +19,7 @@ class Order {
         add_action( 'woocommerce_before_order_itemmeta', array( $this, 'display_order_item_booking_data' ), 10, 3 );
         add_action( 'woocommerce_before_order_item_object_save', array( $this, 'check_booking_dates' ), 10, 1 );
         add_action( 'woocommerce_after_order_item_object_save', array( $this, 'create_or_update_order_booking' ), 10, 1 );
-        add_action( 'woocommerce_delete_order_item', array( $this, 'delete_order_booking' ), 10, 1 );
+        add_action( 'woocommerce_before_delete_order_item', array( $this, 'delete_order_booking' ), 10, 1 );
         add_action( 'woocommerce_order_partially_refunded', array( $this, 'update_or_delete_order_bookings_after_refund' ), 10, 2 );
         add_action( 'woocommerce_delete_order_items', array( $this, 'delete_order_bookings_after_order_delete' ), 10, 1 );
         add_action( 'woocommerce_refund_deleted', array( $this, 'update_order_booking_after_refund_delete' ), 10, 2 );

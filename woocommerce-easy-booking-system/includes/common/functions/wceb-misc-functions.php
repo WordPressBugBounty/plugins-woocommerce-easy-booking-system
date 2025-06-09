@@ -3,7 +3,7 @@
 /**
 *
 * Misc functions.
-* @version 3.4.0
+* @version 3.4.1
 *
 **/
 
@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 *
 **/
 function wceb_get_version() {
-    return '3.4.0';
+    return '3.4.1';
 } 
 
 /**
