@@ -6,7 +6,7 @@
 
 	EasyBooking.calcMode      = EASYBOOKING.calc_mode; // Days or Nights
 	EasyBooking.maxOption     = new Date( EASYBOOKING.last_date + 'T00:00:00' ); // December 31st of max year
-	EasyBooking.firstWeekday  = EASYBOOKING.first_weekday !== '0' ? 'monday' : 'sunday'; // Sunday or Monday
+	EasyBooking.firstWeekday  = EASYBOOKING.first_weekday != '0' ? 'monday' : 'sunday'; // Sunday or Monday
 	EasyBooking.allowDisabled = EASYBOOKING.allow_disabled; // Allow disabled dates inside booking period
 	EasyBooking.ajaxUrl       = location.protocol === 'https:' ? `https:${EASYBOOKING.ajax_url}` : `http:${EASYBOOKING.ajax_url}`; // Fix to force http/https for ajax requests
 	
@@ -171,7 +171,7 @@
 					} else if ( EasyBooking.firstWeekday === 'sunday' ) { 
 						day += 1;
 					}
-					
+
 					if ( dateObject === day ) {
 						return true;
 					}
@@ -1023,7 +1023,7 @@
 					}
 
 				}
-				
+
 				// If first available date is disabled, check the next date until one is available
 				while ( true === EasyBooking.DateHelper.isDisabled( this.getDisabled(), min ) ) {
 					min = EasyBooking.DateHelper.addDays( min, 1 );

@@ -1,11 +1,11 @@
 ==== Easy Booking for WooCommerce ====
 
-Contributors: @_Ashanna
+Contributors: @morki
 Tags: woocommerce, booking, rent, book, calendar
 Requires at least: 5.0
-Stable tag: 3.4.1
+Stable tag: 3.4.2
 Tested up to: 6.8.1
-WC tested up to: 9.8.5
+WC tested up to: 9.9.5
 License: GPLv3
 
 A powerful and easy to use booking plugin for WooCommerce.
@@ -57,6 +57,10 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 6. Reports
 
 == Changelog ==
+
+= 3.4.2 - 2025-07-01 =
+
+* Fix - Date not available when week starts on Sunday.
 
 = 3.4.1 - 2025-06-09 =
 

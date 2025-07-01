@@ -3,12 +3,12 @@
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
 * Description: A powerful and easy to use booking plugin for your WooCommerce store.
-* Version: 3.4.1
-* Author: @_Ashanna
+* Version: 3.4.2
+* Author: @morki
 * Author URI: https://easy-booking.pro/
 * Requires at least: 5.0
 * Tested up to: 6.8.1
-* WC tested up to: 9.8.5
+* WC tested up to: 9.9.5
 * Requires Plugins: woocommerce
 * WC requires at least: 3.0
 * Text domain: woocommerce-easy-booking-system
