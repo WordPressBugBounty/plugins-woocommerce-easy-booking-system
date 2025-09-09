@@ -93,7 +93,6 @@ div.notice.easy-booking-notice {
 
 .wceb-product-option .delete:before, .wceb-option-table .delete:before {
 	font-family: WooCommerce;
-	speak: none;
 	font-weight: 400;
 	font-variant: normal;
 	text-transform: none;
@@ -121,9 +120,10 @@ div.notice.easy-booking-notice {
 	margin-right: 2%;
 }
 
-.wceb-option-table input, .wceb-option-table select,
-.form-row.wceb-product-option input, .form-row.wceb-product-option select,
-#variable_product_options .form-row.wceb-product-option input, #variable_product_options .form-row.wceb-product-option select {
+.wceb-option-table input, .wceb-option-table select:not(.picker__select--year, .picker__select--month),
+.form-row.wceb-product-option input, .form-row.wceb-product-option select:not(.picker__select--year, .picker__select--month),
+#variable_product_options .form-row.wceb-product-option input,
+#variable_product_options .form-row.wceb-product-option select:not(.picker__select--year, .picker__select--month) {
 	max-width: 95%;
 }
 

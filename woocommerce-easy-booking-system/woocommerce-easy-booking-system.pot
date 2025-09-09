@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Easy Booking for WooCommerce\n"
-"POT-Creation-Date: 2025-01-29 09:38+0100\n"
+"POT-Creation-Date: 2025-09-09 11:34+0200\n"
 "PO-Revision-Date: 2019-10-14 14:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -72,6 +72,13 @@ msgstr ""
 #: includes/settings/views/html-wceb-tools-page.php:26
 #: includes/settings/views/html-wceb-tools-page.php:33
 msgid "Update database"
+msgstr ""
+
+#: includes/admin/views/notices/html-wceb-notice-update-pro-plugin.php:17
+msgid ""
+"Easy Booking PRO has been deactivated because it is out-of-date and not "
+"compatible with this version of Easy Booking. Please update Easy Booking PRO "
+"to its latest version."
 msgstr ""
 
 #: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro-reminder.php:18
@@ -283,12 +290,12 @@ msgid_plural "days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/common/class-wceb-date-selection.php:379
+#: includes/common/class-wceb-date-selection.php:380
 #, php-format
 msgid "Total booking duration: %s %s"
 msgstr ""
 
-#: includes/common/class-wceb-date-selection.php:392
+#: includes/common/class-wceb-date-selection.php:394
 #, php-format
 msgid "Average price %s: %s"
 msgstr ""
@@ -309,14 +316,14 @@ msgstr ""
 msgid "Please select dates before adding this product to your cart."
 msgstr ""
 
-#: includes/common/functions/wceb-product-functions.php:338
+#: includes/common/functions/wceb-product-functions.php:363
 #, php-format
 msgid " / night"
 msgid_plural " / %s nights"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/common/functions/wceb-product-functions.php:338
+#: includes/common/functions/wceb-product-functions.php:363
 #, php-format
 msgid " / day"
 msgid_plural " / %s days"
@@ -325,6 +332,20 @@ msgstr[1] ""
 
 #: includes/common/third-party/plugins/wc-product-addons.php:31
 msgid "Multiply addon cost by booking duration?"
+msgstr ""
+
+#: includes/common/third-party/plugins/wc-product-addons.php:424
+msgid "Booking price"
+msgstr ""
+
+#: includes/common/third-party/plugins/wc-product-addons.php:458
+#, php-format
+msgid "Booking price: %s"
+msgstr ""
+
+#: includes/common/third-party/plugins/wc-product-addons.php:469
+#, php-format
+msgid "%s: %s"
 msgstr ""
 
 #: includes/reports/class-wceb-list-bookings.php:25
@@ -364,6 +385,7 @@ msgstr ""
 
 #: includes/settings/class-wceb-pro-page.php:35
 #: includes/settings/class-wceb-pro-page.php:36
+#: woocommerce-easy-booking.php:313
 msgid "PRO version"
 msgstr ""
 
@@ -470,7 +492,7 @@ msgstr ""
 
 #: includes/settings/class-wceb-settings-page.php:32
 #: includes/settings/class-wceb-settings-page.php:33
-#: woocommerce-easy-booking.php:262
+#: woocommerce-easy-booking.php:312
 msgid "Settings"
 msgstr ""
 
@@ -611,6 +633,6 @@ msgstr ""
 msgid "Clear dates"
 msgstr ""
 
-#: includes/wceb-single-product.php:62
+#: includes/wceb-single-product.php:60
 msgid "Select date(s)"
 msgstr ""

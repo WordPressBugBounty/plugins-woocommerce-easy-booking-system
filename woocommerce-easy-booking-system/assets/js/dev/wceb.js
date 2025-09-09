@@ -593,7 +593,7 @@
 				if ( ! this.hasSelectedDates() ) {
 
 					price += parseFloat( this.getAdditionalCosts( 'total' ) );
-					price *= this.$qty_input.length ? parseFloat( this.$qty_input.val() ) : 1;
+					price *= this.$qty_input.val() !== "" ? parseFloat( this.$qty_input.val() ) : 1;
 
 				}
 				
@@ -1287,7 +1287,7 @@
 
 			/**
 			* Check if picker is set
-			* @param {boolean}
+			* @return {boolean}
 			**/
 			isSet() {
 				return typeof this.pickerItem.select !== 'undefined' && this.pickerItem.select !== null;

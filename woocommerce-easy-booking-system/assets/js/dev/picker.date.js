@@ -223,7 +223,7 @@ DatePicker.prototype.create = function( type, value, options ) {
 
     // If it’s an array, convert it into a date and make sure
     // that it’s a valid date – otherwise default to today.
-    else if ( $.isArray( value ) ) {
+    else if ( Array.isArray( value ) ) {
         value = new Date( value[ 0 ], value[ 1 ], value[ 2 ] )
         value = _.isDate( value ) ? value : calendar.create().obj
     }
@@ -258,7 +258,7 @@ DatePicker.prototype.createRange = function( from, to ) {
 
     var calendar = this,
         createDate = function( date ) {
-            if ( date === true || $.isArray( date ) || _.isDate( date ) ) {
+            if ( date === true || Array.isArray( date ) || _.isDate( date ) ) {
                 return calendar.create( date )
             }
             return date
@@ -333,7 +333,7 @@ DatePicker.prototype.navigate = function( type, value, options ) {
         targetYear,
         targetMonth,
         targetDate,
-        isTargetArray = $.isArray( value ),
+        isTargetArray = Array.isArray( value ),
         isTargetObject = $.isPlainObject( value ),
         viewsetObject = this.item.view/*,
         safety = 100*/
@@ -454,7 +454,7 @@ DatePicker.prototype.validate = function( type, dateObject, options ) {
         hasEnabledWeekdays = isFlippedBase && calendar.item.disable.filter( function( value ) {
 
             // If there’s a date, check where it is relative to the target.
-            if ( $.isArray( value ) ) {
+            if ( Array.isArray( value ) ) {
                 var dateTime = calendar.create( value ).pick
                 if ( dateTime < dateObject.pick ) hasEnabledBeforeTarget = true
                 else if ( dateTime > dateObject.pick ) hasEnabledAfterTarget = true
@@ -564,7 +564,7 @@ DatePicker.prototype.disabled = function( dateToVerify ) {
             }
 
             // If it’s an array or a native JS date, create and match the exact date.
-            if ( $.isArray( dateToDisable ) || _.isDate( dateToDisable ) ) {
+            if ( Array.isArray( dateToDisable ) || _.isDate( dateToDisable ) ) {
                 return dateToVerify.pick === calendar.create( dateToDisable ).pick
             }
 
@@ -576,7 +576,7 @@ DatePicker.prototype.disabled = function( dateToVerify ) {
 
     // If this date matches a disabled date, confirm it’s not inverted.
     isDisabledMatch = isDisabledMatch.length && !isDisabledMatch.filter(function( dateToDisable ) {
-        return $.isArray( dateToDisable ) && dateToDisable[3] == 'inverted' ||
+        return Array.isArray( dateToDisable ) && dateToDisable[3] == 'inverted' ||
             $.isPlainObject( dateToDisable ) && dateToDisable.inverted
     }).length
 
@@ -764,8 +764,8 @@ DatePicker.prototype.isDateExact = function( one, two ) {
 
     // When we’re working with date representations, compare the “pick” value.
     if (
-        ( _.isDate( one ) || $.isArray( one ) ) &&
-        ( _.isDate( two ) || $.isArray( two ) )
+        ( _.isDate( one ) || Array.isArray( one ) ) &&
+        ( _.isDate( two ) || Array.isArray( two ) )
     ) {
         return calendar.create( one ).pick === calendar.create( two ).pick
     }
@@ -788,11 +788,11 @@ DatePicker.prototype.isDateOverlap = function( one, two ) {
         firstDay = calendar.settings.firstDay ? 1 : 0
 
     // When we’re working with a weekday index, compare the days.
-    if ( _.isInteger( one ) && ( _.isDate( two ) || $.isArray( two ) ) ) {
+    if ( _.isInteger( one ) && ( _.isDate( two ) || Array.isArray( two ) ) ) {
         one = one % 7 + firstDay
         return one === calendar.create( two ).day + 1
     }
-    if ( _.isInteger( two ) && ( _.isDate( one ) || $.isArray( one ) ) ) {
+    if ( _.isInteger( two ) && ( _.isDate( one ) || Array.isArray( one ) ) ) {
         two = two % 7 + firstDay
         return two === calendar.create( one ).day + 1
     }
@@ -860,7 +860,7 @@ DatePicker.prototype.deactivate = function( type, datesToDisable ) {
                 if (
                     _.isInteger( unitToDisable ) ||
                     _.isDate( unitToDisable ) ||
-                    $.isArray( unitToDisable ) ||
+                    Array.isArray( unitToDisable ) ||
                     ( $.isPlainObject( unitToDisable ) && unitToDisable.from && unitToDisable.to )
                 ) {
                     disabledItems.push( unitToDisable )
@@ -926,7 +926,7 @@ DatePicker.prototype.activate = function( type, datesToEnable ) {
                         unitToEnable.inverted = true
                         matchFound = unitToEnable
                     }
-                    else if ( $.isArray( unitToEnable ) ) {
+                    else if ( Array.isArray( unitToEnable ) ) {
                         matchFound = unitToEnable
                         if ( !matchFound[3] ) matchFound.push( 'inverted' )
                     }

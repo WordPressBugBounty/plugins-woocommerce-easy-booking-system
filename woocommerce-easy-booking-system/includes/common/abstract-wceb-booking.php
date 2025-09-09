@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Abstract Booking class.
-* @version 3.4.1
+* @version 3.4.3
 *
 **/
 
@@ -145,7 +145,7 @@ abstract class Booking {
 
 			return new \WP_Error(
 				'easy_booking_error_setting_property',
-				sprintf( 'Error setting booking property: %s', $e->getMessage(), 'easy-booking-pro' ),
+				sprintf( 'Error setting booking property: %s', $e->getMessage(), 'woocommerce-easy-booking-system' ),
 				'error'
 			);
 

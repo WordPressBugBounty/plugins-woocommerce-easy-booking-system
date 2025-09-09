@@ -18,7 +18,7 @@ class Date_Selection {
     * Check selected dates.
     * @param str - $start
     * @param str - $end
-    * @param WC_Product | WC_Product_Variation - $_product
+    * @param WC_Product - $_product
     * @param bool - Check if start date is in the past or not
     * @return bool | WP_Error
     *

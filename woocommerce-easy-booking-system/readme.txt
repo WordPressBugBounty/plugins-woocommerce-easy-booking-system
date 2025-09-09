@@ -3,9 +3,9 @@
 Contributors: @morki
 Tags: woocommerce, booking, rent, book, calendar
 Requires at least: 5.0
-Stable tag: 3.4.2
-Tested up to: 6.8.1
-WC tested up to: 9.9.5
+Stable tag: 3.4.3
+Tested up to: 6.8.2
+WC tested up to: 10.1.2
 License: GPLv3
 
 A powerful and easy to use booking plugin for WooCommerce.
@@ -57,6 +57,11 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 6. Reports
 
 == Changelog ==
+
+= 3.4.3 - 2025-09-09 =
+
+* Fix - Price not updated correctly on grouped product.
+* Tweak - Removed deprecated jquery events.
 
 = 3.4.2 - 2025-07-01 =
 

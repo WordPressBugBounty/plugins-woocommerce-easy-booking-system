@@ -1,27 +1,27 @@
 (function($) {
 	$(document).ready(function() {
 
-		$('input#_bookable').change( function() {
+		$('input#_bookable').on( 'change', function() {
 
 			if ( $(this).is(':checked') ) {
 				$('.show_if_bookable').show();
 			} else {
 				$('.show_if_bookable').hide();
-				$('input.variation_is_bookable').attr('checked', false).change();
+				$('input.variation_is_bookable').attr('checked', false).trigger( 'change' );
 			}
 
 			if ( $('.bookings_tab').is('.active') ) {
 				$( 'ul.wc-tabs li:visible' ).eq(0).find( 'a' ).click();
 			}
 
-		}).change();
+		}).trigger( 'change' );
 
 		$( '#variable_product_options' ).on( 'change', 'input.variation_is_bookable', function () {
 			$( this ).closest( '.woocommerce_variation' ).find( '.show_if_variation_bookable' ).hide();
 			if ( $( this ).is( ':checked' ) ) {
 				$( this ).closest( '.woocommerce_variation' ).find( '.show_if_variation_bookable' ).show();
 			}
-		}).change();
+		}).trigger( 'change' );
 
 		// Simple and variable parent products
 		$('#booking_product_data').find('.booking_dates').on( 'change', function() {
@@ -39,9 +39,9 @@
 			}
 
 			// Maybe override with variation values
-			$('#variable_product_options').find('.booking_dates').change();
+			$('#variable_product_options').find('.booking_dates').trigger( 'change' );
 
-		}).change();
+		}).trigger( 'change' );
 
 		// Variations
 		$( '#variable_product_options' ).on( 'change', '.booking_dates', function() {
@@ -66,11 +66,11 @@
 				$parent.find('.show_if_two_dates').hide();
 			}
 			
-		}).change();
+		}).trigger( 'change' );
 
 		$( '#woocommerce-product-data' ).on( 'woocommerce_variations_loaded', function() {
-			$('#variable_product_options').find('input.variation_is_bookable').change();
-			$('#variable_product_options').find('.booking_dates').change();
+			$('#variable_product_options').find('input.variation_is_bookable').trigger( 'change' );
+			$('#variable_product_options').find('.booking_dates').trigger( 'change' );
 		});
 
 	});

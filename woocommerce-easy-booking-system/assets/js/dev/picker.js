@@ -350,13 +350,13 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
                 // If we need to give focus, do it before changing states.
                 if ( giveFocus ) {
                     if ( SETTINGS.editable ) {
-                        ELEMENT.focus()
+                        ELEMENT.trigger('focus')
                     }
                     else {
                         // ....ah yes! It would’ve been incomplete without a crazy workaround for IE :|
                         // The focus is triggered *after* the close has completed - causing it
                         // to open again. So unbind and rebind the event at the next tick.
-                        P.$holder.off( 'focus.toOpen' ).focus()
+                        P.$holder.off( 'focus.toOpen' ).trigger('focus')
                         setTimeout( function() {
                             P.$holder.on( 'focus.toOpen', handleFocusToOpenEvent )
                         }, 0 )
@@ -713,7 +713,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
                             // Re-focus onto the holder so that users can click away
                             // from elements focused within the picker.
-                            P.$holder.eq(0).focus()
+                            P.$holder.eq(0).trigger('focus')
                         }
                     }
                 }
@@ -734,7 +734,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
                 // If it’s disabled or nothing inside is actively focused, re-focus the element.
                 if ( targetDisabled || activeElement && !$.contains( P.$root[0], activeElement ) ) {
-                    P.$holder.eq(0).focus()
+                    P.$holder.eq(0).trigger('focus')
                 }
 
                 // If something is superficially changed, update the `highlight` based on the `nav`.
@@ -819,12 +819,12 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
         if (IS_DEFAULT_THEME && supportsTransitions) {
             P.$holder.find('.' + CLASSES.frame).one('transitionend', function() {
-                P.$holder.eq(0).focus()
+                P.$holder.eq(0).trigger('focus')
             })
         }
         else {
             setTimeout(function() {
-                P.$holder.eq(0).focus()
+                P.$holder.eq(0).trigger('focus')
             }, 0)
         }
     }
@@ -1067,7 +1067,7 @@ PickerConstructor._ = {
         if ( !item ) return ''
 
         // If the item is an array, do a join
-        item = $.isArray( item ) ? item.join( '' ) : item
+        item = Array.isArray( item ) ? item.join( '' ) : item
 
         // Check for the class
         klass = klass ? ' class="' + klass + '"' : ''
