@@ -8,8 +8,7 @@
 	EasyBooking.maxOption     = new Date( EASYBOOKING.last_date + 'T00:00:00' ); // December 31st of max year
 	EasyBooking.firstWeekday  = EASYBOOKING.first_weekday != '0' ? 'monday' : 'sunday'; // Sunday or Monday
 	EasyBooking.allowDisabled = EASYBOOKING.allow_disabled; // Allow disabled dates inside booking period
-	EasyBooking.ajaxUrl       = location.protocol === 'https:' ? `https:${EASYBOOKING.ajax_url}` : `http:${EASYBOOKING.ajax_url}`; // Fix to force http/https for ajax requests
-	
+
 	EasyBooking.Helper = {
 
 		/**
@@ -255,6 +254,8 @@
 				this.$booking_price      = this.$cart.find('.booking_price');
 				this.$add_to_cart_button = this.$cart.find('.single_add_to_cart_button');
 				this.$qty_input          = this.$cart.find('input[name="quantity"]');
+				this.$main_qty_input     = this.$qty_input; // Tweak for grouped and bundle products
+				this.qty                 = this.$main_qty_input.val();
 
 				// Create corresponding product object
 				this.createProduct();
@@ -283,6 +284,9 @@
 					this.init();
 
 				}
+
+				// Instance globale
+				this.dynamicNonce = new DynamicNonce();
 
 			}
 
@@ -321,8 +325,13 @@
 				self.$qty_input.on(
 					'change',
 					function (e) {
+						
+						// Make sure we only trigger function if quantity was updated
+						if ( self.qty !== $(this).val() ) {
+							self.qty = $(this).val();
+							self.updateTotals();
+						}
 
-						self.updateTotals();
 						e.stopPropagation();
 
 					}
@@ -493,12 +502,11 @@
 			* Calculate booking price
 			* Ajax request to calculate price and get booking details
 			**/
-			calcBookingPrice() {
+			async calcBookingPrice() {
 
 				var self = this;
 
 				let data = {
-					security       : document.getElementsByName('_wceb_nonce')[0].value,
 					product_id     : self.product.id,
 					quantity       : self.$qty_input.val(),
 					variation_id   : self.product.variation_id,
@@ -512,42 +520,44 @@
 					data.end_format = self.EndPicker.pickerObject.get( 'select', 'yyyy-mm-dd' );
 				}
 
+				// Remove existing errors
+				self.$cart.find( '.woocommerce-error, .woocommerce-message' ).remove();
+
 				// Block
-				self.$cart.fadeTo( '400', '0.6' ).css( 'cursor', 'wait' );
+				self.$cart.attr( 'aria-busy', 'true' ).fadeTo( '400', '0.6' ).css( 'cursor', 'wait' );
+				
+				try {
 
-				$.post( EasyBooking.ajaxUrl.toString().replace( '%%endpoint%%', 'set_booking_session' ), data, function ( response ) {
+					const nonce = await this.dynamicNonce.getNonce();
 
-					self.$cart.find( '.woocommerce-error, .woocommerce-message' ).remove();
+					const request = await fetch( EASYBOOKING.rest_url + 'easybooking/v1/date-selection/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({ security: nonce, ...data })
+					});
 
-					let fragments = response.fragments;
-					let error     = response.error;
+					const response = await request.json();
 
-					// Manage errors
-					if ( error ) {
-
-						// Display error
-						self.$picker_wrap.prepend( `<div class="wceb_error woocommerce-error">${error}</div>` );
-
-						// Reset pickers
-						self.init();
-
-						// Unblock
-						self.$cart.fadeTo( 0, '1' ).css( 'cursor', 'auto' );
-
-						return false;
-
+					if ( ! response.success && ( response.message || response.error ) ) {
+						throw new Error( response.message || response.error );
 					}
 
 					// No error
-					if ( fragments ) {
+					if ( response.fragments ) {
 
 						// Replace fragments (booking details)
-						$.each( fragments, function ( key, value ) {
+						$.each( response.fragments, function ( key, value ) {
 							self.$cart.find( key ).replaceWith( value );
 						});
 
 						// Update price
-						self.updatePrice( fragments.booking_price, fragments.booking_regular_price !== '' ? fragments.booking_regular_price : fragments.booking_price, false );
+						self.updatePrice(
+							response.fragments.booking_price,
+							response.fragments.booking_regular_price !== '' ? response.fragments.booking_regular_price : response.fragments.booking_price,
+							false
+						);
 
 					}
 
@@ -557,10 +567,23 @@
 					// Allow add to cart
 					self.$add_to_cart_button.removeClass( 'date-selection-needed' );
 
-					// Unblock
-					self.$cart.fadeTo( 0, '1' ).css( 'cursor', 'auto' );
+				} catch ( error ) {
+					
+					// Display error
+					self.$picker_wrap.prepend( `<div class="wceb_error woocommerce-error">${error.message}</div>` );
 
-				});
+					// Trigger event for Easy Booking PRO
+					self.$cart.trigger( 'update_price_error', error );
+
+					// Reset pickers
+					self.init();
+
+				} finally {
+
+					// Unblock
+					self.$cart.attr( 'aria-busy', 'false' ).fadeTo( 0, '1' ).css( 'cursor', 'auto' );
+
+				}
 
 			}
 
@@ -593,7 +616,7 @@
 				if ( ! this.hasSelectedDates() ) {
 
 					price += parseFloat( this.getAdditionalCosts( 'total' ) );
-					price *= this.$qty_input.val() !== "" ? parseFloat( this.$qty_input.val() ) : 1;
+					price *= typeof this.$main_qty_input.val() !== 'undefined' ? parseFloat( this.$main_qty_input.val() ) : 1;
 
 				}
 				
@@ -698,8 +721,11 @@
 					});
 
 				}
-				
+
 				if ( action === 'init' ) {
+
+					// Remove any existing errors as we've changed configuration
+					self.$cart.find( '.woocommerce-error, .woocommerce-message' ).remove();
 
 					self.init();
 					self.updatePrice( price, regularPrice );
@@ -736,13 +762,14 @@
 
 					let addonName  = data.nameFormattedHTML.split('<span class="wc-pao-addon-name">').pop().split('</span>')[0];
 					let addonValue = data.nameFormattedHTML.split('<span class="wc-pao-addon-value">').pop().split('</span>')[0];
+					let addonCost  = data.cost_raw_pu ? data.cost_raw_pu : data.cost_raw;
 
 					let id = self.$cart.find( `.wc-pao-addon-name[data-addon-name="${addonName}"]` )
 							.parents( '.wc-pao-addon' )
 							.attr( 'class' )
 							.match( /(?:^|\s)wc-pao-addon-id-([^- ]+)(?:\s|$)/ )[1];
 
-					costs.push( { id: id, cost: data.cost_raw, value: addonValue } );
+					costs.push( { id: id, cost: addonCost, value: addonValue } );
 
 				});
 
@@ -778,6 +805,7 @@
 				this.children             = EASYBOOKING.product_params[this.id].children;
 				this.end_text             = EASYBOOKING.product_params[this.id].end_text;
 				this.first_date           = parseInt( EASYBOOKING.product_params[this.id].first_date );
+				this.last_date            = parseInt( EASYBOOKING.product_params[this.id].last_date );
 				this.max                  = EASYBOOKING.product_params[this.id].max !== '' ? parseInt( EASYBOOKING.product_params[this.id].max ) : '';
 				this.min                  = parseInt( EASYBOOKING.product_params[this.id].min );
 				this.price_suffix         = EASYBOOKING.product_params[this.id].price_suffix;
@@ -991,27 +1019,49 @@
 			}
 
 			/**
+			* Get picker last available date
+			* @return {date}
+			**/
+			getLastAvailableDate() {
+
+				let last = new Date();
+
+				if ( this.product.last_date > 0 ) {
+					last.setDate( last.getDate() + this.product.last_date );
+				}
+
+				return ( last instanceof Date ) ? last : new Date( last );
+
+			}
+
+			/**
 			* Get picker minimum date
 			* @return {date}
 			**/
 			getMinimum() {
 
+				const firstAvailableDate = this.getFirstAvailableDate();
+
 				// Maybe get other picker selected date
 				let selected = this.otherPicker.getSelected();
 				let min      = selected ? selected : new Date();
-				
+				let minimum  = this.product.min; // Store for later
+
 				if ( selected ) {
 
 					if ( this.type === 'start' ) {
 
 						// After setting end date, remove maximum booking duration from selected date
-						min = this.product.max !== '' ? EasyBooking.DateHelper.removeDays( selected, this.product.max ) : this.getFirstAvailableDate();
+						min = this.product.max !== '' ? EasyBooking.DateHelper.removeDays( selected, this.product.max ) : firstAvailableDate;
 
 					} else if ( this.type === 'end' ) {
+
+						// Allow minimum booking duration to be dynamically modified depending on selected date
+						this.$cart.trigger( 'set_min_booking_duration', [ this, selected ] );
 						
 						// After setting start date, maybe add minimum booking duration to selected date
 						min = EasyBooking.DateHelper.addDays( selected, this.product.min );
-	
+
 					}
 
 				} else {
@@ -1024,13 +1074,22 @@
 
 				}
 
+				this.product.min = minimum; // Reset value
+
 				// If first available date is disabled, check the next date until one is available
 				while ( true === EasyBooking.DateHelper.isDisabled( this.getDisabled(), min ) ) {
-					min = EasyBooking.DateHelper.addDays( min, 1 );
-					
+					min = EasyBooking.DateHelper.addDays( min, 1 );	
+				}
+
+				// Maybe convert time to Date
+				if ( false === min instanceof Date ) { min = new Date( min ); }
+
+				// If first available date is after minimum date, set minimum date to first available date
+				if ( min < firstAvailableDate ) {
+					min = firstAvailableDate;
 				}
 				
-				return ( min instanceof Date ) ? min : new Date( min );
+				return min;
 
 			}
 
@@ -1040,11 +1099,17 @@
 			**/
 			getMaximum() {
 
+				let lastAvailableDate = this.getLastAvailableDate();
+
 				// Maybe get other picker selected date
 				let selected = this.otherPicker.getSelected();
-				let max      = selected ? selected : EasyBooking.maxOption;
+				let max      = selected ? selected : lastAvailableDate;
+				let minimum  = this.product.min; // Store for later
 
 				if ( this.type === 'start' ) {
+
+					// Allow minimum booking duration to be dynamically modified depending on selected date
+					this.$cart.trigger( 'set_min_booking_duration', [ this, selected ] );
 
 					// After setting end date, add minimum booking duration to selected date
 					max.setDate( max.getDate() - this.product.min );
@@ -1052,16 +1117,21 @@
 				} else if ( this.type === 'end' ) {
 
 					// After setting start date, maybe add maximum booking duration to selected date, or set minimum to last available date
-					max = this.product.max !== '' ? max.setDate( max.getDate() + this.product.max ) : EasyBooking.maxOption;
+					max = this.product.max !== '' ? max.setDate( max.getDate() + this.product.max ) : lastAvailableDate;
 
 				}
+
+				this.product.min = minimum; // Reset value
+
+				// Maybe convert time to Date
+				if ( false === max instanceof Date ) { max = new Date( max ); }
 
 				// If last available date is before maximum date, set maximum date to last available date
-				if ( EasyBooking.maxOption < max ) {
-					max = EasyBooking.maxOption;
+				if ( lastAvailableDate < max ) {
+					max = lastAvailableDate;
 				}
 
-				return ( max instanceof Date ) ? max : new Date( max );
+				return max;
 
 			}
 
@@ -1295,7 +1365,60 @@
 
 		}
 
-		return {Datepickers, Picker};
+		/**
+		 * Simple dynamic nonce manager to avoid cache issues.
+		**/
+		class DynamicNonce {
+
+			/**
+			* DynamicNonce class
+			* @constructor
+			**/
+			constructor() {
+				this.nonce = null;
+			}
+
+			/**
+			 * Get fresh nonce using RestAPI
+			 * @return {Promise<string>|Error}
+			 */
+			async fetchFreshNonce() {
+
+				const getNonce = await fetch( EASYBOOKING.rest_url + 'easybooking/v1/get-fresh-nonce/' );
+				const response = await getNonce.json();
+
+				if ( response.nonce ) {
+
+					this.nonce = response.nonce;
+					return this.nonce;
+
+				} else {
+
+					throw new Error( 'Something went wrong. Please refresh the page and try again.' );
+
+				}
+
+			}
+
+			/**
+			 * Get nonce (if cached) or fetch a new one.
+			 * @returns {String|Promise<string>}
+			 */
+			async getNonce() {
+
+				// We already have a cached nonce
+				if ( this.nonce ) {
+					return this.nonce;
+				}
+
+				// Otherwise, fetch fresh nonce
+				return await this.fetchFreshNonce();
+
+			}
+			
+		}
+
+		return {Datepickers, Picker, DynamicNonce};
 
 	}());
 

@@ -3,7 +3,7 @@
 /**
 *
 * Date functions.
-* @version 3.3.5
+* @version 3.4.7
 *
 **/
 
@@ -22,11 +22,15 @@ function wceb_is_valid_date( $date ) {
         return false;
     }
 
+    // Check date format (yyyy-mm-dd)
 	if ( ! preg_match( '/^([0-9]{4}\-[0-9]{2}\-[0-9]{2})$/', $date ) ) {
         return false;
     }
 
-    return true;
+    // Check valid date
+    $d = DateTime::createFromFormat( 'Y-m-d', $date );
+    
+    return $d && $d->format( 'Y-m-d' ) == $date;
 
 }
 

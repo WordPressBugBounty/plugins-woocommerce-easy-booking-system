@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * All functions related to WooCommerce Product Add-Ons.
-* @version 3.1.7
+* @version 3.4.6
 *
 **/
 
@@ -30,7 +30,7 @@ class Pao_Functions {
 		$multiply = isset( $addon['multiply_by_booking_duration'] ) ? absint( $addon['multiply_by_booking_duration'] ) : 0;
                 
 		// Get addon type (percentage base or flat fee)
-		$addon_type = isset( $addon['price_type'] ) ? $addon['price_type'] : 'flat_fee';
+		$addon_type = isset( $addon['type'] ) ? $addon['type'] : 'flat_fee';
 
  	    // Calculate percentage based addon cost.
 	    if ( $addon_type === 'percentage_based' ) {
@@ -40,6 +40,11 @@ class Pao_Functions {
  	    // Maybe multiply by booking duration.
 		if ( $multiply && $addon_type !== 'percentage_based' ) {
 			$addon_cost *= $duration;
+		}
+
+		// Multiply quantity based addons price by quantity
+		if ( $addon_type === 'quantity_based' ) {
+			$addon_cost *= $quantity;
 		}
 
 	    return apply_filters( 'easy_booking_pao_addon_cost', (float) $addon_cost, $duration, $multiply );
@@ -54,47 +59,58 @@ class Pao_Functions {
 	* @return array - $addons_data
 	*
 	**/
-	public static function get_selected_addons_data( $_product, $booking_data ) { 
+	public static function get_selected_addons_data( $data ) { 
 
 		$addons_data = array();
 
-		// Selected addons
-		$selected_addons = isset( $_POST['additional_cost'] ) ? $_POST['additional_cost'] : array();
-
-		if ( empty( $selected_addons ) ) {
+		// No addons selected
+		if ( empty( $data['selected_addons'] ) ) {
 	        return $addons_data;
 	    }
 
 	    // Product addons
-		$product_addons = \WC_Product_Addons_Helper::get_product_addons( $_product->get_ID() );
+		$product_addons = \WC_Product_Addons_Helper::get_product_addons( $data['_product']->get_ID() );
 
 	    if ( ! $product_addons || empty( $product_addons ) ) {
 	        return $addons_data;
 	    }
 
-		for ( $i = 0; $i < count( $selected_addons ); $i++ ) {
+		for ( $i = 0; $i < count( $data['selected_addons'] ); $i++ ) {
 
 			// Get addon corresponding to selected addon ID
-			$addon = array_column( $product_addons, null, 'id' )[$selected_addons[$i]['id']] ?? false;
+			$addon = array_column( $product_addons, null, 'id' )[$data['selected_addons'][$i]['id']] ?? false;
 
 			if ( $addon ) {
 	
 				// No price and no adjust price? Skip.
-				if ( ! $selected_addons[$i]['cost'] && empty( $addon['adjust_price'] ) ) {
+				if ( ! $data['selected_addons'][$i]['cost'] && empty( $addon['adjust_price'] ) ) {
 					continue;
+				}
+
+				// Tweak because Product Add-Ons doesn't get option type
+				$addon['type'] = $addon['price_type'];
+
+				if ( isset( $addon['options'] ) ) {
+
+					$option = array_column( $addon['options'], null, 'label' )[$data['selected_addons'][$i]['value']] ?? false;
+					
+					if ( $option ) {
+						$addon['type'] = $option['price_type'];
+					}
+
 				}
 
 				// Calculate addon cost
 				$addon_cost = self::calc_addon_cost(
-					$selected_addons[$i]['cost'],
+					$data['selected_addons'][$i]['cost'],
 					$addon,
-					$booking_data['new_price'],
-					$booking_data['duration'],
-					$booking_data['quantity']
+					$data['new_price'],
+					$data['duration'],
+					$data['quantity']
 				);
 
 				$addons_data[] = array(
-					'name'         => $addon['title_format'] === 'hide' ? $selected_addons[$i]['value'] : $addon['name'] . ' - ' . $selected_addons[$i]['value'],
+					'name'         => $addon['title_format'] === 'hide' ? $data['selected_addons'][$i]['value'] : $addon['name'] . ' - ' . $data['selected_addons'][$i]['value'],
 					'type'         => $addon['price_type'],
 					'cost'         => $addon_cost
 				);

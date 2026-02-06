@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Variation settings.
-* @version 3.0.0
+* @version 3.4.4
 *
 **/
 
@@ -80,12 +80,13 @@ class Admin_Variation {
     public function save_variation_booking_options( $variation_id , $i ) {
         
         $booking_data = array(
-            'bookable'                => isset( $_POST['_var_bookable'][$i] ) ? 'yes' : 'no',
-            'dates'                   => isset( $_POST['_var_number_of_dates'][$i] ) ? $_POST['_var_number_of_dates'][$i] : '',
-            'booking_min'             => isset( $_POST['_var_booking_min'][$i] ) ? $_POST['_var_booking_min'][$i] : '',
-            'booking_max'             => isset( $_POST['_var_booking_max'][$i] ) ? $_POST['_var_booking_max'][$i] : '',
-            'first_available_date'    => isset( $_POST['_var_first_available_date'][$i] ) ? $_POST['_var_first_available_date'][$i] : '',
-            'booking_duration'        => isset( $_POST['_var_booking_duration'][$i] ) ? $_POST['_var_booking_duration'][$i] : ''
+            'bookable'             => isset( $_POST['_var_bookable'][$i] ) ? 'yes' : 'no',
+            'dates'                => isset( $_POST['_var_number_of_dates'][$i] ) ? $_POST['_var_number_of_dates'][$i] : '',
+            'booking_min'          => isset( $_POST['_var_booking_min'][$i] ) ? $_POST['_var_booking_min'][$i] : '',
+            'booking_max'          => isset( $_POST['_var_booking_max'][$i] ) ? $_POST['_var_booking_max'][$i] : '',
+            'first_available_date' => isset( $_POST['_var_first_available_date'][$i] ) ? $_POST['_var_first_available_date'][$i] : '',
+            'last_available_date'  => isset( $_POST['_var_last_available_date'][$i] ) ? $_POST['_var_last_available_date'][$i] : '',
+            'booking_duration'     => isset( $_POST['_var_booking_duration'][$i] ) ? $_POST['_var_booking_duration'][$i] : ''
         );
 
         wceb_save_product_booking_options( $variation_id, $booking_data );

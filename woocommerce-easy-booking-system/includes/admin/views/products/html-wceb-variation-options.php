@@ -3,7 +3,7 @@
 /**
 *
 * Display bookable variation options.
-* @version 3.0.6
+* @version 3.4.4
 *
 **/
 
@@ -84,6 +84,19 @@ defined( 'ABSPATH' ) || exit;
         <?php $first_available_date = get_post_meta( $variation_id, '_first_available_date', true ); ?>
 
         <input type="number" class="input_text" min="0" name="_var_first_available_date[<?php echo $loop; ?>]" id="_var_first_available_date[<?php echo $loop; ?>]" placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ) ?>" value="<?php if ( isset( $first_available_date ) ) esc_attr_e( $first_available_date ); ?>" />
+        
+    </p>
+
+    <p class="form-row form-row-last">
+
+        <label for="_var_last_available_date[<?php echo $loop; ?>]">
+            <?php esc_html_e( 'Last available date', 'woocommerce-easy-booking-system' ); ?>
+            <span class="tips" data-tip="<?php esc_attr_e( 'Last available date, relative to the current day. Leave empty to use parent or global settings.', 'woocommerce-easy-booking-system' ); ?>">[?]</span>
+        </label>
+
+        <?php $last_available_date = get_post_meta( $variation_id, '_last_available_date', true ); ?>
+
+        <input type="number" class="input_text" min="1" name="_var_last_available_date[<?php echo $loop; ?>]" id="_var_last_available_date[<?php echo $loop; ?>]" placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ) ?>" value="<?php if ( isset( $last_available_date ) ) esc_attr_e( $last_available_date ); ?>" />
         
     </p>
     

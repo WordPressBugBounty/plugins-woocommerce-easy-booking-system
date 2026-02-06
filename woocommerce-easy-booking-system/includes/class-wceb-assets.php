@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Load frontend assets.
-* @version 3.3.9
+* @version 3.4.7
 *
 **/
 
@@ -23,6 +23,9 @@ class Frontend_Assets {
         global $post;
 
         if ( is_null( $post ) ) return;
+
+        // Register pickadate.js scripts
+        Pickadate::register_scripts();
 
         $IDS = array();
 
@@ -83,7 +86,7 @@ class Frontend_Assets {
             // Register styles
             $this->register_frontend_styles();
 
-            wp_enqueue_script( 'accounting' );
+            wp_enqueue_script( 'wc-accounting' );
             wp_enqueue_script( 'pickadate' );
 
             wp_enqueue_script( 'wceb-datepickers' );
@@ -115,11 +118,9 @@ class Frontend_Assets {
     **/
     private function register_frontend_scripts( $products, $product_types ) {
 
-        Pickadate::register_scripts();
-
         // Load accounting.js script
         wp_register_script(
-            'accounting',
+            'wc-accounting',
             WC()->plugin_url() . '/assets/js/accounting/accounting' . WCEB_SUFFIX . '.js',
             array( 'jquery' ),
             '0.4.2'
@@ -128,7 +129,7 @@ class Frontend_Assets {
         // Filter for third-party plugins
         $dependencies = apply_filters(
             'easy_booking_script_dependencies',
-            array( 'jquery', 'pickadate', 'accounting' )
+            array( 'jquery', 'pickadate', 'wc-accounting' )
         );
 
         // Main Easy Booking script
@@ -136,7 +137,7 @@ class Frontend_Assets {
             'wceb-datepickers',
             wceb_get_file_path( '', 'wceb', 'js' ),
             $dependencies,
-            '1.0',
+            '3.4.7',
             true
         );
 
@@ -160,7 +161,7 @@ class Frontend_Assets {
                 'wceb-single-product-' . $product_type,
                 wceb_get_file_path( '', 'wceb-' . $product_type, 'js' ),
                 $product_dependencies,
-                '1.0',
+                '3.4.7',
                 true
             );
 
@@ -186,18 +187,10 @@ class Frontend_Assets {
     *
     **/
     private function get_frontend_parameters( $products ) {
- 
-        // Ajax URL
-        $home_url = apply_filters( 'easy_booking_home_url', home_url( '/' ) );
-        $ajax_url = add_query_arg( 'wceb-ajax', '%%endpoint%%', $home_url );
-        $ajax_url = str_replace( array( 'http:', 'https:' ), '', $ajax_url ); // Fix to avoid security fails
 
         // Days or Nights mode
         $booking_mode = get_option( 'wceb_booking_mode' );
-
-        // Last available date relative to the current day
-        $last_available_date = wceb_shift_date( date( 'Y-m-d' ), get_option( 'wceb_last_available_date' ) );
-
+        
         $product_params = array();
         foreach ( $products as $product ) :
 
@@ -256,18 +249,17 @@ class Frontend_Assets {
         
         // Datepickers parameters
         $frontend_parameters = array(
-            'ajax_url'                     => esc_url_raw( $ajax_url ),
             'calc_mode'                    => esc_html( $booking_mode ),
-            'last_date'                    => esc_html( $last_available_date ),
             'first_weekday'                => absint( get_option( 'start_of_week' ) ),
             'currency_format_num_decimals' => absint( get_option( 'woocommerce_price_num_decimals' ) ),
             'currency_format_symbol'       => get_woocommerce_currency_symbol(),
             'currency_format_decimal_sep'  => esc_attr( stripslashes( get_option( 'woocommerce_price_decimal_sep' ) ) ),
             'currency_format_thousand_sep' => esc_attr( stripslashes( get_option( 'woocommerce_price_thousand_sep' ) ) ),
             'currency_format'              => esc_attr( str_replace( array( '%1$s', '%2$s' ), array( '%s', '%v' ), get_woocommerce_price_format() ) ), // For accounting JS
-            'product_params'               => $product_params
+            'product_params'               => $product_params,
+            'rest_url'                     => rest_url()
         );
-
+        
         return apply_filters( 'easy_booking_frontend_parameters', $frontend_parameters );
 
     }
@@ -287,6 +279,7 @@ class Frontend_Assets {
             'min'                  => wceb_sanitize_parameters( $settings['booking_min'], 'absint' ),
             'max'                  => wceb_sanitize_parameters( $settings['booking_max'], 'esc_html' ),
             'first_date'           => wceb_sanitize_parameters( $settings['first_available_date'], 'absint' ),
+            'last_date'            => wceb_sanitize_parameters( $settings['last_available_date'], 'absint' ),
             'prices_html'          => wceb_sanitize_parameters( wceb_get_product_price_suffix( $_product ), 'esc_html' ),
             'price_suffix'         => $_product->get_price_suffix()
         );
@@ -305,6 +298,7 @@ class Frontend_Assets {
             'min'              => wceb_sanitize_parameters( $settings['booking_min'], 'absint' ),
             'max'              => wceb_sanitize_parameters( $settings['booking_max'], 'esc_html' ),
             'first_date'       => wceb_sanitize_parameters( $settings['first_available_date'], 'absint' ),
+            'last_date'        => wceb_sanitize_parameters( $settings['last_available_date'], 'absint' ),
             'prices_html'      => wceb_sanitize_parameters( wceb_get_product_price_suffix( $variation ), 'esc_html' )
         );
 

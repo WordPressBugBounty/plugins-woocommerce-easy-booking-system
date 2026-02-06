@@ -3,7 +3,7 @@
 /**
 *
 * Admin product functions.
-* @version 3.3.0
+* @version 3.4.7
 *
 **/
 
@@ -28,7 +28,8 @@ function wceb_save_product_booking_options( $id, array $booking_data ) {
     $data = array(
         'booking_min'          => $booking_data['booking_min'],
         'booking_max'          => $booking_data['booking_max'],
-        'first_available_date' => $booking_data['first_available_date']
+        'first_available_date' => $booking_data['first_available_date'],
+        'last_available_date'  => $booking_data['last_available_date']
     );
 
     foreach ( $data as $name => $value ) {
@@ -50,7 +51,7 @@ function wceb_save_product_booking_options( $id, array $booking_data ) {
     }
 
     if ( ! empty( $booking_min ) && ! empty( $booking_max ) && $booking_min > $booking_max ) {
-        \WC_Admin_Meta_Boxes::add_error( __( 'Minimum booking duration must be inferior to maximum booking duration', 'woocommerce-easy-booking-system' ) );
+        \WC_Admin_Meta_Boxes::add_error( __( 'Minimum booking duration must be inferior to maximum booking duration.', 'woocommerce-easy-booking-system' ) );
     } else {
         update_post_meta( $id, '_booking_min', $booking_min );
         update_post_meta( $id, '_booking_max', $booking_max );
@@ -70,19 +71,19 @@ function wceb_save_product_booking_options( $id, array $booking_data ) {
 
     $dates = 'two';
 
-    if ( ! empty( $booking_data['dates'] )
-        && ( $booking_data['dates'] === 'one'
-        || $booking_data['dates'] === 'two'
-        || $booking_data['dates'] === 'parent'
-        || $booking_data['dates'] === 'global' ) ) {
-
+    if ( ! empty( $booking_data['dates'] ) && in_array( $booking_data['dates'], array( 'one', 'two', 'parent', 'global' ) ) ) {
         $dates = sanitize_text_field( $booking_data['dates'] );
+    }
 
+    if (  ! empty( $last_available_date ) && ! empty( $first_available_date ) && $first_available_date > $last_available_date  ) {
+        \WC_Admin_Meta_Boxes::add_error( __( 'First available date must be inferior to last available date.', 'woocommerce-easy-booking-system' ) );
+    } else {
+        update_post_meta( $id, '_first_available_date', $first_available_date );
+        update_post_meta( $id, '_last_available_date', $last_available_date );
     }
     
     update_post_meta( $id, '_number_of_dates', $dates );
     update_post_meta( $id, '_booking_duration', $booking_duration );
-    update_post_meta( $id, '_first_available_date', $first_available_date );
     update_post_meta( $id, '_bookable', $is_bookable );
 
 }

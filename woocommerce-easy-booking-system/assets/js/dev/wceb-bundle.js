@@ -81,6 +81,8 @@
 
 						self.handleMultipleProductSelection( previouslySelectedIDs, self.product.bundle_totals.price, self.product.bundle_totals.regular_price );
 
+						self.$cart.trigger( 'wceb_after_update_bundle_selection' );
+
 					}
 					
 				);

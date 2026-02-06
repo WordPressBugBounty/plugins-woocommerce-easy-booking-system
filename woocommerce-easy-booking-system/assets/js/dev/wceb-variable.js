@@ -87,6 +87,7 @@
 							// Get selected variation booking settings
 							this.product.booking_dates    = EASYBOOKING.product_params[variation.variation_id].booking_dates;
 							this.product.first_date       = parseInt( EASYBOOKING.product_params[variation.variation_id].first_date );
+							this.product.last_date        = parseInt( EASYBOOKING.product_params[variation.variation_id].last_date );
 							this.product.min              = parseInt( EASYBOOKING.product_params[variation.variation_id].min );
 							this.product.max              = EASYBOOKING.product_params[variation.variation_id].max === '' ? '' : parseInt( EASYBOOKING.product_params[variation.variation_id].max );
 							this.product.booking_duration = parseInt( EASYBOOKING.product_params[variation.variation_id].booking_duration );

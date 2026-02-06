@@ -3,7 +3,7 @@
 /**
 *
 * Action hooks and filters related to WooCommerce Product Add-Ons.
-* @version 3.3.6
+* @version 3.4.6
 *
 **/
 
@@ -200,6 +200,38 @@ add_filter( 'woocommerce_product_addons_option_price', 'wceb_pao_product_addons_
 /**
 *
 * WooCommerce Product Add-Ons compatibilty.
+* Sanitize selected addons after selecting dates.
+* @param array - $sanitized_data
+* @param array - $data - Raw data
+* @return array - $sanitized_data
+*
+**/
+function wceb_pao_sanitize_selected_addons( $sanitized_data, $data ) {
+
+    $addons = array();
+
+    // Sanitize
+    if ( isset( $data['additional_cost'] ) ) foreach ( $data['additional_cost'] as $i => $additional_cost ) {
+
+        $addons[$i] = [
+            'cost'  => (float) $additional_cost['cost'],
+            'id'    => sanitize_text_field( $additional_cost['id'] ),
+            'value' => sanitize_text_field( $additional_cost['value'] )
+        ];
+        
+    }
+
+    $sanitized_data['selected_addons'] = $addons;
+
+    return $sanitized_data;
+
+}
+
+add_filter( 'easy_booking_sanitized_booking_data', 'wceb_pao_sanitize_selected_addons', 10, 2 );
+
+/**
+*
+* WooCommerce Product Add-Ons compatibilty.
 * Maybe add additional costs to booking price after selecting dates (not in cart).
 * @param str - $price
 * @param int - $_product_id
@@ -207,14 +239,12 @@ add_filter( 'woocommerce_product_addons_option_price', 'wceb_pao_product_addons_
 * @return str - $price
 *
 **/
-function wceb_pao_add_selected_addons_cost( $price, $_product_id, $booking_data ) {
+function wceb_pao_add_selected_addons_cost( $price, $_product_id, $data ) {
 
-    $_product = wc_get_product( $_product_id );
+    $addons_data = EasyBooking\Pao_Functions::get_selected_addons_data( $data );
 
-    $addons_data = EasyBooking\Pao_Functions::get_selected_addons_data( $_product, $booking_data );
-
-    if ( $addons_data && ! empty( $addons_data ) ) foreach ( $addons_data as $addon_data ) {
-        $price += $addon_data['cost'] / $booking_data['quantity'];
+    if ( ! empty( $addons_data ) ) foreach ( $addons_data as $addon_data ) {
+        $price += $addon_data['cost'] / $data['quantity'];
     }
 
     return wc_format_decimal( $price );
@@ -444,10 +474,10 @@ add_filter( 'woocommerce_get_item_data', 'wceb_pao_display_booking_price_in_cart
 * @return str - $details
 *
 **/
-function wceb_pao_addons_price_details( $details, $product, $booking_data ) {
-
-    $addons_data = EasyBooking\Pao_Functions::get_selected_addons_data( $product, $booking_data );
+function wceb_pao_addons_price_details( $details, $product, $data ) {
     
+    $addons_data = EasyBooking\Pao_Functions::get_selected_addons_data( $data );
+
     if ( empty( $addons_data ) ) {
         return $details;
     }
@@ -456,7 +486,7 @@ function wceb_pao_addons_price_details( $details, $product, $booking_data ) {
 
     $details .= sprintf(
         esc_html__( 'Booking price: %s', 'woocommerce-easy-booking-system' ),
-        wc_price( $booking_data['new_price'] * $booking_data['quantity'] )
+        wc_price( $data['new_price'] * $data['quantity'] )
     );
 
     $details .= '</span></br>';

@@ -3,7 +3,7 @@
 /**
 *
 * Update functions.
-* @version 3.3.1
+* @version 3.4.7
 *
 **/
 
@@ -257,7 +257,7 @@ function wceb_update_db_version_331() {
     // Prepare args for query
     $order_statuses = wceb_get_valid_order_statuses();
 
-    $order_statuses_placeholder = implode(', ', array_fill( 0, count( $order_statuses ), '%s' ) );
+    $order_statuses_placeholder = wceb_create_sql_placeholders( $order_statuses );
 
     $meta_keys = array(
         '_booking_start_date',
@@ -368,7 +368,7 @@ function wceb_update_db_version_331() {
     // Maybe remove not wanted order items ids
     if ( ! empty( $added_item_ids ) ) {
 
-        $placeholder  = implode( ', ', array_fill( 0, count( $added_item_ids ), '%d' ) );
+        $placeholder  = wceb_create_sql_placeholders( $added_item_ids, $format = '%d' );
         $delete_query = "DELETE FROM {$wpdb->prefix}wceb_order_bookings WHERE order_item_id NOT IN ( $placeholder )";
 
         $wpdb->query( $wpdb->prepare( 

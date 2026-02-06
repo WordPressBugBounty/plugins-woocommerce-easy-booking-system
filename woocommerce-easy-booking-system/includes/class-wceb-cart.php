@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Cart action hooks and filters.
-* @version 3.3.8
+* @version 3.4.4
 *
 **/
 
@@ -47,8 +47,7 @@ class Cart {
     **/
     public function add_to_cart_validation( $passed, $product_id, $quantity, $variation_id = '', $variations = array() ) {
 
-        $_product_id = empty( $variation_id ) ? $product_id : $variation_id;
-        $_product    = wc_get_product( $_product_id );
+        $_product = wc_get_product( empty( $variation_id ) ? $product_id : $variation_id );
 
         if ( ! $passed || ! $_product ) {
             return false;
@@ -62,20 +61,14 @@ class Cart {
         $start = isset( $_REQUEST['start_date_submit'] ) ? $_REQUEST['start_date_submit'] : false;
         $end   = isset( $_REQUEST['end_date_submit'] ) ? $_REQUEST['end_date_submit'] : false;
 
-        $valid_dates = Date_Selection::check_selected_dates( $start, $end, $_product );
+        try {
 
-        if ( is_wp_error( $valid_dates ) ) {
+            Date_Selection_Helper::check_selected_dates( $start, $end, $_product );
+            Date_Selection_Helper::get_selected_booking_duration( $start, $end, $_product );
 
-            wc_add_notice( esc_html( $valid_dates->get_error_message() ), 'error' );
-            $passed = false;
+        } catch ( \Exception $e ) {
 
-        }
-
-        $valid_booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, $_product );
-
-        if ( is_wp_error( $valid_booking_duration ) ) {
-
-            wc_add_notice( esc_html( $valid_booking_duration->get_error_message() ), 'error' );
+            wc_add_notice( esc_html( $e->getMessage() ), 'error' );
             $passed = false;
 
         }
@@ -105,24 +98,17 @@ class Cart {
                     $bundle = WC()->cart->get_cart_item( $values['bundled_by'] );
                 }
 
-                $valid_dates = Date_Selection::check_selected_dates( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
+                try {
 
-                if ( is_wp_error( $valid_dates ) ) {
+                    Date_Selection_Helper::check_selected_dates( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
+                    Date_Selection_Helper::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
 
-                    WC()->cart->set_quantity( $cart_item_key, 0 );
-                    wc_add_notice( esc_html( $valid_dates->get_error_message() ), 'error' );
-                    continue;
-
-                }
-
-                $valid_booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
-
-                if ( is_wp_error( $valid_booking_duration ) ) {
+                } catch ( \Exception $e ) {
 
                     WC()->cart->set_quantity( $cart_item_key, 0 );
-                    wc_add_notice( esc_html( $valid_booking_duration->get_error_message() ), 'error' );
+                    wc_add_notice( esc_html( $e->getMessage() ), 'error' );
                     continue;
-                    
+
                 }
 
                 do_action( 'easy_booking_check_cart_item', $_product, $cart_item_key, $values );
@@ -205,19 +191,31 @@ class Cart {
             $bundle = WC()->cart->get_cart_item( $cart_item_meta['bundled_by'] );
         }
 
-        $booking_duration = Date_Selection::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
+        try {
 
-        $data = array(
+            $booking_duration = Date_Selection_Helper::get_selected_booking_duration( $start, $end, isset( $bundle ) ? $bundle['data'] : $_product );
+
+        } catch ( \Exception $e ) {
+
+            return $cart_item_meta;
+
+        }
+
+        $data = [
+            'id'       => $_product_id,
             'start'    => $start,
             'duration' => $booking_duration,
-            'quantity' => $quantity
-        );
+            'quantity' => $quantity,
+            'product'  => $product,
+            '_product' => $_product,
+            'children' => []
+        ];
 
         if ( isset( $end ) && ! empty( $end ) ) {
             $data['end'] = $end;
         }
         
-        $booking_data = Date_Selection::{'get_' . $product->get_type() . '_product_booking_data'}( $data, $product, $_product );
+        $booking_data = Date_Selection_Helper::{'get_' . $product->get_type() . '_product_booking_data'}( $data );
 
         $cart_item_meta['_booking_price']      = wc_format_decimal( $booking_data[$_product_id]['new_price'] );
         $cart_item_meta['_booking_start_date'] = sanitize_text_field( $post_data['start_date_submit'] );

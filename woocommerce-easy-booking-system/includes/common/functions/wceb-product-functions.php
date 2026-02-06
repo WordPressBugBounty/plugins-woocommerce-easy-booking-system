@@ -3,7 +3,7 @@
 /**
 *
 * Bookable product functions.
-* @version 3.1.0
+* @version 3.4.4
 *
 **/
 
@@ -89,11 +89,12 @@ function wceb_is_bookable( $_product ) {
 function wceb_get_product_booking_settings( $_product ) {
 
     $booking_settings = array(
-        'booking_dates'           => wceb_get_product_number_of_dates_to_select( $_product ),
-        'booking_duration'        => wceb_get_product_booking_duration( $_product ),
-        'booking_min'             => wceb_get_product_minimum_booking_duration( $_product ),
-        'booking_max'             => wceb_get_product_maximum_booking_duration( $_product ),
-        'first_available_date'    => wceb_get_product_first_available_date( $_product )
+        'booking_dates'        => wceb_get_product_number_of_dates_to_select( $_product ),
+        'booking_duration'     => wceb_get_product_booking_duration( $_product ),
+        'booking_min'          => wceb_get_product_minimum_booking_duration( $_product ),
+        'booking_max'          => wceb_get_product_maximum_booking_duration( $_product ),
+        'first_available_date' => wceb_get_product_first_available_date( $_product ),
+        'last_available_date'  => wceb_get_product_last_available_date( $_product )
     );
 
     return $booking_settings;
@@ -227,6 +228,38 @@ function wceb_get_product_first_available_date( $_product ) {
     $first_available_date = isset( $product_first_available_date ) && $product_first_available_date !== '' ? $product_first_available_date : $global_first_available_date;
 
     return apply_filters( 'easy_booking_product_first_available_date', $first_available_date, $_product );
+
+}
+
+/**
+*
+* Get product last available date.
+* @param WC_Product or WC_Product_Variation - $_product
+* @return int - $last_available_date
+*
+**/
+function wceb_get_product_last_available_date( $_product ) {
+
+    if ( ! is_a( $_product, 'WC_Product' ) ) {
+        return false;
+    }
+
+    // If product setting is empty or not defined, get global setting
+    $global_last_available_date  = get_option( 'wceb_last_available_date' );
+    $product_last_available_date = $_product->get_meta( '_last_available_date', true );
+
+    if ( $_product->is_type( 'variation' ) && ( ! isset( $product_last_available_date ) || $product_last_available_date === '' ) ) {
+
+        $parent_product_id = $_product->get_parent_id();
+        $parent_product = wc_get_product( $parent_product_id );
+
+        $product_last_available_date = $parent_product->get_meta( '_last_available_date', true );
+
+    }
+    
+    $last_available_date = isset( $product_last_available_date ) && $product_last_available_date !== '' ? $product_last_available_date : $global_last_available_date;
+
+    return apply_filters( 'easy_booking_product_last_available_date', $last_available_date, $_product );
 
 }
 

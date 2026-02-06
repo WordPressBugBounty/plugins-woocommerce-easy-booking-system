@@ -3,9 +3,9 @@
 Contributors: @morki
 Tags: woocommerce, booking, rent, book, calendar
 Requires at least: 5.0
-Stable tag: 3.4.3
-Tested up to: 6.8.2
-WC tested up to: 10.1.2
+Stable tag: 3.4.7
+Tested up to: 6.8.3
+WC tested up to: 10.3.5
 License: GPLv3
 
 A powerful and easy to use booking plugin for WooCommerce.
@@ -57,6 +57,33 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 6. Reports
 
 == Changelog ==
+
+= 3.4.7 - 2025-12-01 =
+
+* Add - Compatibility with Easy Booking PRO new dates filter block.
+* Add - "set_min_booking_duration" jquery event to allow dynamically modifying minimum booking duration depending on selected date.
+* Fix - First available date can no longer be in the past.
+* Fix - Issue where "Number of dates to select" was not saved as "Same as global settings".
+* Fix - Issue with bundle products retruned price after selecting dates.
+* Tweak - Improved wceb_is_valid_date() function.
+* Tweak - Added wceb_create_sql_placeholders() to generate placeholders for arrays in SQL requests.
+* Tweak - Added es.js file for Spanish translation of the calendar.
+* Tweak - Removed unnecesary code.
+
+= 3.4.6 - 2025-10-27 =
+
+* Fix - Issue with Product Bundles.
+* Fix - Issue with Product Add-Ons.
+* Fix - Updated deprecated script handles.
+
+= 3.4.5 - 2025-10-23 =
+
+* Fix - Updated JS file version to force browsers to load the latest file and avoid cache issues.
+
+= 3.4.4 - 2025-10-20 =
+
+* Fix - Cache issues on date selection. The plugin should now be fully compatible with cache plugins without having to disable caching on product pages.
+* Add - "Last available date" option at product and variation level.
 
 = 3.4.3 - 2025-09-09 =
 

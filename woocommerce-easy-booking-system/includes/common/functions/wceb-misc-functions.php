@@ -3,7 +3,7 @@
 /**
 *
 * Misc functions.
-* @version 3.4.3
+* @version 3.4.7
 *
 **/
 
@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 *
 **/
 function wceb_get_version() {
-    return '3.4.3';
+    return '3.4.7';
 } 
 
 /**
@@ -199,4 +199,16 @@ function wceb_minify_css( $css ) {
 
     return $css;
 
+}
+
+/**
+*
+* Create placeholders for arrays in SQL requests.
+* @param array - $array
+* @param str - $format (%s, %d, %f)
+* @return str
+*
+**/
+function wceb_create_sql_placeholders( $array, $format = '%s' ) {
+    return implode( ', ', array_fill( 0, count( $array ), $format ) );
 }

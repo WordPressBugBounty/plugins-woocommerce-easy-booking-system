@@ -4,7 +4,7 @@
 /**
 *
 * Display bookable product options.
-* @version 3.0.6
+* @version 3.4.4
 *
 **/
 
@@ -97,6 +97,23 @@ defined( 'ABSPATH' ) || exit;
             'custom_attributes' => array(
                 'step' => '1',
                 'min'  => '0',
+                'max'  => '3650'
+            )
+        ) ); ?>
+
+        <?php woocommerce_wp_text_input( array(
+            'id'                => 'last_available_date',
+            'class'             => 'last_available_date',
+            'name'              => '_last_available_date',
+            'label'             => esc_html__( 'Last available date', 'woocommerce-easy-booking-system' ),
+            'desc_tip'          => 'true',
+            'description'       => esc_html__( 'Last available date, relative to the current day. Leave empty to use global settings.', 'woocommerce-easy-booking-system' ),
+            'value'             => ! empty( $product->get_meta( '_last_available_date' ) ) || $product->get_meta( '_last_available_date' ) === '0' ? $product->get_meta( '_last_available_date' ) : '',
+            'placeholder'       => esc_html__( 'Same as global settings', 'woocommerce-easy-booking-system' ),
+            'type'              => 'number',
+            'custom_attributes' => array(
+                'step' => '1',
+                'min'  => '1',
                 'max'  => '3650'
             )
         ) ); ?>

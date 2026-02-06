@@ -11,6 +11,7 @@
 				super( $cart );
 				
 				this.$picker_wrap.hide();
+				this.$booking_price.hide();
 
 			}
 
@@ -61,12 +62,23 @@
 	
 						});
 
-						this.$cart.trigger( 'wceb_update_group_selection' );
+						self.$cart.trigger( 'wceb_update_group_selection' );
 
 						self.handleMultipleProductSelection( previouslySelectedIDs, self.product.group_totals.price, self.product.group_totals.regular_price );
 
 						// Get highest quantity selected and hide date inputs if no quantity is selected
-						Math.max.apply( Math, Object.values( self.product.selectedIDs ) ) > 0 ? self.$picker_wrap.slideDown( 200 ) : self.$picker_wrap.hide();
+						if ( Math.max.apply( Math, Object.values( self.product.selectedIDs ) ) > 0 ) {
+
+							self.$picker_wrap.slideDown( 200 );
+							self.$booking_price.slideDown( 200 );
+							self.$cart.trigger( 'wceb_after_update_group_selection' );
+
+						} else {
+
+							self.$picker_wrap.hide();
+							self.$booking_price.hide();
+
+						}
 
 					}
 

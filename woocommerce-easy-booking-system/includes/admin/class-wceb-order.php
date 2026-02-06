@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Orders action hooks.
-* @version 3.4.1
+* @version 3.4.4
 *
 **/
 
@@ -130,9 +130,11 @@ class Order {
         $start_date = $item->get_meta( '_booking_start_date' );
         $end_date   = $item->get_meta( '_booking_end_date' );
 
-        $valid_dates = Date_Selection::check_selected_dates( $start_date, $end_date, $_product, false );
+        try {
 
-        if ( is_wp_error( $valid_dates ) ) {
+            Date_Selection_Helper::check_selected_dates( $start_date, $end_date, $_product, false );
+
+        } catch ( \Exception $e ) {
 
             $item->delete_meta_data( '_booking_start_date' );
             $item->delete_meta_data( '_booking_end_date' );

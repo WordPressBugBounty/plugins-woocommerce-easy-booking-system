@@ -8,7 +8,7 @@
 * Do not remove input attributes (classes, ids, etc.).
 * Please make sure to keep your template up-to-date if you modify it.
 *
-* @version 3.3.2
+* @version 3.4.4
 *
 **/
 
@@ -33,9 +33,6 @@ defined( 'ABSPATH' ) || exit;
     </p>
 
     <?php do_action( 'easy_booking_after_datepickers', $product ); ?>
-
-    <?php // Nonce ?>
-    <input type="hidden" name="_wceb_nonce" class="wceb_nonce" value="<?php echo wp_create_nonce( 'set-dates' ); ?>">
 
     <?php // Reset dates button ?>
     <a href="#" class="reset_dates" data-ids=""><?php esc_html_e( 'Clear dates', 'woocommerce-easy-booking-system' ); ?></a>

@@ -3,12 +3,12 @@
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
 * Description: A powerful and easy to use booking plugin for your WooCommerce store.
-* Version: 3.4.3
+* Version: 3.4.7
 * Author: @morki
 * Author URI: https://easy-booking.pro/
 * Requires at least: 5.0
-* Tested up to: 6.8.2
-* WC tested up to: 10.1.2
+* Tested up to: 6.8.3
+* WC tested up to: 10.3.5
 * Requires Plugins: woocommerce
 * WC requires at least: 3.0
 * Text domain: woocommerce-easy-booking-system
@@ -52,6 +52,8 @@ class Easy_Booking {
 
         add_action( 'init', array( $this, 'init' ), 10 );
         add_action( 'init', array( $this, 'check_pro_version' ), 21 );
+
+        add_action( 'rest_api_init', array( $this, 'register_easy_booking_rest_routes' ) );
 
         add_filter( 'plugin_action_links_' . $plugin, array( $this, 'add_settings_link' ) );
 
@@ -199,6 +201,33 @@ class Easy_Booking {
 
     /**
     *
+    * Register REST routes
+    *
+    **/
+    public function register_easy_booking_rest_routes() {
+
+        register_rest_route(
+            'easybooking/v1', '/get-fresh-nonce/',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( 'EasyBooking\Date_Selection', 'get_date_selection_nonce'),
+                'permission_callback' => '__return_true',
+            )
+        );
+
+        register_rest_route(
+            'easybooking/v1', '/date-selection/',
+            array(
+                'methods'             => 'POST',
+                'callback'            => array( 'EasyBooking\Date_Selection', 'handle_date_selection'),
+                'permission_callback' => array( 'EasyBooking\Date_Selection', 'check_date_selection_nonce' )
+            )
+        );
+
+    }
+
+    /**
+    *
     * Common includes
     *
     **/
@@ -219,7 +248,7 @@ class Easy_Booking {
         include_once( 'includes/common/functions/wceb-order-booking-functions.php');
 
         // Date selection helper
-        include_once( 'includes/common/class-wceb-date-selection.php' );
+        include_once( 'includes/common/class-wceb-date-selection-helper.php' );
 
         // Order booking object
         include_once( 'includes/common/abstract-wceb-booking.php' );
@@ -294,8 +323,8 @@ class Easy_Booking {
         // Frontend assets
         include_once( 'includes/class-wceb-assets.php' );
 
-        // Ajax
-        include_once( 'includes/class-wceb-ajax.php' );
+        // Date selection
+        include_once( 'includes/class-wceb-date-selection.php' );
 
         // Cart hooks
         include_once( 'includes/class-wceb-cart.php' );

@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Product settings.
-* @version 3.0.0
+* @version 3.4.4
 *
 **/
 
@@ -108,12 +108,13 @@ class Admin_Product {
     public function save_product_booking_options( $post_id ) {
 
         $booking_data = array(
-            'bookable'                => isset( $_POST['_bookable'] ) ? 'yes' : 'no',
-            'dates'                   => isset( $_POST['_number_of_dates'] ) ? $_POST['_number_of_dates'] : '',
-            'booking_min'             => isset( $_POST['_booking_min'] ) ? $_POST['_booking_min'] : '',
-            'booking_max'             => isset( $_POST['_booking_max'] ) ? $_POST['_booking_max'] : '',
-            'first_available_date'    => isset( $_POST['_first_available_date'] ) ? $_POST['_first_available_date'] : '',
-            'booking_duration'        => isset( $_POST['_booking_duration'] ) ? $_POST['_booking_duration'] : ''
+            'bookable'             => isset( $_POST['_bookable'] ) ? 'yes' : 'no',
+            'dates'                => isset( $_POST['_number_of_dates'] ) ? $_POST['_number_of_dates'] : '',
+            'booking_min'          => isset( $_POST['_booking_min'] ) ? $_POST['_booking_min'] : '',
+            'booking_max'          => isset( $_POST['_booking_max'] ) ? $_POST['_booking_max'] : '',
+            'first_available_date' => isset( $_POST['_first_available_date'] ) ? $_POST['_first_available_date'] : '',
+            'last_available_date'  => isset( $_POST['_last_available_date'] ) ? $_POST['_last_available_date'] : '',
+            'booking_duration'     => isset( $_POST['_booking_duration'] ) ? $_POST['_booking_duration'] : ''
         );
 
         wceb_save_product_booking_options( $post_id, $booking_data );
