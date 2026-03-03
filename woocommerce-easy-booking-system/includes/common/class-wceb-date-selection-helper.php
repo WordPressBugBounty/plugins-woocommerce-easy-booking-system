@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Date selection.
-* @version 3.4.6
+* @version 3.4.8
 *
 **/
 
@@ -339,7 +339,7 @@ class Date_Selection_Helper {
 	public static function calculate_booking_price( $price, $data, $price_type ) {
 
         if ( true === wceb_is_bookable( $data['_product'] ) && apply_filters( 'easy_booking_calculate_booking_price', true, $data['_product'] ) ) {
-                
+               
             $number_of_dates = wceb_get_product_number_of_dates_to_select( $data['_product'] );
             $dates = $number_of_dates === 'one' ? 'one_date' : 'two_dates';
             

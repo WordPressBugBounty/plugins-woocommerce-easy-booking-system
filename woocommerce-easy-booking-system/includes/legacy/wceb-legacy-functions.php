@@ -3,7 +3,7 @@
 /**
 *
 * Deprecated functions.
-* @version 3.3.2
+* @version 3.4.8
 *
 **/
 
@@ -237,4 +237,14 @@ function wceb_get_product_custom_booking_duration( $_product ) {
 **/
 function wceb_get_booked_items_from_orders( $past = true ) {
     return wceb_get_order_bookings();
+}
+
+/**
+*
+* Get the current plugin version.
+* @return str
+*
+**/
+function wceb_get_version() {
+    return WCEB_VERSION;
 }

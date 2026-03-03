@@ -15,70 +15,95 @@ class Settings {
 
 	/**
 	*
-	* Outputs or returns a select input.
-	* @param array - $args
+	* Output or return a select field.
+	*
+	* @param array $args
+	* @return string|void
 	*
 	**/
-	public static function select( $args ) {
+	public static function select( array $args ) {
 
-		$args['id']    = isset( $args['id'] ) ? $args['id'] : '';
-		$args['name']  = isset( $args['name'] ) ? $args['name'] : '';
-		$args['name']  = isset( $args['name'] ) ? $args['name'] : '';
-		$args['value'] = isset( $args['value'] ) ? $args['value'] : '';
-		$args['echo']  = isset( $args['echo'] ) ? $args['echo'] : true;
+		$args = wp_parse_args(
+			$args,
+			array(
+				'id'                => '',
+				'class'             => '',
+				'name'              => '',
+				'value'             => '',
+				'options'           => array(),
+				'custom_attributes' => array(),
+				'description'       => '',
+				'echo'              => true,
+			)
+		);
 
-		$output = '';
-		$output .= '<select name="' . esc_attr( $args['name'] ) . '" id="' . esc_attr( $args['id'] ) . '">';
+		$attributes = array_merge(
+			array(
+				'id'    => $args['id'],
+				'name'  => $args['name'],
+				'class' => $args['class'],
+			),
+			$args['custom_attributes']
+		);
 
-			if ( isset( $args['options'] ) ) :
+		$html = sprintf(
+			'<select%s>',
+			self::build_attributes( $attributes )
+		);
 
-				foreach ( $args['options'] as $option => $value ) :
-					$output .= '<option value="' . esc_attr( $option ) . '"' . selected( esc_attr( $args['value'] ), $option, false ) . '>' . esc_attr( $value ) . '</option>';
-				endforeach;
-
-			endif;
-
-		$output .= '</select>';
-
-		if ( isset( $args['description'] ) ) {
-			$output .= '<p class="description">' . wp_kses_post( $args['description'] ) . '</p>';
+		foreach ( $args['options'] as $value => $label ) {
+			$html .= sprintf(
+				'<option value="%1$s"%2$s>%3$s</option>',
+				esc_attr( $value ),
+				selected( (string) $args['value'], (string) $value, false ),
+				esc_html( $label )
+			);
 		}
 
-		if ( false === $args['echo'] ) {
-			return $output;
-		} else {
-			echo $output;
-		}
+		$html .= '</select>';
+
+		return self::render_field( $html, $args );
 
 	}
 
 	/**
 	*
-	* Outputs or returns a checkbox input.
-	* @param array - $args
+	* Output or return a checkbox input.
+	*
+	* @param array $args
+	* @return string|void
 	*
 	**/
-	public static function checkbox( $args ) {
+	public static function checkbox( array $args ) {
 
-		$args['id']      = isset( $args['id'] ) ? $args['id'] : '';
-		$args['class']   = isset( $args['class'] ) ? $args['class'] : '';
-		$args['name']    = isset( $args['name'] ) ? $args['name'] : '';
-		$args['value']   = isset( $args['value'] ) ? $args['value'] : '';
-		$args['cbvalue'] = isset( $args['cbvalue'] ) ? $args['cbvalue'] : 'yes';
-		$args['echo']    = isset( $args['echo'] ) ? $args['echo'] : true;
+		$args = wp_parse_args(
+			$args,
+			array(
+				'id'          => '',
+				'class'       => '',
+				'name'        => '',
+				'value'       => '',
+				'cbvalue'     => 'yes',
+				'description' => '',
+				'echo'        => true,
+			)
+		);
 
-		$output = '';
-		$output .= '<input type="checkbox" id="' . esc_attr( $args['id'] ) . '" name="' . esc_attr( $args['name'] ) . '"' .  checked( esc_attr( $args['value'] ), $args['cbvalue'], false ) . '/>';
+		$attributes = array(
+			'type'  => 'checkbox',
+			'id'    => $args['id'],
+			'name'  => $args['name'],
+			'class' => $args['class'],
+			'value' => $args['cbvalue'],
+		);
 
-		if ( isset( $args['description'] ) ) {
-			$output .= '<p class="description">' . wp_kses_post( $args['description'] ) . '</p>';
-		}
+		$html = sprintf(
+			'<input%s %s />',
+			self::build_attributes( $attributes ),
+			checked( (string) $args['value'], (string) $args['cbvalue'], false )
+		);
 
-		if ( false === $args['echo'] ) {
-			return $output;
-		} else {
-			echo $output;
-		}
+		return self::render_field( $html, $args );
 
 	}
 
@@ -88,37 +113,39 @@ class Settings {
 	* @param array - $args
 	*
 	**/
-	public static function input( $args ) {
+	public static function input( array $args ) {
 
-		$args['type']  = isset( $args['type'] ) ? $args['type'] : 'text';
-		$args['id']    = isset( $args['id'] ) ? $args['id'] : '';
-		$args['class'] = isset( $args['class'] ) ? $args['class'] : '';
-		$args['name']  = isset( $args['name'] ) ? $args['name'] : '';
-		$args['value'] = isset( $args['value'] ) ? $args['value'] : '';
-		$args['echo']  = isset( $args['echo'] ) ? $args['echo'] : true;
+		$args = wp_parse_args(
+			$args,
+			array(
+				'type'              => 'text',
+				'id'                => '',
+				'class'             => '',
+				'name'              => '',
+				'value'             => '',
+				'custom_attributes' => array(),
+				'description'       => '',
+				'echo'              => true,
+			)
+		);
 
-		$output = '';
+		$attributes = array_merge(
+			array(
+				'type'  => $args['type'],
+				'id'    => $args['id'],
+				'name'  => $args['name'],
+				'class' => $args['class'],
+				'value' => $args['value'],
+			),
+			$args['custom_attributes']
+		);
 
-		// Custom attribute handling
-		$custom_attributes = array();
-		if ( ! empty( $args['custom_attributes'] ) && is_array( $args['custom_attributes'] ) ) {
+		$html = sprintf(
+			'<input%s />',
+			self::build_attributes( $attributes )
+		);
 
-			foreach ( $args['custom_attributes'] as $attribute => $value ){
-				$custom_attributes[] = esc_attr( $attribute ) . '="' . esc_attr( $value ) . '"';
-			}
-		}
-
-		$output .= '<input type="' . esc_attr( $args['type'] ) . '" name="' . esc_attr( $args['name'] ) . '" value="' . esc_attr( $args['value'] ) . '" class="' . $args['class'] . '"' . implode( ' ', $custom_attributes ) . '>';
-
-		if ( isset( $args['description'] ) ) {
-			$output .= '<p class="description">' . wp_kses_post( $args['description'] ) . '</p>';
-		}
-
-		if ( false === $args['echo'] ) {
-			return $output;
-		} else {
-			echo $output;
-		}
+		return self::render_field( $html, $args );
 
 	}
 
@@ -128,36 +155,95 @@ class Settings {
 	* @param array - $args
 	*
 	**/
-	public static function textarea( $args ) {
+	public static function textarea( array $args ) {
 
-		$args['id']    = isset( $args['id'] ) ? $args['id'] : '';
-		$args['class'] = isset( $args['class'] ) ? $args['class'] : '';
-		$args['name']  = isset( $args['name'] ) ? $args['name'] : '';
-		$args['value'] = isset( $args['value'] ) ? $args['value'] : '';
-		$args['echo']  = isset( $args['echo'] ) ? $args['echo'] : true;
+		$args = wp_parse_args(
+			$args,
+			array(
+				'id'                => '',
+				'class'             => '',
+				'name'              => '',
+				'value'             => '',
+				'custom_attributes' => array(),
+				'description'       => '',
+				'echo'              => true,
+			)
+		);
+
+		$attributes = array_merge(
+			array(
+				'id'    => $args['id'],
+				'name'  => $args['name'],
+				'class' => $args['class'],
+			),
+			$args['custom_attributes']
+		);
+
+		$html = sprintf(
+			'<textarea%s>%s</textarea>',
+			self::build_attributes( $attributes ),
+			esc_textarea( $args['value'] )
+		);
+
+		return self::render_field( $html, $args );
+
+	}
+
+	/**
+	* 
+	* Build HTML attributes string.
+	*
+	* @param array $attributes
+	* @return string
+	*
+	**/
+	private static function build_attributes( array $attributes ): string {
 
 		$output = '';
 
-		// Custom attribute handling
-		$custom_attributes = array();
-		if ( ! empty( $args['custom_attributes'] ) && is_array( $args['custom_attributes'] ) ) {
+		foreach ( $attributes as $key => $value ) {
 
-			foreach ( $args['custom_attributes'] as $attribute => $value ){
-				$custom_attributes[] = esc_attr( $attribute ) . '="' . esc_attr( $value ) . '"';
+			if ( '' !== $value && null !== $value ) {
+
+				$output .= sprintf(
+					' %s="%s"',
+					esc_attr( $key ),
+					esc_attr( $value )
+				);
+
 			}
+
 		}
 
-		$output .= '<textarea id="' . esc_attr( $args['id'] ) . '" name="' . esc_attr( $args['name'] ) . '"' . implode( ' ', $custom_attributes ) . '/>' . esc_textarea( $args['value'] ) . '</textarea>';
+		return $output;
 
-		if ( isset( $args['description'] ) ) {
-			$output .= '<p class="description">' . wp_kses_post( $args['description'] ) . '</p>';
+	}
+
+	/**
+	*
+	* Render or return field HTML.
+	*
+	* @param string $html
+	* @param array  $args
+	* @return string|void
+	*
+	**/
+	private static function render_field( string $html, array $args ) {
+
+		if ( ! empty( $args['description'] ) ) {
+
+			$html .= sprintf(
+				'<p class="description">%s</p>',
+				wp_kses_post( $args['description'] )
+			);
+
 		}
 
 		if ( false === $args['echo'] ) {
-			return $output;
-		} else {
-			echo $output;
+			return $html;
 		}
+
+		echo $html;
 
 	}
 

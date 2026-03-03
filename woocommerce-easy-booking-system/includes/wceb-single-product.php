@@ -3,7 +3,7 @@
 /**
 *
 * Template hooks for product pages.
-* @version 3.0.0
+* @version 3.4.8
 *
 **/
 
@@ -53,7 +53,7 @@ add_action( 'woocommerce_grouped_product_list_after', 'wceb_fix_grouped_product_
 * @return str
 *
 **/
-function wceb_loop_add_to_cart_link( $content, $product ) {
+function wceb_loop_add_to_cart_link( $content, $product, $args ) {
 
     if ( wceb_is_bookable( $product ) ) {
 
@@ -75,4 +75,4 @@ function wceb_loop_add_to_cart_link( $content, $product ) {
     
 }
 
-add_filter( 'woocommerce_loop_add_to_cart_link', 'wceb_loop_add_to_cart_link', 10, 2 );
+add_filter( 'woocommerce_loop_add_to_cart_link', 'wceb_loop_add_to_cart_link', 10, 3 );

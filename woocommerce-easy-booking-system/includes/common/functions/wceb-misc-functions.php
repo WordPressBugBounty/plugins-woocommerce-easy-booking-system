@@ -3,41 +3,11 @@
 /**
 *
 * Misc functions.
-* @version 3.4.7
+* @version 3.4.8
 *
 **/
 
 defined( 'ABSPATH' ) || exit;
-
-/**
-*
-* Get the current plugin version.
-* @return str
-*
-**/
-function wceb_get_version() {
-    return '3.4.7';
-} 
-
-/**
-*
-* Get the current version of the DB for Easy Booking.
-* @return str
-*
-**/
-function wceb_get_db_version() {
-    return '3.3.1';
-}
-
-/**
-*
-* Get the current version of the wceb_bookings table for Easy Booking.
-* @return str
-*
-**/
-function wceb_get_bookings_db_version() {
-    return '1.0.0';
-}
 
 /**
 *
@@ -101,18 +71,33 @@ function wceb_load_template( $path, $file ) {
 }
 
 /**
+* 
+* Get the URL of an asset file (minified or not), depending on SCRIPT_DEBUG.
 *
-* Return the path to a script (minified or not)
-* @param str $path - Admin or empty
-* @param str $file - File name
-* @param str $extension - File extension (js or css)
-* @param constant - The plugin file (default: Easy Booking)
-* @return str path to the file
+* Automatically loads the non-minified version when SCRIPT_DEBUG is enabled,
+* and the minified version otherwise.
+*
+* @param string $path      - Optional subdirectory (e.g. 'admin'). Empty for root.
+* @param string $file      - File name without extension.
+* @param string $extension - File extension ('js' or 'css').
+* @param string $plugin    - Plugin main file path. Default to WCEB_PLUGIN_FILE.
+* @return string URL to the requested asset file.
 *
 **/
 function wceb_get_file_path( $path, $file, $extension, $plugin = WCEB_PLUGIN_FILE ) {
+
+    $debug_enabled = wceb_script_debug();
+
+    $dev = $debug_enabled ? 'dev/' : '';
+    $min = $debug_enabled ? '' : '.min';
+
     $path = empty( $path ) ? '' : trailingslashit( $path );
-    return plugins_url( 'assets/' . trailingslashit( $extension ) . $path . WCEB_PATH . $file . WCEB_SUFFIX . '.' . $extension, $plugin );
+
+    return plugins_url(
+        'assets/' . trailingslashit( $extension ) . $path . $dev . $file . $min . '.' . $extension,
+        $plugin
+    );
+
 }
 
 /**
@@ -174,31 +159,6 @@ function wceb_sanitize_parameters( $param, $func ) {
 **/
 function wceb_sort_by_product_id( $a, $b ) {
     return ( $a['product_id'] < $b['product_id'] ) ? -1 : 1;
-}
-
-/**
-*
-* Minifies CSS on-the-fly.
-* @param str $css - Not minified CSS
-* @return str $css - Minified CSS
-*
-**/
-function wceb_minify_css( $css ) {
-
-    // Remove comments
-    $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
-
-    // Remove space after colons
-    $css = str_replace(': ', ':', $css);
-
-    // Remove space before brackets
-    $css = str_replace(' {', '{', $css);
-
-    // Remove whitespace
-    $css = str_replace( array( "\r\n", "\r", "\n", "\t", '  ', '    ', '    ' ), '', $css );
-
-    return $css;
-
 }
 
 /**

@@ -2,13 +2,13 @@
 /*
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
-* Description: A powerful and easy to use booking plugin for your WooCommerce store.
-* Version: 3.4.7
+* Description: A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
+* Version: 3.4.8
 * Author: @morki
 * Author URI: https://easy-booking.pro/
 * Requires at least: 5.0
-* Tested up to: 6.8.3
-* WC tested up to: 10.3.5
+* Tested up to: 6.9.1
+* WC tested up to: 10.5.3
 * Requires Plugins: woocommerce
 * WC requires at least: 3.0
 * Text domain: woocommerce-easy-booking-system
@@ -36,13 +36,12 @@ class Easy_Booking {
 
     public function __construct() {
 
-        $plugin = plugin_basename( __FILE__ );
+        $this->define_constants();
+        $this->includes();
 
-        // Check if WooCommerce is active
-        if ( ! $this->woocommerce_is_active() ) {
-            return;
-        }
-
+        // Hook for Easy Booking PRO
+        do_action( 'easy_booking_after_init' );
+        
         // Declare compatibility with HPOS (WooCommerce > 8.2)
         add_action( 'before_woocommerce_init', function() {
             if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
@@ -51,13 +50,10 @@ class Easy_Booking {
         } );
 
         add_action( 'init', array( $this, 'init' ), 10 );
-        add_action( 'init', array( $this, 'check_pro_version' ), 21 );
 
         add_action( 'rest_api_init', array( $this, 'register_easy_booking_rest_routes' ) );
 
-        add_filter( 'plugin_action_links_' . $plugin, array( $this, 'add_settings_link' ) );
-
-        do_action( 'easy_booking_after_init' );
+        add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_settings_link' ) );
 
         register_activation_hook( __FILE__, array( $this, 'wceb_activate' ) );
 
@@ -65,79 +61,46 @@ class Easy_Booking {
 
     /**
     *
-    * Make sure Easy Booking PRO version is compatible, or deactivate it.
-    * Currently version 3.3.6 requires Easy Booking PRO to be at least 1.2.3.
+    * Define constants
     *
     **/
-    public function check_pro_version() {
+    private function define_constants() {
 
-        if ( self::is_easy_booking_pro_active() && version_compare( self::get_easy_booking_pro_version(), '1.2.3', '<' ) ) {
+        // Plugin version
+        defined( 'WCEB_VERSION' ) || define( 'WCEB_VERSION', '3.4.8' );
 
-            add_action( 'admin_notices', function() {
-                include_once( 'includes/admin/views/notices/html-wceb-notice-update-pro-plugin.php' );
-            });
+        // Plugin directory
+        defined( 'WCEB_PLUGIN_FILE' ) || define( 'WCEB_PLUGIN_FILE', __FILE__ );
+        defined( 'WCEB_PLUGIN_PATH' ) || define( 'WCEB_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
-            deactivate_plugins( 'easy-booking-pro/easy-booking-pro.php' );
+        // Table versions
+        defined( 'WCEB_ORDER_BOOKINGS_TABLE_VERSION' ) || define( 'WCEB_ORDER_BOOKINGS_TABLE_VERSION', '1.0.0' );
 
-        }
-        
     }
 
     /**
     *
-    * Run this on activation.
-    * Set a transient so that we know we've just activated the plugin.
+    * Init plugin settings on activation.
     *
     **/
     public function wceb_activate() {
+
+        // Store plugin table version in DB
+        add_option( 'wceb_version', WCEB_VERSION );
+        add_option( 'wceb_order_bookings_table_version', WCEB_ORDER_BOOKINGS_TABLE_VERSION );
+
+        // Init plugin settings with default values
+        foreach ( EasyBooking\Settings_Helper::get_settings() as $name => $setting ) {
+
+            add_option(
+                'wceb_' . $name,
+                $setting['default']
+            );
+
+        }
+
         set_transient( 'wceb_activated', 1 );
-    }
 
-    /**
-    *
-    * Check if WooCommerce is active
-    *
-    * @return bool
-    *
-    **/
-    public function woocommerce_is_active() {
-
-        $active_plugins = (array) get_option( 'active_plugins', array() );
-
-        if ( is_multisite() ) {
-            $active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', array() ) );
-        }
-
-        return ( array_key_exists( 'woocommerce/woocommerce.php', $active_plugins ) || in_array( 'woocommerce/woocommerce.php', $active_plugins ) );
-
-    }
-
-    /**
-    *
-    * Check if Easy Booking PRO is active.
-    * @return bool
-    *
-    **/
-    public static function is_easy_booking_pro_active() {
-
-        $active_plugins = (array) get_option( 'active_plugins', array() );
-
-        if ( is_multisite() ) {
-            $active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', array() ) );
-        }
-
-        return array_key_exists( 'easy-booking-pro/easy-booking-pro.php', $active_plugins ) || in_array( 'easy-booking-pro/easy-booking-pro.php', $active_plugins );
-
-    }
-
-    /**
-    *
-    * Get Easy Booking PRO version.
-    * @return str
-    *
-    **/
-    public static function get_easy_booking_pro_version() {
-        return function_exists( 'wceb_get_pro_version' ) ? wceb_get_pro_version() : '1.0.0';
     }
 
     /**
@@ -147,56 +110,20 @@ class Easy_Booking {
     **/
     public function init() {
 
-        // Define constants
-        $this->define_constants();
-
         // Load plugin textdomain
         load_plugin_textdomain( 'woocommerce-easy-booking-system', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-
-        // Common includes
-        $this->includes();
-
-        // Admin includes
-        if ( is_admin() ) {
-            $this->admin_includes();
-        }
-        
-        // Frontend includes
-        if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
-            $this->frontend_includes();
-        }
-
         
     }
 
+    
+
     /**
     *
-    * Define constants
-    * WCEB_PLUGIN_FILE - Plugin directory
-    * WCEB_LANG - Site language to load pickadate.js translations
-    * WCEB_PATH - Path to assets (dev or not)
-    * WCEB_SUFFIX - Suffix for the assets (minified or not)
+    * Check if any updates are required after plugin update.
     *
     **/
-    private function define_constants() {
-
-        // Plugin directory
-        define( 'WCEB_PLUGIN_FILE', __FILE__ );
-
-        // Get page language in order to load Pickadate translation
-        $site_language = get_bloginfo( 'language' );
-        $lang          = str_replace( '-', '_', $site_language );
-
-        // Site language
-        define( 'WCEB_LANG', $lang );
-
-        $path = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? 'dev/' : '';
-        $min  = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-
-        // Path and suffix to load minified (or not) files
-        define( 'WCEB_PATH', $path );
-        define( 'WCEB_SUFFIX', $min );
-
+    public function maybe_update_plugin() {
+        EasyBooking\Update_Manager::init();
     }
 
     /**
@@ -234,35 +161,43 @@ class Easy_Booking {
     public function includes() {
 
         // Legacy
-        include_once( 'includes/legacy/wceb-legacy-settings.php' );
-        include_once( 'includes/legacy/wceb-legacy-functions.php' );
-        include_once( 'includes/legacy/wceb-legacy-booking-data.php' );
-        include_once( 'includes/legacy/wceb-legacy-addons.php' );
+        require_once __DIR__ . '/includes/legacy/wceb-legacy-functions.php';
 
         // Functions
-        include_once( 'includes/common/functions/wceb-core-functions.php');
-        include_once( 'includes/common/functions/wceb-misc-functions.php');
-        include_once( 'includes/common/functions/wceb-date-functions.php');
-        include_once( 'includes/common/functions/wceb-product-functions.php');
-        include_once( 'includes/common/functions/wceb-bookings-functions.php');
-        include_once( 'includes/common/functions/wceb-order-booking-functions.php');
+        require_once __DIR__ . '/includes/common/functions/wceb-core-functions.php';
+        require_once __DIR__ . '/includes/common/functions/wceb-misc-functions.php';
+        require_once __DIR__ . '/includes/common/functions/wceb-date-functions.php';
+        require_once __DIR__ . '/includes/common/functions/wceb-product-functions.php';
+        require_once __DIR__ . '/includes/common/functions/wceb-bookings-functions.php';
+        require_once __DIR__ . '/includes/common/functions/wceb-order-booking-functions.php';
 
         // Date selection helper
-        include_once( 'includes/common/class-wceb-date-selection-helper.php' );
+        require_once __DIR__ . '/includes/common/class-wceb-date-selection-helper.php';
 
         // Order booking object
-        include_once( 'includes/common/abstract-wceb-booking.php' );
-        include_once( 'includes/common/class-wceb-order-booking.php' );
+        require_once __DIR__ . '/includes/common/abstract-wceb-booking.php';
+        require_once __DIR__ . '/includes/common/class-wceb-order-booking.php';
 
         // Pickadate assets
-        include_once( 'includes/common/class-wceb-pickadate.php' );
+        require_once __DIR__ . '/includes/common/class-wceb-pickadate.php';
 
         // Other
-        include_once( 'includes/common/class-wceb-checkout.php' );
-        include_once( 'includes/common/class-wceb-booking-statuses.php' );
+        require_once __DIR__ . '/includes/common/class-wceb-checkout.php';
+        require_once __DIR__ . '/includes/common/class-wceb-booking-statuses.php';
 
         // Third party
-        include_once( 'includes/common/third-party/class-wceb-third-party-plugins.php' );
+        require_once __DIR__ . '/includes/common/third-party/class-wceb-third-party-plugins.php';
+
+
+        // Admin includes
+        if ( is_admin() ) {
+            $this->admin_includes();
+        }
+        
+        // Frontend includes
+        if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
+            $this->frontend_includes();
+        }
 
     }
 
@@ -274,35 +209,35 @@ class Easy_Booking {
     public function admin_includes() {
 
         // Admin
-        include_once( 'includes/admin/functions/wceb-update-functions.php' );
-        include_once( 'includes/admin/wceb-admin-notices.php' );
-        include_once( 'includes/admin/class-wceb-install.php' );
-        include_once( 'includes/admin/class-wceb-admin-assets.php' );
-        include_once( 'includes/admin/class-wceb-admin-ajax.php' );
+        require_once __DIR__ . '/includes/admin/class-wceb-update-manager.php';
+        require_once __DIR__ . '/includes/admin/class-wceb-install.php';
+
+        require_once __DIR__ . '/includes/admin/class-wceb-admin-assets.php';
+        require_once __DIR__ . '/includes/admin/class-wceb-admin-ajax.php';
 
         // Settings
-        include_once( 'includes/legacy/wceb-legacy-settings-functions.php' );
-        include_once( 'includes/settings/class-wceb-settings-functions.php' );
-        include_once( 'includes/settings/class-wceb-admin-menu.php' );
-        include_once( 'includes/settings/class-wceb-settings-page.php' );
-        include_once( 'includes/settings/class-wceb-tools-page.php' );
-        include_once( 'includes/settings/class-wceb-pro-page.php' );
-        include_once( 'includes/settings/class-wceb-settings-general.php' );
-        include_once( 'includes/settings/class-wceb-settings-appearance.php' );
-        include_once( 'includes/settings/class-wceb-settings-statuses.php' );
+        require_once __DIR__ . '/includes/legacy/wceb-legacy-settings-functions.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-settings.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-settings-functions.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-admin-menu.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-settings-page.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-tools-page.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-settings-general.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-settings-appearance.php';
+        require_once __DIR__ . '/includes/settings/class-wceb-settings-statuses.php';
 
         // Reports
-        include_once( 'includes/reports/class-wceb-reports-page.php' );
-        include_once( 'includes/reports/wceb-reports-functions.php' );
-        include_once( 'includes/reports/class-wceb-reports-bookings.php' );
-        include_once( 'includes/reports/class-wceb-reports-calendar.php' );
-        include_once( 'includes/reports/class-wceb-list-bookings.php' );
+        require_once __DIR__ . '/includes/reports/class-wceb-reports-page.php';
+        require_once __DIR__ . '/includes/reports/wceb-reports-functions.php';
+        require_once __DIR__ . '/includes/reports/class-wceb-reports-bookings.php';
+        require_once __DIR__ . '/includes/reports/class-wceb-reports-calendar.php';
+        require_once __DIR__ . '/includes/reports/class-wceb-list-bookings.php';
 
         // Products and orders
-        include_once( 'includes/admin/functions/wceb-admin-product-functions.php' );
-        include_once( 'includes/admin/class-wceb-admin-product.php' );
-        include_once( 'includes/admin/class-wceb-admin-variation.php' );
-        include_once( 'includes/admin/class-wceb-order.php' );
+        require_once __DIR__ . '/includes/admin/functions/wceb-admin-product-functions.php';
+        require_once __DIR__ . '/includes/admin/class-wceb-admin-product.php';
+        require_once __DIR__ . '/includes/admin/class-wceb-admin-variation.php';
+        require_once __DIR__ . '/includes/admin/class-wceb-order.php';
 
     }
 
@@ -314,20 +249,20 @@ class Easy_Booking {
     public function frontend_includes() {
         
         // Product and variation hooks
-        include_once( 'includes/class-wceb-product.php' );
-        include_once( 'includes/class-wceb-variable-product.php' );
+        require_once __DIR__ . '/includes/class-wceb-product.php';
+        require_once __DIR__ . '/includes/class-wceb-variable-product.php';
 
         // Product page
-        include_once( 'includes/wceb-single-product.php' );
+        require_once __DIR__ . '/includes/wceb-single-product.php';
 
         // Frontend assets
-        include_once( 'includes/class-wceb-assets.php' );
+        require_once __DIR__ . '/includes/class-wceb-assets.php';
 
         // Date selection
-        include_once( 'includes/class-wceb-date-selection.php' );
+        require_once __DIR__ . '/includes/class-wceb-date-selection.php';
 
         // Cart hooks
-        include_once( 'includes/class-wceb-cart.php' );
+        require_once __DIR__ . '/includes/class-wceb-cart.php';
 
     }
 

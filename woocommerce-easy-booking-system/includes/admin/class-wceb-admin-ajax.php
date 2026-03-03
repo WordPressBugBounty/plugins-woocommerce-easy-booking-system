@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Admin AJAX.
-* @version 3.3.0
+* @version 3.4.8
 *
 **/
 
@@ -15,33 +15,11 @@ class Admin_Ajax {
 
 	public function __construct() {
 
-        add_action( 'wp_ajax_wceb_update_database', array( $this, 'maybe_update_database' ) );
         add_action( 'wp_ajax_wceb_hide_admin_notice', array( $this, 'hide_admin_notice' ) );
         add_action( 'wp_ajax_wceb_init_booking_statuses', array( $this, 'init_booking_statuses' ) );
         add_action( 'wp_ajax_wceb_reports_product_search', array( $this, 'reports_product_search' ) );
 
 	}
-
-	/**
-    *
-    * Ajax function to update database.
-    *
-    **/
-    public function maybe_update_database() {
-
-        check_admin_referer( 'wceb-hide-notice', 'security' );
-
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You don&#8217;t have permission to do this.', 'woocommerce-easy-booking-system' ) );
-        }
-
-        // Check if complete update parameter was passed
-        $full_update    = isset( $_POST['full_update'] ) ? true : false;
-        $update_message = wceb_db_update( $full_update );
-            
-        wp_die( esc_html( $update_message ) );
-
-    }
 
     /**
     *

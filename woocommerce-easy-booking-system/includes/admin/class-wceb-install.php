@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Install Easy Booking.
-* @version 3.3.1
+* @version 3.4.8
 *
 **/
 
@@ -19,7 +19,9 @@ class Install {
     *
     **/
 	public static function init() {
+
         add_action( 'admin_init', array( __CLASS__, 'install' ) );
+
 	}
 
     /**
@@ -34,10 +36,13 @@ class Install {
             // Maybe create or update wceb_bookings table
             self::maybe_create_tables();
 
+            // Database updates
+            Update_Manager::init();
+
         } catch ( \Exception $e ) {
 
             add_action( 'admin_notices', function() use ( $e ) {
-                echo '<div class="error"><p>' . esc_html( $e->getMessage() ) . '</p></div>';
+                echo '<div class="error"><p>' . $e->getMessage() . '</p></div>';
             });
 
         }
@@ -52,7 +57,7 @@ class Install {
     public static function maybe_create_tables() {
         global $wpdb;
 
-        $bookings_table_version = wceb_get_bookings_db_version();
+        $wpdb->show_errors();
         
         $table_name      = $wpdb->prefix . 'wceb_order_bookings';
         $charset_collate = $wpdb->get_charset_collate();
@@ -77,23 +82,29 @@ class Install {
         // Table creation failed
         if ( ! $success ) {
 
+            $error = ! empty( $wpdb->last_error )
+                ? $wpdb->last_error
+                : sprintf(
+                    esc_html__( 'Does the %1$s user have CREATE privileges on the %2$s database?', 'woocommerce-easy-booking-system' ),
+                    '<code>' . esc_html( DB_USER ) . '</code>',
+                    '<code>' . esc_html( DB_NAME ) . '</code>'
+                );
+
             throw new \Exception( sprintf(
-                /* translators: %1$s table name, %2$s database user, %3$s database name. */
-                __( 'Easy Booking table creation failed. Does the %1$s user have CREATE privileges on the %2$s database?', 'woocommerce-easy-booking-system' ),
-                '<code>' . esc_html( DB_USER ) . '</code>',
-                '<code>' . esc_html( DB_NAME ) . '</code>'
-            ) );
+                __( 'Easy Booking table creation failed. %s', 'woocommerce-easy-booking-system' ),
+                $error
+            ));
             
-        } else { // Success or table already exists
-
-            // Maybe update table to latest version
-            if ( get_option( 'wceb_bookings_db_version' ) != $bookings_table_version ) {
-                dbDelta( $sql );
-            }
-
         }
 
-        update_option( 'wceb_bookings_db_version', $bookings_table_version );
+        // Maybe update table to latest version
+        if ( get_option( 'wceb_order_bookings_table_version' ) !== WCEB_ORDER_BOOKINGS_TABLE_VERSION ) {
+
+            dbDelta( $sql );
+
+            update_option( 'wceb_order_bookings_table_version', WCEB_ORDER_BOOKINGS_TABLE_VERSION );
+
+        }
 
     }
 

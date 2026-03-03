@@ -14,49 +14,10 @@ defined( 'ABSPATH' ) || exit;
 
 class Settings_Statuses {
 
-	private $settings;
-	private $translations;
-
 	public function __construct() {
-
-		$this->settings = $this->get_settings();
-
-		// Init strings for translations
-		$this->translations = array(
-            esc_html__( 'Set "Start" booking status', 'woocommerce-easy-booking-system' ),
-            esc_html__( 'Keep "Start" status for', 'woocommerce-easy-booking-system' ),
-            esc_html__( 'Set "Processing" booking status', 'woocommerce-easy-booking-system' ),
-            esc_html__( 'Set "End" booking status', 'woocommerce-easy-booking-system' ),
-            esc_html__( 'Keep "End" status for', 'woocommerce-easy-booking-system' ),
-            esc_html__( 'Set "Completed" booking status', 'woocommerce-easy-booking-system' )
-        );
 
 		add_action( 'admin_init', array( $this, 'settings' ) );
 		add_action( 'easy_booking_settings_statuses_tab', array( $this, 'booking_statuses_settings_tab' ), 10 );
-
-	}
-
-	/**
-	*
-	* Get array of booking statuses settings.
-	* @return array - $settings
-	*
-	**/
-	private function get_settings() {
-
-		// Backward compatibility
-		$wceb_settings = get_option( 'easy_booking_settings' );
-
-		$settings = array(
-			'set_start_booking_status'      => isset( $wceb_settings['easy_booking_start_status'] ) ? $wceb_settings['easy_booking_start_status'] : 'automatic',
-			'keep_start_status_for'         => isset( $wceb_settings['easy_booking_start_status_change'] ) ? $wceb_settings['easy_booking_start_status_change'] : '0',
-			'set_processing_booking_status' => isset( $wceb_settings['easy_booking_processing_status'] ) ? $wceb_settings['easy_booking_processing_status'] : 'automatic',
-			'set_end_booking_status'        => 'automatic',
-			'keep_end_status_for'           => isset( $wceb_settings['easy_booking_completed_status_change'] ) ? $wceb_settings['easy_booking_completed_status_change'] : '0',
-			'set_completed_booking_status'  => isset( $wceb_settings['easy_booking_completed_status'] ) ? $wceb_settings['easy_booking_completed_status'] : 'automatic'
-		);
-
-		return $settings;
 
 	}
 
@@ -67,12 +28,38 @@ class Settings_Statuses {
 	**/
 	public function settings() {
 
-		$this->add_settings_sections();
 		$this->register_settings();
+
+		$this->add_settings_sections();
 		$this->add_settings_fields();
 
-		// Init booking_statuses settings the first time
-		$this->init_settings();
+	}
+
+	/**
+	*
+	* Register booking statuses settings.
+	*
+	**/
+	private function register_settings() {
+
+		foreach ( Settings_Helper::get_booking_statuses_settings() as $name => $setting ) {
+
+			$function_name = 'sanitize_' . $name;
+
+			$args = array(
+				'type'              => $setting['type'],
+				'sanitize_callback' => method_exists( $this, $function_name ) ? array( $this, 'sanitize_' . $name ) : 'sanitize_text_field',
+				'show_in_rest'      => false,
+				'default'           => $setting['default']
+			);
+
+			register_setting(
+				'easy_booking_statuses_settings',
+				'wceb_' . $name,
+				$args
+			);
+
+		}
 
 	}
 	
@@ -94,66 +81,21 @@ class Settings_Statuses {
 
 	/**
 	*
-	* Register booking statuses settings.
-	*
-	**/
-	private function register_settings() {
-
-		foreach ( $this->settings as $setting => $value ) {
-
-			$function_name = 'sanitize_' . $setting;
-			$args = array(
-				'type'              => 'string',
-				'description'       => '',
-				'sanitize_callback' => method_exists( $this, $function_name ) ? array( $this, 'sanitize_' . $setting ) : 'sanitize_text_field',
-				'show_in_rest'      => false
-			);
-
-			register_setting(
-				'easy_booking_statuses_settings',
-				'wceb_' . $setting,
-				$args
-			);
-
-		}
-
-	}
-
-	/**
-	*
 	* Add booking statuses settings fields.
 	*
 	**/
 	private function add_settings_fields() {
 
-		$field_names = array_combine( array_keys( $this->settings ), array_values( $this->translations ) );
-
-		foreach ( $field_names as $setting => $name ) {
+		foreach ( Settings_Helper::get_booking_statuses_settings() as $name => $setting ) {
 
 			 add_settings_field(
-				'wceb_' . $setting,
-				$name,
-				array( $this, $setting ),
-				'easy_booking_statuses_settings',
-				'easy_booking_main_settings'
+				'wceb_' . $name,
+				$setting['title'],
+				array( $this, $name ),
+                'easy_booking_statuses_settings',
+				$setting['section'],
+				array( 'label_for' => $name )
 			);
-
-		}
-
-	}
-
-	/**
-	*
-	* Maybe init boking statuses settings.
-	*
-	**/
-	private function init_settings() {
-
-		foreach ( $this->settings as $setting => $value ) {
-
-			if ( false === get_option( 'wceb_' . $setting ) ) {
-				update_option( 'wceb_' . $setting, $value );
-			}
 
 		}
 
@@ -201,7 +143,7 @@ class Settings_Statuses {
 		Settings::select( array(
 			'id'          => 'set_start_booking_status',
 			'name'        => 'wceb_set_start_booking_status',
-			'value'       => get_option( 'wceb_set_start_booking_status' ) ? get_option( 'wceb_set_start_booking_status' ) : 'automatic',
+			'value'       => get_option( 'wceb_set_start_booking_status', 'automatic' ),
 			'options'     => array(
 				'automatic' => __( 'Automatically', 'woocommerce-easy-booking-system' ),
 				'manual'    => __( 'Manually', 'woocommerce-easy-booking-system' )
@@ -222,7 +164,7 @@ class Settings_Statuses {
 			'id'          => 'keep_start_status_for',
 			'name'        => 'wceb_keep_start_status_for',
 			'description' => __( 'Day(s) before booking start date.', 'woocommerce-easy-booking-system' ),
-			'value'       =>  get_option( 'wceb_keep_start_status_for' ) ? get_option( 'wceb_keep_start_status_for' ) : '0',
+			'value'       =>  get_option( 'wceb_keep_start_status_for', 0 ),
 			'custom_attributes' => array(
 				'min' => 0,
 				'max' => 30
@@ -241,7 +183,7 @@ class Settings_Statuses {
 		Settings::select( array(
 			'id'          => 'set_processing_booking_status',
 			'name'        => 'wceb_set_processing_booking_status',
-			'value'       => get_option( 'wceb_set_processing_booking_status' ) ? get_option( 'wceb_set_processing_booking_status' ) : 'automatic',
+			'value'       => get_option( 'wceb_set_processing_booking_status', 'automatic' ),
 			'options'     => array(
 				'automatic' => __( 'Automatically', 'woocommerce-easy-booking-system' ),
 				'manual'    => __( 'Manually', 'woocommerce-easy-booking-system' )
@@ -260,7 +202,7 @@ class Settings_Statuses {
 		Settings::select( array(
 			'id'          => 'set_end_booking_status',
 			'name'        => 'wceb_set_end_booking_status',
-			'value'       => get_option( 'wceb_set_end_booking_status' ) ? get_option( 'wceb_set_end_booking_status' ) : 'automatic',
+			'value'       => get_option( 'wceb_set_end_booking_status', 'automatic' ),
 			'options'     => array(
 				'automatic' => __( 'Automatically', 'woocommerce-easy-booking-system' ),
 				'manual'    => __( 'Manually', 'woocommerce-easy-booking-system' )
@@ -281,7 +223,7 @@ class Settings_Statuses {
 			'id'          => 'keep_end_status_for',
 			'name'        => 'wceb_keep_end_status_for',
 			'description' => __( 'Day(s) after booking end date.', 'woocommerce-easy-booking-system' ),
-			'value'       =>  get_option( 'wceb_keep_end_status_for' ) ? get_option( 'wceb_keep_end_status_for' ) : '0',
+			'value'       =>  get_option( 'wceb_keep_end_status_for', 0 ),
 			'custom_attributes' => array(
 				'min' => 0,
 				'max' => 30
@@ -300,7 +242,7 @@ class Settings_Statuses {
 		Settings::select( array(
 			'id'          => 'set_completed_booking_status',
 			'name'        => 'wceb_set_completed_booking_status',
-			'value'       => get_option( 'wceb_set_completed_booking_status' ) ? get_option( 'wceb_set_completed_booking_status' ) : 'automatic',
+			'value'       => get_option( 'wceb_set_completed_booking_status', 'automatic' ),
 			'options'     => array(
 				'automatic' => __( 'Automatically', 'woocommerce-easy-booking-system' ),
 				'manual'    => __( 'Manually', 'woocommerce-easy-booking-system' )

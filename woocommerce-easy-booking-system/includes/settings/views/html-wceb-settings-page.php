@@ -21,6 +21,8 @@ defined( 'ABSPATH' ) || exit;
 
 	$current_tab = empty( $_GET['tab'] ) ? 'general' : sanitize_title( $_GET['tab'] ); ?>
 
+	<?php include_once( 'html-wceb-pro-reminder.php' ); ?>
+	
 	<form method="post" action="options.php">
 
 		<?php foreach ( $settings_tabs as $tab => $label ) { ?>

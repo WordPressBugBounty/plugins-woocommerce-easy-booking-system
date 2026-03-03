@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php $wceb_tabs = apply_filters( 'easy_booking_reports_tabs', array(
 			'bookings' => __('Bookings', 'woocommerce-easy-booking-system'),
-			'calendar' => __( 'Calendar ', 'woocommerce-easy-booking-system' )
+			'calendar' => __( 'Calendar', 'woocommerce-easy-booking-system' )
 		));
 
 		$current_tab = empty( $_GET['tab'] ) ? 'bookings' : sanitize_title( $_GET['tab'] ); ?>

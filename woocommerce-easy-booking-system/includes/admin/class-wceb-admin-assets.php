@@ -112,7 +112,7 @@ class Admin_Assets {
             'wceb-admin-js',
             wceb_get_file_path( 'admin', 'wceb-admin', 'js' ),
             array( 'jquery' ),
-            '1.0',
+            '3.4.8',
             true
         );
 
@@ -139,7 +139,8 @@ class Admin_Assets {
         wp_register_style(
             'wceb-admin-css',
             wceb_get_file_path( 'admin', 'wceb-admin', 'css' ),
-            WCEB_PLUGIN_FILE
+            WCEB_PLUGIN_FILE,
+            '3.4.8'
         );
 
     }

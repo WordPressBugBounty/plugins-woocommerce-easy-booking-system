@@ -86,7 +86,18 @@ class Settings_Page {
 		$screen->add_help_tab( array(
 			'id'       => 'wceb-help-support',
 			'title'    => __( 'Help and support', 'woocommerce-easy-booking-system' ),
-			'content'  => sprintf( __( '%sPlugin settings%sLearn how to set up the plugin to get exactly what you need in the %sdocumentation%s.%sHelp and support%sYou have an issue or a question? Check the %sFAQ%s or send an email.%s', 'woocommerce-easy-booking-system' ), '<h2>', '</h2><p>', '<a href="https://easy-booking.pro/documentation/" target="_blank">', '</a>', '</p><h2>', '</h2><p>', '<a href="https://easy-booking.pro/faq/" target="_blank">', '</a>', '</p>' )
+			'content'  => sprintf(
+				__( '%sPlugin settings%sFind detailed instructions in the %sdocumentation%s to configure the plugin exactly the way you need..%sHelp and support%sNeed assistance? Check the %sFAQ%s first, or contact us via email for support.%s', 'woocommerce-easy-booking-system' ),
+				'<h2>',
+				'</h2><p>',
+				'<a href="https://easy-booking.pro/documentation/" target="_blank">',
+				'</a>',
+				'</p><h2>',
+				'</h2><p>',
+				'<a href="https://easy-booking.pro/faq/" target="_blank">',
+				'</a>',
+				'</p>'
+			)
 		));
 
 		$screen->set_help_sidebar(

@@ -1,30 +1,45 @@
-==== Easy Booking for WooCommerce ====
+==== Easy Booking – WooCommerce Booking & Reservation Plugin ====
 
 Contributors: @morki
-Tags: woocommerce, booking, rent, book, calendar
+Tags: woocommerce, booking, appointment, reservation, calendar
 Requires at least: 5.0
-Stable tag: 3.4.7
-Tested up to: 6.8.3
-WC tested up to: 10.3.5
+Stable tag: 3.4.8
+Tested up to: 6.9.1
+WC tested up to: 10.5.3
 License: GPLv3
 
-A powerful and easy to use booking plugin for WooCommerce.
+A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
 
 == Description ==
 
-Easy Booking is a powerful and easy to use booking plugin for WooCommerce compatible with simple, variable, grouped and bundle products. An ideal solution to make the most of WooCommerce without having to manage a new product type.
+Easy Booking is a powerful yet intuitive WooCommerce booking and rental plugin, fully compatible with simple, variable, grouped, and bundle products. Designed to seamlessly integrate with your existing WooCommerce setup.
 
-It offers the right amount of options to adapt to your needs: \"Days\" or \"Nights\" mode, booking duration and limits, one or two dates, price calculation… And for developers, filters and action hooks to extend features.
+- **Flexible booking modes**: Choose between Days or Nights mode, and set custom booking durations and limits to match your business model.
+- **Date selection**: offer single or dual-date bookings (e.g., check-in/check-out) for maximum flexibility.
+- **Dashboard management**: Easily track and manage processing or upcoming bookings directly from your WordPress admin.
+- **Developer-friendly**: Extend functionality with filters and action hooks for custom integrations.
 
-It allows you to easily manage and keep an eye on processing or upcoming bookings from your WordPress dashboard.
+= Why choose Easy Booking? =
+
+- **No complex setup**: Works natively with WooCommerce, no extra product types or complicated configurations.
+- **Adaptable to your needs**: Whether you rent equipment, manage event registrations, or offer seasonal services, Easy Booking adjusts to your workflow.
+- **Responsive support & clear documentation** : Get help when you need it, with detailed documentaiton and a quick, friendly developer ready to assist you.
+
+Perfect for rentals, event bookings, or any date-based service, Easy Booking gives you the tools to streamline reservations.
+
+= Upgrade to Easy Booking PRO for advanced features =
+
+- **Stock management by date**: Automatic availability management for each date individually, ensuring no overbookings.
+- **Disabled dates**: Block specific dates (holidays, closures, etc.) to match your business schedule.
+- **Advanced pricing**: Set prices by date, season, or booking duration for maximum flexibility.
+- **Date selection on shop page**: Let customers choose dates directly from the product listing, with real-time filtering of available products.
+- **Manual booking import**: Add reservations manually without creating orders, ideal for phone bookings or external systems.
+
+Unlock the full potential of your booking system with [Easy Booking PRO](https://easy-booking.pro/pro/).
 
 = Demo =
 
-Check the plugin demo [here](http://demo.easy-booking.pro/).
-
-= PRO version =
-
-Add [Easy Booking PRO](https://easy-booking.pro/pro/) for extended features: stock management per date, disabled dates, prices depending on booking duration and/or dates, manual bookings and more.
+See Easy Booking in action: Check out the [demo](http://demo.easy-booking.pro/) and explore all the features.
 
 == Installation ==
 
@@ -49,14 +64,19 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 
 == Screenshots ==
 
-1. Product page
-2. Calendar
-3. Selected dates
-4. Product in cart
-5. Plugin settings
-6. Reports
+1. Date selection on product page.
+2. Easy Booking is compatible with simple, variable, grouped and bundle products.
+3. Easy Booking flexible settings.
+4. Easy Booking PRO features: stock management by date and advanced pricing.
+5. Manage bookings from your dashboard with list and calendar views.
 
 == Changelog ==
+
+= 3.4.8 - 2026-03-03 =
+
+* Tweak - Added global variable to datepicker calendar CSS.
+* Tweak - Improved plugin settings, plugin intall and DB update manager
+* Tweak - Added tr.js file for Turkish translation.
 
 = 3.4.7 - 2025-12-01 =
 

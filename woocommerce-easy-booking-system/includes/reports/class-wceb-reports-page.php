@@ -69,7 +69,7 @@ class Reports_Page {
 
         wp_register_style(
             'wceb-bookings-reports-styles',
-            wceb_get_file_path( 'admin', 'wceb-reports', 'css', WCEB_PLUGIN_FILE ),
+            wceb_get_file_path( 'admin', 'wceb-reports', 'css' ),
             array( 'picker', 'woocommerce_admin_styles' ),
             1.0
         );
@@ -84,7 +84,7 @@ class Reports_Page {
         // Calendar tab
         wp_register_script(
             'wceb-calendar-reports',
-            wceb_get_file_path( 'admin', 'wceb-calendar-reports', 'js', WCEB_PLUGIN_FILE ),
+            wceb_get_file_path( 'admin', 'wceb-calendar-reports', 'js' ),
             array( 'jquery', 'pickadate', 'pickadate.language', WC_ADMIN_APP ),
             '1.0',
             true
@@ -98,7 +98,7 @@ class Reports_Page {
 
         wp_register_style(
             'wceb-calendar-reports-picker',
-            wceb_get_file_path( 'admin', 'wceb-calendar-reports-picker', 'css', WCEB_PLUGIN_FILE ),
+            wceb_get_file_path( 'admin', 'wceb-calendar-reports-picker', 'css' ),
             array( WC_ADMIN_APP ),
             true
         );

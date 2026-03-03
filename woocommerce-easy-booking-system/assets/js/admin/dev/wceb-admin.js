@@ -4,10 +4,10 @@
 		$('.easy-booking-notice-close').on('click', function(e) {
 			e.preventDefault();
 			
-			var $this = $(this),
+			let $this = $(this),
 				notice = $this.data('notice');
 
-			var data = {
+			let data = {
 				action: 'wceb_hide_admin_notice',
 				security: wceb_admin.hide_notice_nonce,
 				notice: notice
@@ -28,20 +28,27 @@
 		$( '.wceb-db-update' ).on( 'click', function(e) {
 			e.preventDefault();
 			
-			var $this = $(this),
-			    $response = $('.wceb-response'),
-			    fullUpdate = $this.next('input[name="wceb-full-db-update"]').val();
+			let fullUpdate = $(this).next('input[name="wceb-full-db-update"]').val();
+			let $parent    = $(this).parents('.run-tool, .easy-booking-notice');
 
-			var data = {
-				action: 'wceb_update_database',
-				security: wceb_admin.hide_notice_nonce,
+			let data = {
+				action     : 'wceb_update_database',
+				security   : wceb_admin.hide_notice_nonce,
 				full_update: fullUpdate
 			};
 
-			$(this).parents( '.run-tool' ).html( '<p>' + wceb_admin.db_update_text + '</p>');
-			$(this).parents( '.easy-booking-notice' ).html( '<p>' + wceb_admin.db_update_text + '</p>');
+			$parent.fadeTo( '400', '0.6' );
 
 			$.post( wceb_admin.ajax_url, data, function( response ) {
+
+				if ( fullUpdate ) {
+					alert( response.data.message );	// Tools page
+				} else {
+					$parent.html( '<p>' + wceb_admin.db_update_text + '</p>');
+				}
+
+				$parent.stop(true).css( 'opacity', '1' );
+
 			});
 			
 		});
@@ -50,9 +57,9 @@
 		$( '.wceb-init-booking-statuses' ).on( 'click', function(e) {
 			e.preventDefault();
 			
-			var $this = $(this);
+			let $this = $(this);
 
-			var data = {
+			let data = {
 				action  : 'wceb_init_booking_statuses',
 				security: wceb_admin.hide_notice_nonce
 			};

@@ -63,5 +63,7 @@ defined( 'ABSPATH' ) || exit;
 		</tbody>
 
 	</table>
+	
+	<?php do_action( 'easy_booking_pro_page' ); // Backward compatibility ?>
 
 </div>

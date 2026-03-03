@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Easy Booking for WooCommerce\n"
-"POT-Creation-Date: 2025-12-01 13:49+0100\n"
+"POT-Creation-Date: 2026-03-03 09:42+0100\n"
 "PO-Revision-Date: 2019-10-14 14:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,12 +16,11 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: includes/admin/class-wceb-admin-ajax.php:35
-#: includes/admin/class-wceb-admin-ajax.php:75
+#: includes/admin/class-wceb-admin-ajax.php:53
 msgid "You don&#8217;t have permission to do this."
 msgstr ""
 
-#: includes/admin/class-wceb-admin-ajax.php:80
+#: includes/admin/class-wceb-admin-ajax.php:58
 msgid "Booking statuses successfully initialized!"
 msgstr ""
 
@@ -43,11 +42,31 @@ msgstr ""
 msgid "Bookings"
 msgstr ""
 
-#: includes/admin/class-wceb-install.php:82
+#: includes/admin/class-wceb-install.php:88
 #, php-format
-msgid ""
-"Easy Booking table creation failed. Does the %1$s user have CREATE "
-"privileges on the %2$s database?"
+msgid "Does the %1$s user have CREATE privileges on the %2$s database?"
+msgstr ""
+
+#: includes/admin/class-wceb-install.php:94
+#, php-format
+msgid "Easy Booking table creation failed. %s"
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:134
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:178
+msgid "Easy Booking database is already up to date."
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:225
+#, php-format
+msgid "Easy Booking database update failed at version %s. Error: %s"
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:235
+msgid "Easy Booking database update complete. Thank you!"
 msgstr ""
 
 #: includes/admin/functions/wceb-admin-product-functions.php:54
@@ -56,14 +75,6 @@ msgstr ""
 
 #: includes/admin/functions/wceb-admin-product-functions.php:79
 msgid "First available date must be inferior to last available date."
-msgstr ""
-
-#: includes/admin/functions/wceb-update-functions.php:41
-msgid "Easy Booking database update failed. The following error was returned: "
-msgstr ""
-
-#: includes/admin/functions/wceb-update-functions.php:52
-msgid "Easy Booking database update complete. Thank you!"
 msgstr ""
 
 #: includes/admin/views/notices/html-wceb-notice-update-database.php:17
@@ -76,48 +87,6 @@ msgstr ""
 #: includes/settings/views/html-wceb-tools-page.php:26
 #: includes/settings/views/html-wceb-tools-page.php:33
 msgid "Update database"
-msgstr ""
-
-#: includes/admin/views/notices/html-wceb-notice-update-pro-plugin.php:17
-msgid ""
-"Easy Booking PRO has been deactivated because it is out-of-date and not "
-"compatible with this version of Easy Booking. Please update Easy Booking PRO "
-"to its latest version."
-msgstr ""
-
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro-reminder.php:18
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro.php:18
-msgid "Easy Booking: upgrade to PRO version."
-msgstr ""
-
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro-reminder.php:21
-msgid ""
-"You have until December 31st, 2021 to upgrade your old Easy Booking add-ons "
-"to the PRO version."
-msgstr ""
-
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro-reminder.php:23
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro.php:23
-#, php-format
-msgid ""
-"If you have one or several add-ons and a valid license key, %syou can "
-"download the new PRO version for free%s."
-msgstr ""
-
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro-reminder.php:27
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro.php:29
-msgid "Upgrade to PRO"
-msgstr ""
-
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro.php:21
-msgid ""
-"Add-ons have been merged into a single PRO version regrouping all features. "
-"Add-ons will be maintained and supported until December 31st, 2021 only."
-msgstr ""
-
-#: includes/admin/views/notices/html-wceb-notice-upgrade-to-pro.php:25
-#, php-format
-msgid "Please be careful when upgrading and %sfollow the instructions%s."
 msgstr ""
 
 #: includes/admin/views/order-items/html-wceb-edit-order-item-meta.php:51
@@ -133,7 +102,7 @@ msgid "Pending"
 msgstr ""
 
 #: includes/admin/views/order-items/html-wceb-edit-order-item-meta.php:59
-#: includes/common/functions/wceb-misc-functions.php:126
+#: includes/common/functions/wceb-misc-functions.php:111
 #: includes/reports/class-wceb-list-bookings.php:82
 #: includes/reports/views/html-wceb-reports-filters.php:27
 msgid "Start"
@@ -145,7 +114,7 @@ msgid "Processing"
 msgstr ""
 
 #: includes/admin/views/order-items/html-wceb-edit-order-item-meta.php:61
-#: includes/common/functions/wceb-misc-functions.php:137
+#: includes/common/functions/wceb-misc-functions.php:122
 #: includes/reports/class-wceb-list-bookings.php:83
 #: includes/reports/views/html-wceb-reports-filters.php:29
 msgid "End"
@@ -158,7 +127,7 @@ msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:23
 #: includes/admin/views/products/html-wceb-variation-options.php:20
-#: includes/settings/class-wceb-settings-general.php:27
+#: includes/settings/class-wceb-settings.php:49
 msgid "Number of dates to select"
 msgstr ""
 
@@ -173,19 +142,19 @@ msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:27
 #: includes/admin/views/products/html-wceb-variation-options.php:27
-#: includes/settings/class-wceb-settings-general.php:209
+#: includes/settings/class-wceb-settings-general.php:147
 msgid "One"
 msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:28
 #: includes/admin/views/products/html-wceb-variation-options.php:30
-#: includes/settings/class-wceb-settings-general.php:210
+#: includes/settings/class-wceb-settings-general.php:148
 msgid "Two"
 msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:38
 #: includes/admin/views/products/html-wceb-variation-options.php:42
-#: includes/settings/class-wceb-settings-general.php:29
+#: includes/settings/class-wceb-settings.php:61
 msgid "Booking duration"
 msgstr ""
 
@@ -195,7 +164,7 @@ msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:55
 #: includes/admin/views/products/html-wceb-variation-options.php:52
-#: includes/settings/class-wceb-settings-general.php:30
+#: includes/settings/class-wceb-settings.php:67
 msgid "Minimum duration"
 msgstr ""
 
@@ -207,7 +176,7 @@ msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:72
 #: includes/admin/views/products/html-wceb-variation-options.php:65
-#: includes/settings/class-wceb-settings-general.php:31
+#: includes/settings/class-wceb-settings.php:73
 msgid "Maximum duration"
 msgstr ""
 
@@ -219,7 +188,7 @@ msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:91
 #: includes/admin/views/products/html-wceb-variation-options.php:80
-#: includes/settings/class-wceb-settings-general.php:32
+#: includes/settings/class-wceb-settings.php:79
 msgid "First available date"
 msgstr ""
 
@@ -231,7 +200,7 @@ msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:108
 #: includes/admin/views/products/html-wceb-variation-options.php:93
-#: includes/settings/class-wceb-settings-general.php:33
+#: includes/settings/class-wceb-settings.php:85
 msgid "Last available date"
 msgstr ""
 
@@ -329,11 +298,11 @@ msgstr ""
 msgid "Invalid order ID."
 msgstr ""
 
-#: includes/common/functions/wceb-misc-functions.php:151
+#: includes/common/functions/wceb-misc-functions.php:136
 msgid "Please select a date before adding this product to your cart."
 msgstr ""
 
-#: includes/common/functions/wceb-misc-functions.php:151
+#: includes/common/functions/wceb-misc-functions.php:136
 msgid "Please select dates before adding this product to your cart."
 msgstr ""
 
@@ -401,115 +370,97 @@ msgid "To see \"Completed\" bookings, use the \"Booking status\" filter below."
 msgstr ""
 
 #: includes/reports/views/html-wceb-reports-page.php:20
-msgid "Calendar "
+msgid "Calendar"
 msgstr ""
 
 #: includes/settings/class-wceb-pro-page.php:35
 #: includes/settings/class-wceb-pro-page.php:36
-#: woocommerce-easy-booking.php:342
+#: woocommerce-easy-booking.php:277
 msgid "PRO version"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-appearance.php:26
-msgid "Calendar theme"
+#: includes/settings/class-wceb-settings-appearance.php:75
+msgid "Picker appearance"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-appearance.php:27
-msgid "Background color"
+#: includes/settings/class-wceb-settings-appearance.php:124
+msgid ""
+"Customize the calendar to match your theme. For best results, use a light "
+"background with dark text."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-appearance.php:28
-msgid "Main color"
+#: includes/settings/class-wceb-settings-appearance.php:139
+msgid "Overlay"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-appearance.php:29
-msgid "Text color"
+#: includes/settings/class-wceb-settings-appearance.php:140
+msgid "Dropdown"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-appearance.php:177
-msgid "Customize the calendar to make it look great with your theme."
+#: includes/settings/class-wceb-settings-appearance.php:142
+msgid "Choose how the date picker is displayed."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-appearance.php:177
-msgid "For better rendering, prefer a light background and a dark text color."
-msgstr ""
-
-#: includes/settings/class-wceb-settings-appearance.php:192
-msgid "Default"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-appearance.php:193
-msgid "Classic"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-functions.php:240
+#: includes/settings/class-wceb-settings-functions.php:326
 msgid "Add"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-functions.php:286
+#: includes/settings/class-wceb-settings-functions.php:372
 msgid "Delete"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:26
-msgid "Make all products bookable?"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-general.php:28
-msgid "Booking mode"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-general.php:189
+#: includes/settings/class-wceb-settings-general.php:127
 msgid "If checked, any new or modified product will be automatically bookable."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:206
+#: includes/settings/class-wceb-settings-general.php:144
 msgid "Customizable at product level."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:227
+#: includes/settings/class-wceb-settings-general.php:165
 msgid "Rent your products by day or by night (i.e. 5 days = 4 nights)."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:229
+#: includes/settings/class-wceb-settings-general.php:167
 msgid "Days"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:230
+#: includes/settings/class-wceb-settings-general.php:168
 msgid "Nights"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:247
+#: includes/settings/class-wceb-settings-general.php:185
 msgid ""
 "Number of consecutive days/nights forming a block. Only for two dates "
 "selection. Customizable at product level."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:270
+#: includes/settings/class-wceb-settings-general.php:208
 msgid ""
 "Minimum number of blocks to select. Leave 0 or empty to set no minmum. "
 "Customizable at product level."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:292
+#: includes/settings/class-wceb-settings-general.php:230
 msgid ""
 "Maximum number of blocks to select. Leave 0 or empty to set no maximum. "
 "Customizable at product level."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:314
+#: includes/settings/class-wceb-settings-general.php:252
 msgid ""
 "First available date, relative to the current day. Leave 0 or empty to keep "
 "the current day. Customizable at product level."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-general.php:335
+#: includes/settings/class-wceb-settings-general.php:273
 msgid ""
 "Last available date, relative to the current day. Max: 3650 days (10 years)."
 msgstr ""
 
 #: includes/settings/class-wceb-settings-page.php:32
 #: includes/settings/class-wceb-settings-page.php:33
-#: woocommerce-easy-booking.php:341
+#: woocommerce-easy-booking.php:276
 msgid "Settings"
 msgstr ""
 
@@ -517,51 +468,27 @@ msgstr ""
 msgid "Help and support"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-page.php:89
+#: includes/settings/class-wceb-settings-page.php:90
 #, php-format
 msgid ""
-"%sPlugin settings%sLearn how to set up the plugin to get exactly what you "
-"need in the %sdocumentation%s.%sHelp and support%sYou have an issue or a "
-"question? Check the %sFAQ%s or send an email.%s"
+"%sPlugin settings%sFind detailed instructions in the %sdocumentation%s to "
+"configure the plugin exactly the way you need..%sHelp and support%sNeed "
+"assistance? Check the %sFAQ%s first, or contact us via email for support.%s"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-page.php:93
+#: includes/settings/class-wceb-settings-page.php:104
 msgid "For more information:"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-page.php:94
+#: includes/settings/class-wceb-settings-page.php:105
 msgid "Documentation"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-page.php:95
+#: includes/settings/class-wceb-settings-page.php:106
 msgid "FAQ"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-statuses.php:26
-msgid "Set \"Start\" booking status"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-statuses.php:27
-msgid "Keep \"Start\" status for"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-statuses.php:28
-msgid "Set \"Processing\" booking status"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-statuses.php:29
-msgid "Set \"End\" booking status"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-statuses.php:30
-msgid "Keep \"End\" status for"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-statuses.php:31
-msgid "Set \"Completed\" booking status"
-msgstr ""
-
-#: includes/settings/class-wceb-settings-statuses.php:184
+#: includes/settings/class-wceb-settings-statuses.php:126
 #, php-format
 msgid ""
 "Booking statuses will allow you to easily track your bookings in the "
@@ -569,26 +496,74 @@ msgid ""
 "documentation%s."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-statuses.php:206
-#: includes/settings/class-wceb-settings-statuses.php:246
-#: includes/settings/class-wceb-settings-statuses.php:265
-#: includes/settings/class-wceb-settings-statuses.php:305
+#: includes/settings/class-wceb-settings-statuses.php:148
+#: includes/settings/class-wceb-settings-statuses.php:188
+#: includes/settings/class-wceb-settings-statuses.php:207
+#: includes/settings/class-wceb-settings-statuses.php:247
 msgid "Automatically"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-statuses.php:207
-#: includes/settings/class-wceb-settings-statuses.php:247
-#: includes/settings/class-wceb-settings-statuses.php:266
-#: includes/settings/class-wceb-settings-statuses.php:306
+#: includes/settings/class-wceb-settings-statuses.php:149
+#: includes/settings/class-wceb-settings-statuses.php:189
+#: includes/settings/class-wceb-settings-statuses.php:208
+#: includes/settings/class-wceb-settings-statuses.php:248
 msgid "Manually"
 msgstr ""
 
-#: includes/settings/class-wceb-settings-statuses.php:224
+#: includes/settings/class-wceb-settings-statuses.php:166
 msgid "Day(s) before booking start date."
 msgstr ""
 
-#: includes/settings/class-wceb-settings-statuses.php:283
+#: includes/settings/class-wceb-settings-statuses.php:225
 msgid "Day(s) after booking end date."
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:43
+msgid "Make all products bookable?"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:55
+msgid "Booking mode"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:107
+msgid "Display mode"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:113
+msgid "Background color"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:119
+msgid "Accent color"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:125
+msgid "Text color"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:147
+msgid "Set \"Start\" booking status"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:153
+msgid "Keep \"Start\" status for"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:159
+msgid "Set \"Processing\" booking status"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:165
+msgid "Set \"End\" booking status"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:171
+msgid "Keep \"End\" status for"
+msgstr ""
+
+#: includes/settings/class-wceb-settings.php:177
+msgid "Set \"Completed\" booking status"
 msgstr ""
 
 #: includes/settings/class-wceb-tools-page.php:31
@@ -597,24 +572,14 @@ msgstr ""
 msgid "Tools"
 msgstr ""
 
-#: includes/settings/views/html-wceb-pro-page.php:22
-msgid "Easy Booking PRO"
-msgstr ""
-
-#: includes/settings/views/html-wceb-pro-page.php:28
-msgid "What is Easy Booking PRO?"
-msgstr ""
-
-#: includes/settings/views/html-wceb-pro-page.php:30
+#: includes/settings/views/html-wceb-pro-reminder.php:25
 msgid ""
-"Easy Booking PRO is a premium extension for Easy Booking which adds lots of "
-"important features to enhance your WooCommerce store: stock management per "
-"date, disabled dates, prices depending on duration and/or dates, manual "
-"bookings and more."
+"Unlock advanced features with Easy Booking PRO: manage stock, pricing, "
+"disabled dates and more."
 msgstr ""
 
-#: includes/settings/views/html-wceb-pro-page.php:32
-msgid "Read more"
+#: includes/settings/views/html-wceb-pro-reminder.php:33
+msgid "Upgrade to PRO"
 msgstr ""
 
 #: includes/settings/views/html-wceb-settings-page.php:17

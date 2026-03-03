@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Load frontend assets.
-* @version 3.4.7
+* @version 3.4.8
 *
 **/
 
@@ -121,7 +121,7 @@ class Frontend_Assets {
         // Load accounting.js script
         wp_register_script(
             'wc-accounting',
-            WC()->plugin_url() . '/assets/js/accounting/accounting' . WCEB_SUFFIX . '.js',
+            WC()->plugin_url() . '/assets/js/accounting/accounting.min.js',
             array( 'jquery' ),
             '0.4.2'
         );

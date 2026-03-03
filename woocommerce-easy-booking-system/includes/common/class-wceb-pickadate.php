@@ -5,7 +5,7 @@ namespace EasyBooking;
 /**
 *
 * Functions to register pickadate scripts and styles.
-* @version 3.0.0
+* @version 3.4.8
 *
 **/
 
@@ -60,16 +60,15 @@ class Pickadate {
 
         }
 
-        // Pickadate.js translation. If it doesn't exist, load English translation file.
-        if ( file_exists( plugin_dir_path( WCEB_PLUGIN_FILE ) . 'assets/js/translations/' . WCEB_LANG . '.js' ) ) {
-            $translation_file = plugins_url( 'assets/js/translations/' . WCEB_LANG . '.js', WCEB_PLUGIN_FILE );
-        } else {
-            $translation_file = plugins_url( 'assets/js/translations/en_US.js', WCEB_PLUGIN_FILE );
-        }
+        // Get page language in order to load Pickadate translation
+        $site_language = str_replace( '-', '_', get_bloginfo( 'language' ) );
+
+        // Pickadate.js translation. If it doesn't exist, load English translation file instead.
+        $lang = file_exists( plugin_dir_path( WCEB_PLUGIN_FILE ) . 'assets/js/translations/' . $site_language . '.js' ) ? $site_language : 'en_US';
 
         wp_register_script(
             'pickadate.language',
-            $translation_file,
+            plugins_url( "assets/js/translations/{$lang}.js", WCEB_PLUGIN_FILE ),
             array( 'jquery', 'pickadate' ),
             '1.0',
             true
@@ -95,26 +94,11 @@ class Pickadate {
     	// Get calendar theme - Force "Default" theme in admin.
     	$theme = is_admin() ? 'default' : get_option( 'wceb_calendar_theme' );
 
-        // If multisite, register the CSS file corresponding to the blog ID
-        if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-        	
-            $blog_id = get_current_blog_id();
-
-            wp_register_style(
-                'picker',
-                plugins_url( 'assets/css/' . $theme . '.' . $blog_id . '.min.css', WCEB_PLUGIN_FILE ),
-                true
-            );
-
-        } else {
-
-            wp_register_style(
-                'picker',
-                plugins_url( 'assets/css/' . $theme . '.min.css', WCEB_PLUGIN_FILE ),
-                true
-            );
-
-        }
+        wp_register_style(
+            'picker',
+            plugins_url( 'assets/css/' . $theme . '.min.css', WCEB_PLUGIN_FILE ),
+            true
+        );
 
         // Pickadate right-to-left CSS
         if ( is_rtl() ) {
@@ -125,6 +109,27 @@ class Pickadate {
 	            true
 	        );
     	}
+
+        // Add custom color variables to picker CSS
+        $bg_color       = wc_format_hex( get_option( 'wceb_background_color', '#ffffff' ) );
+        $text_color     = wc_format_hex( get_option( 'wceb_text_color', '#000000' ) );
+        $accent_color   = wc_format_hex( get_option( 'wceb_main_color', '#999999' ) );
+        $accent_lighter = wc_hex_lighter( $accent_color, 75 );
+
+        $css = sprintf(
+            ':root {
+                --wceb-bg: %1$s;
+                --wceb-text: %2$s;
+                --wceb-accent: %3$s;
+                --wceb-accent-lighter:%4$s;
+            }',
+            $bg_color,
+            $text_color,
+            $accent_color,
+            $accent_lighter
+        );
+
+        wp_add_inline_style( 'picker', $css );
 
     }
 
