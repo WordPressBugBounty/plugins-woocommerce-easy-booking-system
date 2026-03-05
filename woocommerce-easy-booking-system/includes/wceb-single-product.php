@@ -53,7 +53,7 @@ add_action( 'woocommerce_grouped_product_list_after', 'wceb_fix_grouped_product_
 * @return str
 *
 **/
-function wceb_loop_add_to_cart_link( $content, $product, $args ) {
+function wceb_loop_add_to_cart_link( $content, $product ) {
 
     if ( wceb_is_bookable( $product ) ) {
 
@@ -75,4 +75,4 @@ function wceb_loop_add_to_cart_link( $content, $product, $args ) {
     
 }
 
-add_filter( 'woocommerce_loop_add_to_cart_link', 'wceb_loop_add_to_cart_link', 10, 3 );
+add_filter( 'woocommerce_loop_add_to_cart_link', 'wceb_loop_add_to_cart_link', 10, 2 );

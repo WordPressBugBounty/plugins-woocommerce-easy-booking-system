@@ -3,7 +3,7 @@
 Contributors: @morki
 Tags: woocommerce, booking, appointment, reservation, calendar
 Requires at least: 5.0
-Stable tag: 3.4.8
+Stable tag: 3.4.9
 Tested up to: 6.9.1
 WC tested up to: 10.5.3
 License: GPLv3
@@ -71,6 +71,10 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 5. Manage bookings from your dashboard with list and calendar views.
 
 == Changelog ==
+
+= 3.4.9 - 2026-03-05 =
+
+* Fix - Fatal error with some themes with outdated WooCommerce templates.
 
 = 3.4.8 - 2026-03-03 =
 
