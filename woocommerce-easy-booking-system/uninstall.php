@@ -1,8 +1,15 @@
 <?php
+/**
+ *
+ * Uninstall plugin.
+ *
+ * @package Easy Booking
+ * @version 3.5.0
+ */
 
 // If uninstall not called from WordPress exit
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-    exit();
+	exit();
 }
 
 // Delete plugin settings
@@ -25,14 +32,30 @@ delete_option( 'wceb_set_processing_booking_status' );
 delete_option( 'wceb_set_end_status' );
 delete_option( 'wceb_keep_end_status_for' );
 delete_option( 'wceb_set_completed_booking_status' );
+
+// DB and plugin version.
 delete_option( 'easy_booking_db_version' );
+delete_option( 'wceb_version' );
+
+// Table versions.
+delete_option( 'wceb_order_bookings_table_version' );
 
 // Delete db entries
 global $wpdb;
 
-$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", "_bookable" ) );
-$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", "_number_of_dates" ) );
-$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", "_booking_min" ) );
-$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", "_booking_max" ) );
-$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", "_first_available_date" ) );
-$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", "_booking_duration" ) );
+// Delete post meta.
+$wpdb->query(
+	$wpdb->prepare(
+		"DELETE FROM {$wpdb->prefix}postmeta
+		WHERE meta_key IN ( %s, %s, %s, %s, %s, %s )",
+		'_bookable',
+		'_number_of_dates',
+		'_booking_min',
+		'_booking_max',
+		'_first_available_date',
+		'_booking_duration'
+	)
+);
+
+// Delete tables.
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}wceb_order_bookings" );

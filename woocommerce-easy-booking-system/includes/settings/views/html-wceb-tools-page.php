@@ -1,11 +1,11 @@
 <?php
 
 /**
-*
-* Admin: Tools page template.
-* @version 3.1.0
-*
-**/
+ *
+ * Admin: Tools page template.
+ *
+ * @version 3.1.0
+ **/
 
 defined( 'ABSPATH' ) || exit;
 

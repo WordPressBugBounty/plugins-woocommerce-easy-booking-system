@@ -5,9 +5,9 @@ namespace EasyBooking;
 /**
 *
 * Admin: Reports page.
+ *
 * @version 3.3.9
-*
-**/
+*/
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,14 +16,12 @@ class Reports_Page {
 	public function __construct() {
 
 		add_action( 'admin_menu', array( $this, 'add_reports_page' ), 10 );
-
 	}
 
 	/**
-	*
-	* Add reports page into "Easy Booking" menu
-	*
-	**/
+	 *
+	 * Add reports page into "Easy Booking" menu
+	 **/
 	public function add_reports_page() {
 
 		// Create a "Reports" page inside "Easy Booking" menu
@@ -38,92 +36,91 @@ class Reports_Page {
 		);
 
 		// Load scripts on this page only
-        add_action( 'admin_print_scripts-'. $reports_page, array( $this, 'load_reports_scripts' ) );
-
+		add_action( 'admin_print_scripts-' . $reports_page, array( $this, 'load_reports_scripts' ) );
 	}
 
 	/**
-	*
-	* Load HTML for reports page.
-	*
-	**/
+	 *
+	 * Load HTML for reports page.
+	 **/
 	public function display_reports_page() {
-		include_once( 'views/html-wceb-reports-page.php' );
+		include_once 'views/html-wceb-reports-page.php';
 	}
 
 	/**
-    *
-    * Load CSS and JS for reports page.
-    *
-    **/
-    public function load_reports_scripts() {
+	 *
+	 * Load CSS and JS for reports page.
+	 **/
+	public function load_reports_scripts() {
 
-        // Bookings tab
-        wp_register_script(
-            'wceb-bookings-reports',
-            wceb_get_file_path( 'admin', 'wceb-reports', 'js' ),
-            array( 'jquery', 'pickadate', 'pickadate.language', 'select2', 'wc-enhanced-select', WC_ADMIN_APP ),
-            '1.0',
-            true
-        );
+		// Bookings tab
+		wp_register_script(
+			'wceb-bookings-reports',
+			wceb_get_file_path( 'admin', 'wceb-reports', 'js' ),
+			array( 'jquery', 'pickadate', 'pickadate.language', 'select2', 'wc-enhanced-select', WC_ADMIN_APP ),
+			WCEB_VERSION,
+			true
+		);
 
-        wp_register_style(
-            'wceb-bookings-reports-styles',
-            wceb_get_file_path( 'admin', 'wceb-reports', 'css' ),
-            array( 'picker', 'woocommerce_admin_styles' ),
-            1.0
-        );
+		wp_register_style(
+			'wceb-bookings-reports-styles',
+			wceb_get_file_path( 'admin', 'wceb-reports', 'css' ),
+			array( 'picker', 'woocommerce_admin_styles' ),
+			1.0
+		);
 
-        if ( ! isset( $_GET['tab'] ) || ( isset( $_GET['tab'] ) && $_GET['tab'] === 'bookings' ) ) {
+		if ( ! isset( $_GET['tab'] ) || ( isset( $_GET['tab'] ) && wp_unslash( $_GET['tab'] ) === 'bookings' ) ) {  // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-            wp_enqueue_script( 'wceb-bookings-reports' );
-            wp_enqueue_style( 'wceb-bookings-reports-styles' );
+			wp_enqueue_script( 'wceb-bookings-reports' );
+			wp_enqueue_style( 'wceb-bookings-reports-styles' );
 
-        }
+		}
 
-        // Calendar tab
-        wp_register_script(
-            'wceb-calendar-reports',
-            wceb_get_file_path( 'admin', 'wceb-calendar-reports', 'js' ),
-            array( 'jquery', 'pickadate', 'pickadate.language', WC_ADMIN_APP ),
-            '1.0',
-            true
-        );
+		// Calendar tab
+		wp_register_script(
+			'wceb-calendar-reports',
+			wceb_get_file_path( 'admin', 'wceb-calendar-reports', 'js' ),
+			array( 'jquery', 'pickadate', 'pickadate.language', WC_ADMIN_APP ),
+			WCEB_VERSION,
+			true
+		);
 
-        // Get booking mode (Days or Nights)
-        $booking_mode = get_option( 'wceb_booking_mode' );
+		// Get booking mode (Days or Nights)
+		$booking_mode = get_option( 'wceb_booking_mode' );
 
-        // Get last available date
-        $last_available_date = wceb_shift_date( date( 'Y-m-d' ), get_option( 'wceb_last_available_date' ) );
+		// Get last available date
+		$last_available_date = wceb_shift_date( wp_date( 'Y-m-d' ), get_option( 'wceb_last_available_date' ) );
 
-        wp_register_style(
-            'wceb-calendar-reports-picker',
-            wceb_get_file_path( 'admin', 'wceb-calendar-reports-picker', 'css' ),
-            array( WC_ADMIN_APP ),
-            true
-        );
+		wp_register_style(
+			'wceb-calendar-reports-picker',
+			wceb_get_file_path( 'admin', 'wceb-calendar-reports-picker', 'css' ),
+			array( WC_ADMIN_APP ),
+			true
+		);
 
-        if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'calendar' ) {
+		if ( isset( $_GET['tab'] ) && wp_unslash( $_GET['tab'] ) === 'calendar' ) {  // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-            wp_enqueue_script( 'wceb-calendar-reports' );
+			wp_enqueue_script( 'wceb-calendar-reports' );
 
-            wp_add_inline_script( 'wceb-calendar-reports', 'const wceb_calendar_reports = ' . json_encode(
-                array(
-                    'last_date'     => esc_html( $last_available_date ),
-                    'booking_mode'  => esc_html( $booking_mode ),
-                    'bookings'      => wceb_get_calendar_report()
-                )
-            ), 'before' );
+			wp_add_inline_script(
+				'wceb-calendar-reports',
+				'const wceb_calendar_reports = ' . json_encode(
+					array(
+						'last_date'    => esc_html( $last_available_date ),
+						'booking_mode' => esc_html( $booking_mode ),
+						'bookings'     => wceb_get_calendar_report(),
+					)
+				),
+				'before'
+			);
 
-            wp_enqueue_style( 'wceb-calendar-reports-picker' );
+			wp_enqueue_style( 'wceb-calendar-reports-picker' );
 
-        }
+		}
 
-        // Action hook to load extra scripts on the reports page
-        do_action( 'easy_booking_load_report_scripts' );
-
-    }
-
+		// Action hook to load extra scripts on the reports page
+		do_action( 'easy_booking_load_report_scripts' );
+	}
 }
 
 new Reports_Page();

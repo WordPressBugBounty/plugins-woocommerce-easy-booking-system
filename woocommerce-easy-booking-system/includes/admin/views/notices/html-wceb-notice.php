@@ -1,11 +1,11 @@
 <?php
 
 /**
-*
-* Default template for admin notices.
-* @version 3.0.0
-*
-**/
+ *
+ * Default template for admin notices.
+ *
+ * @version 3.0.0
+ **/
 
 defined( 'ABSPATH' ) || exit;
 

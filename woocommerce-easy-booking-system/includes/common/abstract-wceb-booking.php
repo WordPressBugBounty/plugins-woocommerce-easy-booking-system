@@ -5,9 +5,11 @@ namespace EasyBooking;
 /**
 *
 * Abstract Booking class.
+ *
 * @version 3.4.3
-*
-**/
+*/
+
+// phpcs:disable  WordPress.Security.EscapeOutput.ExceptionNotEscaped
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,75 +21,75 @@ abstract class Booking {
 	protected $status;
 	protected $qty;
 
-    public abstract function read();
+	abstract public function read();
 
-    public abstract function save();
+	abstract public function save();
 
-    public abstract function check_data();
+	abstract public function check_data();
 
-    /*
+	/*
 	|--------------------------------------------------------------------------
 	| Getters
 	|--------------------------------------------------------------------------
 	*/
 
 	/**
-    *
-    * Get booking prop.
-    * @param int - $prop
-    * @return mixed
-    *
-    **/
+	 *
+	 * Get booking prop.
+	 *
+	 * @param int - $prop
+	 * @return mixed
+	 **/
 	public function get_prop( $prop ) {
 		return $this->$prop;
 	}
 
 	/**
-    *
-    * Get booking product ID.
-    * @return int
-    *
-    **/
+	 *
+	 * Get booking product ID.
+	 *
+	 * @return int
+	 **/
 	public function get_product_id() {
 		return $this->get_prop( 'product_id' );
 	}
 
 	/**
-    *
-    * Get booking start date.
-    * @return str
-    *
-    **/
+	 *
+	 * Get booking start date.
+	 *
+	 * @return str
+	 **/
 	public function get_start() {
 		return $this->get_prop( 'start' );
 	}
 
 	/**
-    *
-    * Get booking end date.
-    * @return null | str
-    *
-    **/
+	 *
+	 * Get booking end date.
+	 *
+	 * @return null | str
+	 **/
 	public function get_end() {
 		return $this->get_prop( 'end' );
 	}
 
 	/**
-    *
-    * Get booking booking status.
-    * @return str
-    *
-    **/
+	 *
+	 * Get booking booking status.
+	 *
+	 * @return str
+	 **/
 	public function get_status() {
 		return $this->get_prop( 'status' );
 	}
 
 	/**
-    *
-    * Get booking quantity.
-    * @return int
-    *
-    **/
+	 *
+	 * Get booking quantity.
+	 *
+	 * @return int
+	 **/
 	public function get_qty() {
 		return $this->get_prop( 'qty' );
 	}
@@ -99,26 +101,25 @@ abstract class Booking {
 	*/
 
 	/**
-    *
-    * Set booking props.
-    * @param array - $props
-    *
-    **/
+	 *
+	 * Set booking props.
+	 *
+	 * @param array - $props
+	 **/
 	public function set_props( $props ) {
 
 		foreach ( $props as $prop => $value ) {
 			$this->set_prop( $prop, $value );
 		}
-	
 	}
 
 	/**
-    *
-    * Validate and set booking prop.
-    * @param str - $prop
-    * @param str - $value
-    *
-    **/
+	 *
+	 * Validate and set booking prop.
+	 *
+	 * @param str - $prop
+	 * @param str - $value
+	 **/
 	public function set_prop( $prop, $value ) {
 
 		$getter = "get_$prop";
@@ -145,60 +146,63 @@ abstract class Booking {
 
 			return new \WP_Error(
 				'easy_booking_error_setting_property',
-				sprintf( 'Error setting booking property: %s', $e->getMessage(), 'woocommerce-easy-booking-system' ),
+				sprintf(
+					// translators: %s is error message.
+					esc_html__( 'Error setting booking property: %s', 'woocommerce-easy-booking-system' ),
+					esc_html( $e->getMessage() )
+				),
 				'error'
 			);
 
 		}
-
 	}
 
 	/**
-    *
-    * Set booking product ID.
-    * @param int - $_product_id
-    *
-    **/
+	 *
+	 * Set booking product ID.
+	 *
+	 * @param int - $_product_id
+	 **/
 	public function set_product_id( $_product_id ) {
 		$this->set_prop( 'product_id', $_product_id );
 	}
 
 	/**
-    *
-    * Set booking start date.
-    * @param str - $start
-    *
-    **/
+	 *
+	 * Set booking start date.
+	 *
+	 * @param str - $start
+	 **/
 	public function set_start( $start ) {
 		$this->set_prop( 'start', $start );
 	}
 
 	/**
-    *
-    * Set booking end date.
-    * @param null | str - $end
-    *
-    **/
+	 *
+	 * Set booking end date.
+	 *
+	 * @param null | str - $end
+	 **/
 	public function set_end( $end ) {
 		$this->set_prop( 'end', $end );
 	}
 
 	/**
-    *
-    * Set booking status.
-    * @param str - $status
-    *
-    **/
+	 *
+	 * Set booking status.
+	 *
+	 * @param str - $status
+	 **/
 	public function set_status( $status ) {
 		$this->set_prop( 'status', $status );
 	}
 
 	/**
-    *
-    * Set booking qty.
-    * @param int - $qty
-    *
-    **/
+	 *
+	 * Set booking qty.
+	 *
+	 * @param int - $qty
+	 **/
 	public function set_qty( $qty ) {
 		$this->set_prop( 'qty', $qty );
 	}
@@ -210,12 +214,12 @@ abstract class Booking {
 	*/
 
 	/**
-    *
-    * Validate product ID.
-    * @param int - $_product_id
-    * @throws Exception
-    *
-    **/
+	 *
+	 * Validate product ID.
+	 *
+	 * @param int - $_product_id
+	 * @throws Exception
+	 **/
 	public function check_product_id( $_product_id ) {
 
 		$product = wc_get_product( $_product_id );
@@ -223,46 +227,43 @@ abstract class Booking {
 		if ( ! $product ) {
 			throw new \Exception( __( 'Invalid product ID.', 'woocommerce-easy-booking-system' ) );
 		}
-
 	}
 
 	/**
-    *
-    * Validate start date.
-    * @param str - $start
-    * @throws Exception
-    *
-    **/
+	 *
+	 * Validate start date.
+	 *
+	 * @param str - $start
+	 * @throws Exception
+	 **/
 	public function check_start( $start ) {
 
 		if ( ! wceb_is_valid_date( $start ) ) {
 			throw new \Exception( __( 'Invalid start date.', 'woocommerce-easy-booking-system' ) );
 		}
-
 	}
 
 	/**
-    *
-    * Validate end date.
-    * @param null | str - $end
-    * @throws Exception
-    *
-    **/
+	 *
+	 * Validate end date.
+	 *
+	 * @param null | str - $end
+	 * @throws Exception
+	 **/
 	public function check_end( $end ) {
 
 		if ( ! is_null( $end ) && ! wceb_is_valid_date( $end ) ) {
 			throw new \Exception( __( 'Invalid end date.', 'woocommerce-easy-booking-system' ) );
 		}
-
 	}
 
 	/**
-    *
-    * Validate booking status.
-    * @param str - $status
-    * @throws Exception
-    *
-    **/
+	 *
+	 * Validate booking status.
+	 *
+	 * @param str - $status
+	 * @throws Exception
+	 **/
 	public function check_status( $status ) {
 
 		$valid_booking_statuses = array( 'wceb-pending', 'wceb-start', 'wceb-processing', 'wceb-end', 'wceb-completed' );
@@ -270,22 +271,19 @@ abstract class Booking {
 		if ( ! in_array( $status, $valid_booking_statuses ) ) {
 			throw new \Exception( __( 'Invalid booking status.', 'woocommerce-easy-booking-system' ) );
 		}
-
 	}
 
 	/**
-    *
-    * Validate quantity.
-    * @param int - $qty
-    * @throws Exception
-    *
-    **/
+	 *
+	 * Validate quantity.
+	 *
+	 * @param int - $qty
+	 * @throws Exception
+	 **/
 	public function check_qty( $qty ) {
 
 		if ( ! apply_filters( 'easy_booking_allow_negative_qty_in_imports', false ) && $qty <= 0 ) {
 			throw new \Exception( __( 'Invalid quantity.', 'woocommerce-easy-booking-system' ) );
 		}
-
 	}
-
 }

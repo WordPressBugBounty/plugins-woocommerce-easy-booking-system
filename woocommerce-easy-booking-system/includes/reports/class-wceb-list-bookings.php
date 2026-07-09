@@ -5,14 +5,14 @@ namespace EasyBooking;
 /**
 *
 * Admin: "Bookings" reports page table.
+ *
 * @version 3.3.2
-*
-**/
+*/
 
 defined( 'ABSPATH' ) || exit;
 
 if ( ! class_exists( 'WP_List_Table' ) ) {
-	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
 class List_Bookings extends \WP_List_Table {
@@ -21,19 +21,19 @@ class List_Bookings extends \WP_List_Table {
 
 	public function __construct() {
 
-		parent::__construct( array(
-			'singular'  => __( 'Report', 'woocommerce' ),
-			'plural'    => __( 'Reports', 'woocommerce' ),
-			'ajax'		=> true
-		) );
-
+		parent::__construct(
+			array(
+				'singular' => __( 'Report', 'woocommerce' ),
+				'plural'   => __( 'Reports', 'woocommerce' ),
+				'ajax'     => true,
+			)
+		);
 	}
 
 	/**
-	*
-	* Display filters and pagination.
-	*
-	**/
+	 *
+	 * Display filters and pagination.
+	 **/
 	protected function display_tablenav( $which ) {
 
 		?>
@@ -49,40 +49,39 @@ class List_Bookings extends \WP_List_Table {
 		</div>
 
 		<?php
-
 	}
 
 	/**
-	*
-	* Display filters.
-	*
-	**/
+	 *
+	 * Display filters.
+	 **/
 	protected function extra_tablenav( $which ) {
 
-		$filter_status     = isset( $_GET['status'] ) ? stripslashes( $_GET['status'] ) : '';
-		$filter_id         = isset( $_GET['product_ids'] ) ? stripslashes( $_GET['product_ids'] ) : '';
-		$filter_start_date = isset( $_GET['start_date'] ) ? stripslashes( $_GET['start_date'] ) : '';
-		$filter_end_date   = isset( $_GET['end_date'] ) ? stripslashes( $_GET['end_date'] ) : '';
+		$filter_status     = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reading data
+		$filter_id         = isset( $_GET['product_ids'] ) ? absint( wp_unslash( $_GET['product_ids'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reading data
+		$filter_start_date = isset( $_GET['start_date'] ) ? sanitize_text_field( wp_unslash( $_GET['start_date'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reading data
+		$filter_end_date   = isset( $_GET['end_date'] ) ? sanitize_text_field( wp_unslash( $_GET['end_date'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reading data
 
-		include_once( 'views/html-wceb-reports-filters.php' );
-
+		include_once 'views/html-wceb-reports-filters.php';
 	}
 
 	/**
-	*
-	* Set reports columns
-	*
-	**/
+	 *
+	 * Set reports columns
+	 **/
 	public function get_columns() {
 
-		$columns = apply_filters( 'easy_booking_reports_columns', array(
-			'status'     => esc_html__( 'Booking status', 'woocommerce-easy-booking-system' ),
-			'order_id'   => esc_html__( 'Order', 'woocommerce' ),
-			'product'    => esc_html__( 'Product', 'woocommerce' ),
-			'start_date' => esc_html( apply_filters( 'easy_booking_start_text', __( 'Start', 'woocommerce-easy-booking-system' ) ) ),
-			'end_date'   => esc_html( apply_filters( 'easy_booking_end_text', __( 'End', 'woocommerce-easy-booking-system' ) ) ),
-			'qty_booked' => esc_html__( 'Quantity booked', 'woocommerce-easy-booking-system' )
-		) );
+		$columns = apply_filters(
+			'easy_booking_reports_columns',
+			array(
+				'status'     => esc_html__( 'Booking status', 'woocommerce-easy-booking-system' ),
+				'order_id'   => esc_html__( 'Order', 'woocommerce' ),
+				'product'    => esc_html__( 'Product', 'woocommerce' ),
+				'start_date' => esc_html( apply_filters( 'easy_booking_start_text', __( 'Start', 'woocommerce-easy-booking-system' ) ) ),
+				'end_date'   => esc_html( apply_filters( 'easy_booking_end_text', __( 'End', 'woocommerce-easy-booking-system' ) ) ),
+				'qty_booked' => esc_html__( 'Quantity booked', 'woocommerce-easy-booking-system' ),
+			)
+		);
 
 		/*
 		*
@@ -92,59 +91,58 @@ class List_Bookings extends \WP_List_Table {
 		**/
 		$custom_columns = apply_filters( 'easy_booking_reports_custom_columns', array() );
 
-		if ( $custom_columns ) foreach ( $custom_columns as $custom_column ) {
+		if ( $custom_columns ) {
+			foreach ( $custom_columns as $custom_column ) {
 
-			// Sanitize.
-			$id = sanitize_html_class( $custom_column['id'] );
-			$custom_column['content'][$id] = esc_html( $custom_column['name'] );
+				// Sanitize.
+				$id                              = sanitize_html_class( $custom_column['id'] );
+				$custom_column['content'][ $id ] = esc_html( $custom_column['name'] );
 
-			// Insert custom column at the right position.
-			$columns = $this->insert_custom_column( $columns, absint( $custom_column['position'] ), $custom_column['content'] );
+				// Insert custom column at the right position.
+				$columns = $this->insert_custom_column( $columns, absint( $custom_column['position'] ), $custom_column['content'] );
 
+			}
 		}
 
 		return $columns;
-
 	}
 
 	/**
-	*
-	* Insert custom column content at the right position.
-	*
-	**/
+	 *
+	 * Insert custom column content at the right position.
+	 **/
 	private function insert_custom_column( &$columns, $position, $content ) {
 
 		$split_columns = array_splice( $columns, 0, $position );
-		$columns = array_merge( $split_columns, $content, $columns );
+		$columns       = array_merge( $split_columns, $content, $columns );
 
 		return $columns;
-
 	}
 
 	/**
-	*
-	* Set reports sortable columns.
-	*
-	**/
+	 *
+	 * Set reports sortable columns.
+	 **/
 	protected function get_sortable_columns() {
 
-		$sortable_columns = apply_filters( 'easy_booking_reports_sortable_columns', array(
-			'status'     => array( 'status', true ),
-			'order_id'   => array( 'order_id', true ),
-			'product'    => array( 'product_id', true ),
-			'start_date' => array( 'start', false ),
-			'end_date'   => array( 'end', false )
-		) );
+		$sortable_columns = apply_filters(
+			'easy_booking_reports_sortable_columns',
+			array(
+				'status'     => array( 'status', true ),
+				'order_id'   => array( 'order_id', true ),
+				'product'    => array( 'product_id', true ),
+				'start_date' => array( 'start', false ),
+				'end_date'   => array( 'end', false ),
+			)
+		);
 
 		return $sortable_columns;
-
 	}
 
 	/**
-	*
-	* Booking status column content
-	*
-	**/
+	 *
+	 * Booking status column content
+	 **/
 	protected function column_status( $item ) {
 
 		if ( isset( $item->status ) ) {
@@ -153,16 +151,14 @@ class List_Bookings extends \WP_List_Table {
 			$display_status = apply_filters( 'easy_booking_display_status_' . $display_status, ucfirst( $display_status ) );
 
 			printf( '<mark class="order-status %s tips" data-tip="%s">%s</mark>', esc_attr( sanitize_html_class( $item->status ) ), esc_attr( $display_status ), '<span>' . esc_html( $display_status ) . '</span>' );
-			
-		}
 
+		}
 	}
 
 	/**
-	*
-	* Order column content
-	*
-	**/
+	 *
+	 * Order column content
+	 **/
 	protected function column_order_id( $item ) {
 
 		$order = ! empty( $item->order_id ) ? wc_get_order( $item->order_id ) : false;
@@ -194,14 +190,12 @@ class List_Bookings extends \WP_List_Table {
 			esc_html_e( 'Imported booking', 'woocommerce-easy-booking-system' );
 
 		}
-
 	}
 
 	/**
-	*
-	* Product column content
-	*
-	**/
+	 *
+	 * Product column content
+	 **/
 	protected function column_product( $item ) {
 
 		$product = wc_get_product( $item->product_id );
@@ -211,65 +205,55 @@ class List_Bookings extends \WP_List_Table {
 		}
 
 		echo wp_kses_post( $product->get_formatted_name() );
-
 	}
 
 	/**
-	*
-	* Start date column content
-	*
-	**/
+	 *
+	 * Start date column content
+	 **/
 	protected function column_start_date( $item ) {
 
-		echo date_i18n( get_option( 'date_format' ), strtotime( $item->start ) );
-
+		echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $item->start ) ) );
 	}
 
 	/**
-	*
-	* End date column content
-	*
-	**/
+	 *
+	 * End date column content
+	 **/
 	protected function column_end_date( $item ) {
 
 		if ( isset( $item->end ) && ! is_null( $item->end ) ) {
-			echo date_i18n( get_option( 'date_format' ), strtotime( $item->end ) );
+			echo esc_html(  date_i18n( get_option( 'date_format' ), strtotime( $item->end ) ) );
 		}
-
 	}
 
 	/**
-	*
-	* Quantity booked column content
-	*
-	**/
+	 *
+	 * Quantity booked column content
+	 **/
 	protected function column_qty_booked( $item ) {
 
 		echo esc_html( $item->qty );
-
 	}
 
 	/**
-	*
-	* Custom columns content
-	*
-	**/
+	 *
+	 * Custom columns content
+	 **/
 	protected function column_default( $item, $column_name ) {
 
-		echo apply_filters(
+		echo esc_html( apply_filters(
 			'easy_booking_reports_display_custom_column',
-			isset( $item->$column_name ) ? esc_html( $item->$column_name ) : '',
+			isset( $item->$column_name ) ? $item->$column_name : '',
 			$column_name,
 			$item
-		);
-		
+		) );
 	}
 
 	/**
-	*
-	* Prepare items.
-	*
-	**/
+	 *
+	 * Prepare items.
+	 **/
 	public function prepare_items() {
 
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
@@ -280,26 +264,26 @@ class List_Bookings extends \WP_List_Table {
 		$this->get_items( $current_page, $per_page );
 
 		// Pagination
-		$this->set_pagination_args( array(
-			'total_items' => $this->max_items,
-			'per_page'    => $per_page,
-			'total_pages' => ceil( $this->max_items / $per_page )
-		) );
-
+		$this->set_pagination_args(
+			array(
+				'total_items' => $this->max_items,
+				'per_page'    => $per_page,
+				'total_pages' => ceil( $this->max_items / $per_page ),
+			)
+		);
 	}
 
 	/**
-	*
-	* Get items
-	*
-	**/
+	 *
+	 * Get items
+	 **/
 	protected function get_items( $current_page, $per_page ) {
 
 		$this->max_items = 0;
 		$this->items     = array();
 
 		// Filter bookings
-		$filters  = $_GET;
+		$filters  = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reading data
 		$bookings = apply_filters( 'wceb_reports_booked_products', wceb_get_filtered_bookings( $filters ) );
 
 		$total_items = count( $bookings );
@@ -310,12 +294,10 @@ class List_Bookings extends \WP_List_Table {
 
 		$items = array();
 		for ( $i = $min; $i < $set_max; $i++ ) {
-			$items[] = $bookings[$i];
+			$items[] = $bookings[ $i ];
 		}
 
 		$this->items     = $items;
 		$this->max_items = $total_items;
-
 	}
-
 }

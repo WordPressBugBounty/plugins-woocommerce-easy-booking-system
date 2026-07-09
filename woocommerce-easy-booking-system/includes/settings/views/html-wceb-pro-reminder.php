@@ -1,20 +1,20 @@
 <?php
 
 /**
-*
-* Admin: Pro page template.
-* @version 3.4.8
-*
-**/
+ *
+ * Admin: Pro page template.
+ *
+ * @version 3.4.8
+ **/
 
 defined( 'ABSPATH' ) || exit;
 
 $active_plugins = (array) get_option( 'active_plugins', array() );
 
 if ( is_multisite() ) {
-    $active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', array() ) );
+	$active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', array() ) );
 }
-        
+
 ?>
 
 <?php if ( ! array_key_exists( 'easy-booking-pro/easy-booking-pro.php', $active_plugins ) && ! in_array( 'easy-booking-pro/easy-booking-pro.php', $active_plugins ) ) : ?>

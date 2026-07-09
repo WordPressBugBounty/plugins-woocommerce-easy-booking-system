@@ -1,11 +1,11 @@
 <?php
 
 /**
-*
-* Admin: Filters in "Bookings" reports page.
-* @version 3.0.4
-*
-**/
+ *
+ * Admin: Filters in "Bookings" reports page.
+ *
+ * @version 3.0.4
+ **/
 
 defined( 'ABSPATH' ) || exit;
 

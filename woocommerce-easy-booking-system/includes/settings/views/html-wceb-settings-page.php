@@ -1,11 +1,11 @@
 <?php
 
 /**
-*
-* Admin: Settings page template.
-* @version 3.0.0
-*
-**/
+ *
+ * Admin: Settings page template.
+ *
+ * @version 3.0.0
+ **/
 
 defined( 'ABSPATH' ) || exit;
 
@@ -13,25 +13,30 @@ defined( 'ABSPATH' ) || exit;
 
 <div class="wrap">
 
-	<?php $settings_tabs = apply_filters( 'easy_booking_settings_tabs', array(
-		'general'    => __( 'General ', 'woocommerce-easy-booking-system' ),
-		'appearance' => __( 'Appearance', 'woocommerce-easy-booking-system' ),
-		'statuses'   => __( 'Booking statuses', 'woocommerce-easy-booking-system' )
-	));
+	<?php
+	$settings_tabs = apply_filters(
+		'easy_booking_settings_tabs',
+		array(
+			'general'    => __( 'General ', 'woocommerce-easy-booking-system' ),
+			'appearance' => __( 'Appearance', 'woocommerce-easy-booking-system' ),
+			'statuses'   => __( 'Booking statuses', 'woocommerce-easy-booking-system' ),
+		)
+	);
 
-	$current_tab = empty( $_GET['tab'] ) ? 'general' : sanitize_title( $_GET['tab'] ); ?>
+	$current_tab = empty( $_GET['tab'] ) ? 'general' : sanitize_title( wp_unslash( $_GET['tab'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	?>
 
-	<?php include_once( 'html-wceb-pro-reminder.php' ); ?>
+	<?php require_once 'html-wceb-pro-reminder.php'; ?>
 	
 	<form method="post" action="options.php">
 
-		<?php foreach ( $settings_tabs as $tab => $label ) { ?>
+		<?php foreach ( $settings_tabs as $wceb_tab => $label ) { ?>
 			<h2 class="screen-reader-text"><?php esc_html_e( $label ); ?></h2>
 		<?php } ?>
 		
 		<div class="nav-tab-wrapper woo-nav-tab-wrapper">
-			<?php foreach ( $settings_tabs as $tab => $label ) { ?>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=easy-booking&tab=' . esc_attr( $tab ) ) ); ?>" class="nav-tab <?php echo ( $current_tab === $tab ? 'nav-tab-active' : '' ) ?>"><?php esc_html_e( $label ); ?></a>
+			<?php foreach ( $settings_tabs as $wceb_tab => $label ) { ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=easy-booking&tab=' . esc_attr( $wceb_tab ) ) ); ?>" class="nav-tab <?php echo ( $current_tab === $wceb_tab ? 'nav-tab-active' : '' ); ?>"><?php esc_html_e( $label ); ?></a>
 			<?php } ?>
 		</div>
 			 

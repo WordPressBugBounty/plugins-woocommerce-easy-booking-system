@@ -1,11 +1,11 @@
 <?php
 
 /**
-*
-* Display bookable order items meta data on order pages.
-* @version 3.0.0
-*
-**/
+ *
+ * Display bookable order items meta data on order pages.
+ *
+ * @version 3.0.0
+ **/
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,15 +18,25 @@ defined( 'ABSPATH' ) || exit;
 		<tbody>
 
 			<tr>
-			    <th><?php esc_html_e( $start_date_text ); ?>:</th>
-			    <td><p><?php esc_html_e( $start_date_i18n ); ?></p></td>
+				<th>
+					<?php
+						// translators: %s is start date label.
+						printf( esc_html__( '%s: ', 'woocommerce-easy-booking-system' ), esc_html( $start_date_text ) );
+					?>
+				</th>
+				<td><p><?php echo esc_html( $start_date_i18n ); ?></p></td>
 			</tr>
 			
 			<?php if ( ! empty( $end_date ) ) : ?>
 
 				<tr>
-				    <th><?php esc_html_e( $end_date_text ); ?>: </th>
-				    <td><p><?php esc_html_e( $end_date_i18n ); ?></p></td>
+					<th>
+						<?php
+							// translators: %s is end date label.
+							printf( esc_html__( '%s: ', 'woocommerce-easy-booking-system' ), esc_html( $end_date_text ) );
+						?>
+					</th>
+					<td><p><?php echo esc_html( $end_date_i18n ); ?></p></td>
 				</tr>
 
 			<?php endif; ?>
@@ -34,12 +44,17 @@ defined( 'ABSPATH' ) || exit;
 			<?php if ( ! empty( $booking_status ) ) : ?>
 				
 				<tr>
-				    <th><?php esc_html_e( 'Booking status', 'woocommerce-easy-booking-system' ); ?>: </th>
-				    <?php $status = str_replace('wceb-', '', $booking_status ); ?>
-				    <td><p><?php echo apply_filters( 'easy_booking_display_status_' . $status, esc_html( ucfirst( $status ) ) ); ?></p></td>
+					<th><?php esc_html_e( 'Booking status', 'woocommerce-easy-booking-system' ); ?>: </th>
+					<?php
+
+						$status = ucfirst( str_replace( 'wceb-', '', $booking_status ) );
+						$display_status = apply_filters( 'easy_booking_display_status_' . $status, ucfirst( $status ) );
+						
+					?>
+					<td><p><?php echo esc_html( $display_status ); ?></p></td>
 				</tr>
 
-        	<?php endif; ?>
+			<?php endif; ?>
 
 		</tbody>
 
