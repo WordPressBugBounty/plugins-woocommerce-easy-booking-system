@@ -4,7 +4,7 @@
  * Date selection helper.
  *
  * @package Easy_Booking
- * @version 3.5.0
+ * @version 3.5.1
  */
 
 namespace EasyBooking;
@@ -84,23 +84,23 @@ class Date_Selection_Helper {
 		$endDate   = new \DateTime( $end );
 		$duration  = $endDate->diff( $startDate )->format( '%a' );
 
+		$booking_min = wceb_get_product_minimum_booking_duration( $_product );
+		$booking_max = wceb_get_product_maximum_booking_duration( $_product );
+
+		// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
+
+		// Make sure booking duration is superior to booking min and inferior to booking max.
+		if ( $duration < $booking_min || ( $booking_max && $duration > $booking_max ) ) {
+			throw new \Exception( __( 'Please choose valid dates', 'woocommerce-easy-booking-system' ) );
+		}
+
 		// If booking mode is set to "Days", add one day.
 		if ( $booking_mode === 'days' ) {
 			$duration += 1;
 		}
 
-		// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
-
 		// Make sure booking duration is correct.
 		if ( $duration % $booking_duration !== 0 || $duration <= 0 ) {
-			throw new \Exception( __( 'Please choose valid dates', 'woocommerce-easy-booking-system' ) );
-		}
-
-		$booking_min = wceb_get_product_minimum_booking_duration( $_product );
-		$booking_max = wceb_get_product_maximum_booking_duration( $_product );
-
-		// Make sure booking duration is superior to booking min and inferior to booking max.
-		if ( $duration < $booking_min || ( $booking_max && $duration > $booking_max ) ) {
 			throw new \Exception( __( 'Please choose valid dates', 'woocommerce-easy-booking-system' ) );
 		}
 
