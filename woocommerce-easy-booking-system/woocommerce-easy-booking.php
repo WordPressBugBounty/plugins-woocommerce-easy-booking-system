@@ -3,11 +3,11 @@
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
 * Description: A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
-* Version: 3.5.1
+* Version: 3.5.2
 * Author: Noushka
 * Author URI: https://noushka.dev
 * Requires at least: 5.0
-* Tested up to: 7.0.1
+* Tested up to: 7.0.2
 * WC tested up to: 10.9.4
 * Requires Plugins: woocommerce
 * Licence : GPLv3
@@ -21,7 +21,7 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 
 		protected static $_instance = null;
 
-		private const PLUGIN_VERSION = '3.5.1';
+		private const PLUGIN_VERSION = '3.5.2';
 
 		public static function instance() {
 

@@ -4,7 +4,7 @@
  *
  * Display bookable variation options.
  *
- * @version 3.4.4
+ * @version 3.5.2
  **/
 
 defined( 'ABSPATH' ) || exit;
@@ -42,12 +42,17 @@ defined( 'ABSPATH' ) || exit;
 				<?php esc_html_e( 'Booking duration', 'woocommerce-easy-booking-system' ); ?>
 				<span class="tips" data-tip="<?php esc_attr_e( 'Number of consecutive days/nights forming a block. Leave empty to use parent or global settings.', 'woocommerce-easy-booking-system' ); ?>">[?]</span>
 			</label>
-			<input type="number" class="input_text booking_duration" min="1" max="366" name="_var_booking_duration[<?php echo absint( $loop ); ?>]" id="_var_booking_duration[<?php echo absint( $loop ); ?>]" placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>" value="
-			<?php
-			if ( isset( $booking_duration ) ) {
-				esc_attr_e( $booking_duration );}
-			?>
-			" />
+
+			<input
+				type="number"
+				class="input_text booking_duration"
+				min="1"
+				max="366"
+				name="_var_booking_duration[<?php echo absint( $loop ); ?>]"
+				id="_var_booking_duration[<?php echo absint( $loop ); ?>]"
+				placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>"
+				value="<?php if ( isset( $booking_duration ) ) { echo esc_attr( $booking_duration ); }?>"
+			/>
 
 		</p>
 
@@ -60,12 +65,15 @@ defined( 'ABSPATH' ) || exit;
 
 			<?php $booking_min = get_post_meta( $variation_id, '_booking_min', true ); ?>
 
-			<input type="number" class="input_text booking_min" min="0" name="_var_booking_min[<?php echo absint( $loop ); ?>]" id="_var_booking_min[<?php echo absint( $loop ); ?>]" placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>" value="
-			<?php
-			if ( isset( $booking_min ) ) {
-				echo esc_attr( $booking_min );}
-			?>
-			" />
+			<input
+				type="number"
+				class="input_text booking_min"
+				min="0"
+				name="_var_booking_min[<?php echo absint( $loop ); ?>]"
+				id="_var_booking_min[<?php echo absint( $loop ); ?>]"
+				placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>"
+				value="<?php if ( isset( $booking_min ) ) { echo esc_attr( $booking_min ); } ?>"
+				/>
 
 		</p>
 
@@ -78,12 +86,15 @@ defined( 'ABSPATH' ) || exit;
 
 			<?php $booking_max = get_post_meta( $variation_id, '_booking_max', true ); ?>
 
-			<input type="number" class="input_text booking_max" min="0" name="_var_booking_max[<?php echo absint( $loop ); ?>]" id="_var_booking_max[<?php echo absint( $loop ); ?>]" placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>" value="
-			<?php
-			if ( isset( $booking_max ) ) {
-				echo esc_attr( $booking_max );}
-			?>
-			" />
+			<input
+				type="number"
+				class="input_text booking_max"
+				min="0"
+				name="_var_booking_max[<?php echo absint( $loop ); ?>]"
+				id="_var_booking_max[<?php echo absint( $loop ); ?>]"
+				placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>"
+				value="<?php if ( isset( $booking_max ) ) { echo esc_attr( $booking_max ); } ?>"
+			/>
 
 		</p>
 
@@ -98,12 +109,15 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php $first_available_date = get_post_meta( $variation_id, '_first_available_date', true ); ?>
 
-		<input type="number" class="input_text" min="0" name="_var_first_available_date[<?php echo absint( $loop ); ?>]" id="_var_first_available_date[<?php echo absint( $loop ); ?>]" placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>" value="
-		<?php
-		if ( isset( $first_available_date ) ) {
-			esc_attr_e( $first_available_date );}
-		?>
-		" />
+		<input
+			type="number"
+			class="input_text"
+			min="0"
+			name="_var_first_available_date[<?php echo absint( $loop ); ?>]"
+			id="_var_first_available_date[<?php echo absint( $loop ); ?>]"
+			placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>"
+			value="<?php if ( isset( $first_available_date ) ) { echo esc_attr( $first_available_date ); } ?>"
+		/>
 		
 	</p>
 
@@ -116,12 +130,15 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php $last_available_date = get_post_meta( $variation_id, '_last_available_date', true ); ?>
 
-		<input type="number" class="input_text" min="1" name="_var_last_available_date[<?php echo absint( $loop ); ?>]" id="_var_last_available_date[<?php echo absint( $loop ); ?>]" placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>" value="
-		<?php
-		if ( isset( $last_available_date ) ) {
-			esc_attr_e( $last_available_date );}
-		?>
-		" />
+		<input
+			type="number"
+			class="input_text"
+			min="1"
+			name="_var_last_available_date[<?php echo absint( $loop ); ?>]"
+			id="_var_last_available_date[<?php echo absint( $loop ); ?>]"
+			placeholder="<?php esc_attr_e( 'Same as parent', 'woocommerce' ); ?>"
+			value="<?php if ( isset( $last_available_date ) ) { echo esc_attr( $last_available_date ); } ?>"
+		/>
 		
 	</p>
 	
