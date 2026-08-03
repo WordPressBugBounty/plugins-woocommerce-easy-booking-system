@@ -3,7 +3,7 @@
 Contributors: @morki
 Tags: woocommerce, booking, appointment, reservation, calendar
 Requires at least: 5.0
-Stable tag: 3.5.2
+Stable tag: 3.5.3
 Tested up to: 7.0.2
 WC tested up to: 10.9.4
 License: GPLv3
@@ -79,6 +79,16 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 5. Manage bookings from your dashboard with list and calendar views.
 
 == Changelog ==
+
+= 3.5.3 - 2026-08-03 =
+
+* Add - Added a tool to rebuild order bookings from WooCommerce orders.
+* Add - Added a shared query API for retrieving bookings from orders and extension sources.
+* Tweak - Refactored booking and order booking data handling.
+* Tweak - Added exact occupied-date calculation with Days and Nights mode support.
+* Tweak - Improved booking synchronization after order updates, refunds and deletions.
+* Tweak - Improved database update workflow and HPOS compatibility.
+* Tweak - Preserved deprecated booking functions in the legacy compatibility layer.
 
 = 3.5.2 - 2026-08-01 =
 

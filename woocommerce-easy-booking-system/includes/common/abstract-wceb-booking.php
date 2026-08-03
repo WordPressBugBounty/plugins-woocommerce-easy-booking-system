@@ -94,6 +94,56 @@ abstract class Booking {
 		return $this->get_prop( 'qty' );
 	}
 
+	/**
+	 * Get the dates occupied by the booking.
+	 *
+	 * The selected start and end dates are never changed. In Days mode, both
+	 * dates are occupied. In Nights mode, the end date is the departure date
+	 * and is therefore not occupied.
+	 *
+	 * @return string[]
+	 */
+	public function get_occupied_dates() {
+
+		$start = $this->get_start();
+		$end   = $this->get_end();
+
+		if ( ! wceb_is_valid_date( $start ) ) {
+			return array();
+		}
+
+		if ( empty( $end ) ) {
+			$end = $start;
+		} elseif ( ! wceb_is_valid_date( $end ) ) {
+			$end = $start;
+		} elseif ( 'nights' === get_option( 'wceb_booking_mode' ) ) {
+			$end = wceb_shift_date( $end, 1, 'minus' );
+		}
+
+		$period = apply_filters(
+			'easy_booking_booking_occupied_period',
+			array(
+				'start' => $start,
+				'end'   => $end,
+			),
+			$this
+		);
+
+		if ( ! is_array( $period ) || ! isset( $period['start'], $period['end'] ) ) {
+			return array();
+		}
+
+		// Avoid another validation if dates have not changed.
+		$valid_start = $start === $period['start'] || wceb_is_valid_date( $period['start'] );
+		$valid_end   = $end === $period['end'] || wceb_is_valid_date( $period['end'] );
+
+		if ( ! $valid_start || ! $valid_end || $period['end'] < $period['start'] ) {
+			return array();
+		}
+
+		return wceb_get_dates_from_daterange( $period['start'], $period['end'], true );
+	}
+
 	/*
 	|--------------------------------------------------------------------------
 	| Setters
@@ -105,12 +155,22 @@ abstract class Booking {
 	 * Set booking props.
 	 *
 	 * @param array - $props
+	 * @return true|\WP_Error
 	 **/
 	public function set_props( $props ) {
 
+		$error = null;
+
 		foreach ( $props as $prop => $value ) {
-			$this->set_prop( $prop, $value );
+
+			$result = $this->set_prop( $prop, $value );
+
+			if ( is_wp_error( $result ) && ! $error ) {
+				$error = $result;
+			}
 		}
+
+		return $error ?: true;
 	}
 
 	/**
@@ -119,14 +179,26 @@ abstract class Booking {
 	 *
 	 * @param str - $prop
 	 * @param str - $value
+	 * @return true|\WP_Error
 	 **/
 	public function set_prop( $prop, $value ) {
 
 		$getter = "get_$prop";
 
+		if ( ! property_exists( $this, $prop ) || ! is_callable( array( $this, $getter ) ) ) {
+			return new \WP_Error(
+				'easy_booking_invalid_booking_property',
+				sprintf(
+					/* translators: %s: Booking property name. */
+					esc_html__( 'Invalid booking property: %s', 'woocommerce-easy-booking-system' ),
+					esc_html( $prop )
+				)
+			);
+		}
+
 		// Avoid setting the same value
 		if ( $this->{$getter}( $prop ) === $value ) {
-			return;
+			return true;
 		}
 
 		try {
@@ -141,9 +213,6 @@ abstract class Booking {
 
 		} catch ( \Exception $e ) {
 
-			// Set prop value to false (tweak for end date which can be null and valid)
-			$this->$prop = false;
-
 			return new \WP_Error(
 				'easy_booking_error_setting_property',
 				sprintf(
@@ -155,6 +224,8 @@ abstract class Booking {
 			);
 
 		}
+
+		return true;
 	}
 
 	/**
@@ -162,9 +233,10 @@ abstract class Booking {
 	 * Set booking product ID.
 	 *
 	 * @param int - $_product_id
+	 * @return true|\WP_Error
 	 **/
 	public function set_product_id( $_product_id ) {
-		$this->set_prop( 'product_id', $_product_id );
+		return $this->set_prop( 'product_id', $_product_id );
 	}
 
 	/**
@@ -172,9 +244,10 @@ abstract class Booking {
 	 * Set booking start date.
 	 *
 	 * @param str - $start
+	 * @return true|\WP_Error
 	 **/
 	public function set_start( $start ) {
-		$this->set_prop( 'start', $start );
+		return $this->set_prop( 'start', $start );
 	}
 
 	/**
@@ -182,9 +255,10 @@ abstract class Booking {
 	 * Set booking end date.
 	 *
 	 * @param null | str - $end
+	 * @return true|\WP_Error
 	 **/
 	public function set_end( $end ) {
-		$this->set_prop( 'end', $end );
+		return $this->set_prop( 'end', $end );
 	}
 
 	/**
@@ -192,9 +266,10 @@ abstract class Booking {
 	 * Set booking status.
 	 *
 	 * @param str - $status
+	 * @return true|\WP_Error
 	 **/
 	public function set_status( $status ) {
-		$this->set_prop( 'status', $status );
+		return $this->set_prop( 'status', $status );
 	}
 
 	/**
@@ -202,9 +277,10 @@ abstract class Booking {
 	 * Set booking qty.
 	 *
 	 * @param int - $qty
+	 * @return true|\WP_Error
 	 **/
 	public function set_qty( $qty ) {
-		$this->set_prop( 'qty', $qty );
+		return $this->set_prop( 'qty', $qty );
 	}
 
 	/*
@@ -268,7 +344,7 @@ abstract class Booking {
 
 		$valid_booking_statuses = array( 'wceb-pending', 'wceb-start', 'wceb-processing', 'wceb-end', 'wceb-completed' );
 
-		if ( ! in_array( $status, $valid_booking_statuses ) ) {
+		if ( ! in_array( $status, $valid_booking_statuses, true ) ) {
 			throw new \Exception( __( 'Invalid booking status.', 'woocommerce-easy-booking-system' ) );
 		}
 	}
@@ -281,6 +357,10 @@ abstract class Booking {
 	 * @throws Exception
 	 **/
 	public function check_qty( $qty ) {
+
+		if ( ! is_numeric( $qty ) ) {
+			throw new \Exception( __( 'Invalid quantity.', 'woocommerce-easy-booking-system' ) );
+		}
 
 		if ( ! apply_filters( 'easy_booking_allow_negative_qty_in_imports', false ) && $qty <= 0 ) {
 			throw new \Exception( __( 'Invalid quantity.', 'woocommerce-easy-booking-system' ) );

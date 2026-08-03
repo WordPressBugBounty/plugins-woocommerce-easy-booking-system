@@ -3,18 +3,32 @@
 namespace EasyBooking;
 
 /**
-*
-* Update Manager with admin notices.
+ * Update Manager with admin notices.
  *
-* @version 3.4.8
-*/
+ * @version 3.5.1
+ */
 
 defined( 'ABSPATH' ) || exit;
 
 class Update_Manager {
 
 	private const DB_VERSION = '3.3.1';
-	private const UPDATES    = array( '3.3.1' );
+
+	/**
+	 * Database content migrations, in ascending version order.
+	 *
+	 * Table structure changes are handled by Install::maybe_create_tables().
+	 *
+	 * @var array
+	 */
+	private const UPDATES = array(
+		// '3.6.0' => 'update_db_version_360',
+	);
+
+	/**
+	 * Last version whose migration rebuilt order bookings automatically.
+	 */
+	private const LEGACY_ORDER_BOOKINGS_VERSION = '3.3.1';
 
 	/**
 	 *
@@ -90,13 +104,18 @@ class Update_Manager {
 		if ( self::needs_update() ) {
 			self::render_notice( 'update-database' );
 		}
+
+		// Very old installations must rebuild bookings with the dedicated tool.
+		if ( 'yes' === get_option( 'wceb_order_bookings_rebuild_required' ) ) {
+			self::render_notice( 'rebuild-order-bookings' );
+		}
 	}
 
 	/**
 	 *
 	 * Render a notice template
 	 *
-	 * @param string $type Notice type (activation, updated, update_database)
+	 * @param string $type Notice type.
 	 **/
 	private static function render_notice( $type ) {
 
@@ -154,78 +173,107 @@ class Update_Manager {
 	 *
 	 * Update Easy Booking database if needed
 	 *
-	 * @param bool $full_update Set to true to force all updates
+	 * @param bool $full_update Whether to verify and repair the current schema.
 	 * @return string Translated status message
 	 */
 	public static function maybe_update_plugin( $full_update = false ) {
 
-		$current_db_version = get_option( 'easy_booking_db_version' );
+		$current_db_version = self::get_db_version();
+		$needs_update       = version_compare( $current_db_version, self::DB_VERSION, '<' );
 
-		// Force update or first install
-		if ( $full_update || empty( $current_db_version ) ) {
-			$current_db_version = '1.0.0';
-		}
-
-		// Nothing to update
-		if ( ! version_compare( $current_db_version, self::DB_VERSION, '<' ) ) {
+		if ( ! $full_update && ! $needs_update ) {
 			return __( 'Easy Booking database is already up to date.', 'woocommerce-easy-booking-system' );
 		}
 
-		// Run updates
-		foreach ( self::UPDATES as $update_version ) {
+		try {
+			// The database update now repairs table structures only.
+			Install::maybe_create_tables();
+		} catch ( \Throwable $error ) {
 
-			// Skip if already applied
+			wc_get_logger()->error(
+				sprintf( 'Easy Booking database update failed: %s', $error->getMessage() ),
+				array( 'source' => 'easy-booking' )
+			);
+
+			return new \WP_Error(
+				'easy_booking_database_update_error',
+				__( 'Easy Booking could not update its database tables. Please check the WooCommerce logs.', 'woocommerce-easy-booking-system' )
+			);
+		}
+
+		if ( ! $needs_update ) {
+			return __( 'Easy Booking database tables checked successfully.', 'woocommerce-easy-booking-system' );
+		}
+
+		// Keep the installed version before any migration changes it.
+		$rebuild_order_bookings = version_compare( $current_db_version, self::LEGACY_ORDER_BOOKINGS_VERSION, '<' );
+
+		foreach ( self::UPDATES as $update_version => $callback ) {
+
 			if ( ! version_compare( $current_db_version, $update_version, '<' ) ) {
 				continue;
 			}
 
-			// Build callback name
-			$callback = 'update_db_version_' . str_replace( '.', '', $update_version );
-
-			// Check if method exists
 			if ( ! method_exists( self::class, $callback ) ) {
-				continue;
+				return new \WP_Error(
+					'easy_booking_database_update_callback_missing',
+					sprintf(
+						/* translators: %s: database version. */
+						__( 'Easy Booking database update %s could not be found.', 'woocommerce-easy-booking-system' ),
+						$update_version
+					)
+				);
 			}
 
 			try {
-
-				// Execute update
 				call_user_func( array( self::class, $callback ) );
-
-				// Update version after successful update
-				update_option( 'easy_booking_db_version', $update_version );
-
-				wc_get_logger()->info(
-					sprintf( 'Easy Booking: Database updated to version %s', $update_version ),
-					array(
-						'source' => 'easy-booking',
-					)
-				);
-
-			} catch ( \Throwable $e ) {
+			} catch ( \Throwable $error ) {
 
 				wc_get_logger()->error(
-					sprintf( 'Easy Booking: Update failed at version %s', $update_version ),
-					array(
-						'source'  => 'easy-booking',
-						'message' => $e->getMessage(),
-					)
+					sprintf( 'Easy Booking database update %1$s failed: %2$s', $update_version, $error->getMessage() ),
+					array( 'source' => 'easy-booking' )
 				);
 
 				return new \WP_Error(
-					'easy_booking_database_update_errory',
+					'easy_booking_database_update_error',
 					sprintf(
-						__( 'Easy Booking database update failed at version %1$s. Error: %2$s', 'woocommerce-easy-booking-system' ),
-						$update_version,
-						$e->getMessage()
-					),
-					'error'
+						/* translators: %s: database version. */
+						__( 'Easy Booking could not complete database update %s. Please check the WooCommerce logs.', 'woocommerce-easy-booking-system' ),
+						$update_version
+					)
 				);
-
 			}
+
+			/*
+			 * Save progress after each successful migration. If a later migration
+			 * fails, completed migrations will not run again on the next attempt.
+			 */
+			update_option( 'easy_booking_db_version', $update_version );
+			$current_db_version = $update_version;
 		}
 
-		return __( 'Easy Booking database update complete. Thank you!', 'woocommerce-easy-booking-system' );
+		// Schema-only versions do not need a dedicated migration callback.
+		update_option( 'easy_booking_db_version', self::DB_VERSION );
+
+		if ( $rebuild_order_bookings ) {
+
+			/*
+			 * Version 3.3.1 previously rebuilt bookings automatically. Very old
+			 * installations now use the safer, explicit tool instead.
+			 */
+			update_option( 'wceb_order_bookings_rebuild_required', 'yes' );
+
+			return __( 'Database tables updated. Please rebuild order bookings from Easy Booking > Tools.', 'woocommerce-easy-booking-system' );
+		}
+
+		return __( 'Easy Booking database update complete.', 'woocommerce-easy-booking-system' );
+	}
+
+	/**
+	 * Store the current database version on a new installation.
+	 */
+	public static function initialize_db_version() {
+		add_option( 'easy_booking_db_version', self::DB_VERSION );
 	}
 
 	/**
@@ -251,146 +299,4 @@ class Update_Manager {
 		return version_compare( $current_version, self::DB_VERSION, '<' );
 	}
 
-	/**
-	 *
-	 * Update database to version 3.3.1
-	 **/
-	private static function update_db_version_331() {
-		global $wpdb;
-
-		// Maybe create tables
-		Install::maybe_create_tables();
-
-		// Prepare args for query
-		$order_statuses = wceb_get_valid_order_statuses();
-
-		$order_statuses_placeholder = wceb_create_sql_placeholders( $order_statuses );
-
-		$meta_keys = array(
-			'_booking_start_date',
-			'_product_id',
-			'_variation_id',
-			'_booking_end_date',
-			'_booking_status',
-			'_qty',
-			'_booking_start_date',
-		);
-
-		$args = array_merge( $order_statuses, $meta_keys );
-
-		// Prepare query
-		$query = "SELECT key1.order_item_id, key2.ID as order_id, key4.meta_key, key4.meta_value
-        FROM {$wpdb->prefix}woocommerce_order_items key1
-        INNER JOIN {$wpdb->prefix}posts key2 ON key2.ID = key1.order_id
-        INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta key3 ON key3.order_item_id = key1.order_item_id
-        INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta key4 ON key4.order_item_id = key1.order_item_id
-        WHERE key2.post_status IN ( $order_statuses_placeholder )
-        AND key3.meta_key = %s
-        AND key4.meta_key IN ( %s, %s, %s, %s, %s, %s )
-        ORDER BY key1.order_item_id ASC";
-
-		// Query order items
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				$query, // phpcs:ignore  WordPress.DB.PreparedSQL.NotPrepared
-				$args
-			)
-		);
-
-		// Get an array of refunded items with quantity refunded so we can maybe remove it later
-		$refunded_items = $wpdb->get_results(
-			$wpdb->prepare(
-				"
-            SELECT      key2.meta_value as order_item_id, key1.meta_value as qty_refunded
-            FROM        {$wpdb->prefix}woocommerce_order_itemmeta key1
-            INNER JOIN  {$wpdb->prefix}woocommerce_order_itemmeta key2 ON key2.order_item_id = key1.order_item_id
-            WHERE       key1.meta_key = %s
-            AND         key2.meta_key = %s
-            ORDER BY    order_item_id ASC
-            ",
-				'_qty',
-				'_refunded_item_id'
-			),
-			OBJECT_K
-		);
-
-		// Make an array of all bookings with corresponding metadata
-		$bookings = array();
-		foreach ( $results as $i => $data ) {
-
-			$order_item_id = $data->order_item_id;
-
-			$bookings[ $order_item_id ][ $data->meta_key ] = $data->meta_value;
-			$bookings[ $order_item_id ]['_order_id']       = $data->order_id;
-
-		}
-
-		// Prepare array to save item ids added to the database
-		$added_item_ids = array();
-
-		// Loop through each booking and maybe add them to wceb_order_bookings table
-		foreach ( $bookings as $order_item_id => $booking_data ) {
-
-			// Remove booking is required metadata is not set
-			if ( ! isset( $booking_data['_product_id'] )
-			|| ! isset( $booking_data['_variation_id'] )
-			|| ( ! isset( $booking_data['_booking_start_date'] ) || ! wceb_is_valid_date( $booking_data['_booking_start_date'] ) )
-			|| ! isset( $booking_data['_qty'] )
-			|| ! isset( $booking_data['_order_id'] ) ) {
-				continue;
-			}
-
-			$_product_id = $booking_data['_variation_id'] === '0' ? $booking_data['_product_id'] : $booking_data['_variation_id'];
-			$quantity    = $booking_data['_qty'];
-			$end_date    = isset( $booking_data['_booking_end_date'] ) && wceb_is_valid_date( $booking_data['_booking_end_date'] ) ? $booking_data['_booking_end_date'] : null;
-
-			// Maybe get booking status
-			if ( ! isset( $booking_data['_booking_status'] ) || empty( $booking_data['_booking_status'] ) ) {
-				$booking_data['_booking_status'] = wceb_get_booking_status( $booking_data['_booking_start_date'], $end_date );
-			}
-
-			// Maybe remove refunded quantity
-			if ( isset( $refunded_items[ $order_item_id ] ) ) {
-				$quantity -= abs( $refunded_items[ $order_item_id ]->qty_refunded );
-			}
-
-			// Remove booking is quantity is < 0
-			if ( $quantity <= 0 ) {
-				continue; }
-
-			// Add or update bookings in database
-			$replace = $wpdb->replace(
-				$wpdb->prefix . 'wceb_order_bookings',
-				array(
-					'order_item_id' => $order_item_id,
-					'product_id'    => $_product_id,
-					'start'         => $booking_data['_booking_start_date'],
-					'end'           => $end_date,
-					'status'        => $booking_data['_booking_status'],
-					'qty'           => $quantity,
-					'order_id'      => $booking_data['_order_id'],
-				),
-				array( '%d', '%d', '%s', '%s', '%s', '%d', '%d' )
-			);
-
-			// If row was successfully added or replaced, we store order item id for later
-			if ( $replace ) {
-				$added_item_ids[] = $order_item_id; }
-		}
-
-		// Maybe remove not wanted order items ids
-		if ( ! empty( $added_item_ids ) ) {
-
-			$placeholder  = wceb_create_sql_placeholders( $added_item_ids, $format = '%d' );
-			$delete_query = "DELETE FROM {$wpdb->prefix}wceb_order_bookings WHERE order_item_id NOT IN ( $placeholder )";
-
-			$wpdb->query(
-				$wpdb->prepare(
-					$delete_query, // phpcs:disable  WordPress.DB.PreparedSQL.NotPrepared
-					$added_item_ids
-				)
-			);
-
-		}
-	}
 }

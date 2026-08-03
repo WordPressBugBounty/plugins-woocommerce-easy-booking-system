@@ -4,7 +4,7 @@
  *
  * Admin: Tools page template.
  *
- * @version 3.1.0
+ * @version 3.5.1
  **/
 
 defined( 'ABSPATH' ) || exit;
@@ -34,6 +34,25 @@ defined( 'ABSPATH' ) || exit;
 						<span class="wceb-response"></span>
 					</button>
 					<input type="hidden" name="wceb-full-db-update" value="1">
+
+				</td>
+
+			</tr>
+
+			<tr>
+
+				<th>
+
+					<strong><?php esc_html_e( 'Rebuild order bookings', 'woocommerce-easy-booking-system' ); ?></strong>
+					<p class="description"><?php esc_html_e( 'This tool rebuilds the order bookings table from WooCommerce orders. Orders are processed in small batches, and no WooCommerce order data is deleted.', 'woocommerce-easy-booking-system' ); ?></p>
+				</th>
+
+				<td class="run-tool">
+
+					<button type="button" class="button easy-booking-button wceb-rebuild-order-bookings">
+						<?php esc_html_e( 'Rebuild order bookings', 'woocommerce-easy-booking-system' ); ?>
+					</button>
+					<p class="wceb-rebuild-order-bookings-progress description" aria-live="polite"></p>
 
 				</td>
 

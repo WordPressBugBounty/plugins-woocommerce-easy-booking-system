@@ -20,7 +20,7 @@ function wceb_get_order_booking( $item_id ) {
 
 	$booking = new EasyBooking\Order_Booking( $item_id );
 
-	if ( ! $booking->get_order_item_id() ) {
+	if ( ! $booking->exists() ) {
 		return false;
 	}
 
@@ -34,11 +34,11 @@ function wceb_get_order_booking( $item_id ) {
  * @param int -           $item_id
  * @param WC_Order_Item - $item
  * @param WC_Order -      $order
- * @return mixed
+ * @return int|false
  **/
 function wceb_create_or_update_order_booking( $item_id, $item, $order ) {
 
-	if ( ! is_a( $order, 'WC_Order' ) ) {
+	if ( ! is_a( $item, 'WC_Order_Item_Product' ) || ! is_a( $order, 'WC_Order' ) ) {
 		return false;
 	}
 
@@ -69,7 +69,7 @@ function wceb_create_or_update_order_booking( $item_id, $item, $order ) {
 	if ( $refunded_qty ) {
 
 		// Item was fully refunded = no booking
-		if ( $qty === $refunded_qty ) {
+		if ( $refunded_qty >= $qty ) {
 
 			// Maybe delete existing booking
 			if ( $booking ) {
@@ -87,7 +87,7 @@ function wceb_create_or_update_order_booking( $item_id, $item, $order ) {
 		$booking = new EasyBooking\Order_Booking( $item_id );
 	}
 
-	$booking->set_props(
+	$result = $booking->set_props(
 		array(
 			'product_id' => $_product_id,
 			'start'      => $start_date,
@@ -98,6 +98,19 @@ function wceb_create_or_update_order_booking( $item_id, $item, $order ) {
 		)
 	);
 
+	if ( is_wp_error( $result ) ) {
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			wc_get_logger()->error(
+				sprintf( 'Error preparing booking: %s', $result->get_error_message() ),
+				array( 'source' => 'easy-booking' )
+			);
+		}
+
+		return false;
+
+	}
+
 	do_action( 'easy_booking_before_order_booking_save', $booking, $item );
 
 	$update = $booking->save();
@@ -105,7 +118,10 @@ function wceb_create_or_update_order_booking( $item_id, $item, $order ) {
 	if ( is_wp_error( $update ) ) {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf( 'Easy Booking: Error saving booking: %s', $update->get_error_message() ) );
+			wc_get_logger()->error(
+				sprintf( 'Error saving booking: %s', $update->get_error_message() ),
+				array( 'source' => 'easy-booking' )
+			);
 		}
 
 		return false;
@@ -113,6 +129,8 @@ function wceb_create_or_update_order_booking( $item_id, $item, $order ) {
 	}
 
 	do_action( 'easy_booking_order_booking_saved', $update, $booking, $item );
+
+	return $update;
 }
 
 /**
@@ -120,12 +138,15 @@ function wceb_create_or_update_order_booking( $item_id, $item, $order ) {
  * Delete an order booking.
  *
  * @param int - $item_id
- * @return mixed
+ * @return int|false
  **/
 function wceb_delete_order_booking( $item_id ) {
 	global $wpdb;
 
-	do_action( 'easy_booking_before_order_booking_delete', $item_id );
+	// Keep the booking data available for callbacks after the row is deleted.
+	$booking = wceb_get_order_booking( $item_id );
+
+	do_action( 'easy_booking_before_order_booking_delete', $item_id, $booking );
 
 	$delete = $wpdb->delete(
 		$wpdb->prefix . 'wceb_order_bookings',
@@ -133,7 +154,9 @@ function wceb_delete_order_booking( $item_id ) {
 		array( '%d' )
 	);
 
-	do_action( 'easy_booking_order_booking_deleted', $delete, $item_id );
+	do_action( 'easy_booking_order_booking_deleted', $delete, $item_id, $booking );
+
+	return $delete;
 }
 
 /**
@@ -141,12 +164,23 @@ function wceb_delete_order_booking( $item_id ) {
  * Delete all order bookings associated to an order.
  *
  * @param int - $order_id
- * @return mixed
+ * @return int|false
  **/
 function wceb_delete_order_bookings( $order_id ) {
 	global $wpdb;
 
-	do_action( 'easy_booking_before_order_bookings_delete', $order_id );
+	// Order items may no longer be available after an order is deleted. Load the
+	// booking data first so extensions can still update their related data.
+	$bookings = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT *
+			FROM {$wpdb->prefix}wceb_order_bookings
+			WHERE order_id = %d",
+			$order_id
+		)
+	);
+
+	do_action( 'easy_booking_before_order_bookings_delete', $order_id, $bookings );
 
 	$delete = $wpdb->delete(
 		$wpdb->prefix . 'wceb_order_bookings',
@@ -154,91 +188,9 @@ function wceb_delete_order_bookings( $order_id ) {
 		array( '%d' )
 	);
 
-	do_action( 'easy_booking_order_bookings_deleted', $delete, $order_id );
-}
+	do_action( 'easy_booking_order_bookings_deleted', $delete, $order_id, $bookings );
 
-/**
- *
- * Get filtered order bookings.
- *
- * @param array - $filters
- * @return array - $order_bookings
- **/
-function wceb_get_order_bookings( $filters = array() ) {
-	global $wpdb;
-
-	$query = wceb_query_order_bookings( $filters );
-	$sql   = $query['sql'] . $query['sort'];
-
-	$order_bookings = ! empty( $query['placeholders'] ) ? $wpdb->get_results( $wpdb->prepare( $sql, $query['placeholders'] ) ) : $wpdb->get_results( $sql ); // phpcs:disable  WordPress.DB.PreparedSQL.NotPrepared
-
-	return apply_filters( 'easy_booking_get_order_bookings', $order_bookings );
-}
-
-/**
- *
- * Build query for order bookings.
- *
- * @param array - $filters
- * @return array
- **/
-function wceb_query_order_bookings( $filters ) {
-	global $wpdb;
-
-	$sql          = "SELECT * FROM {$wpdb->prefix}wceb_order_bookings";
-	$args         = '';
-	$placeholders = array();
-
-	$i = 0;
-
-	// Filter booking status.
-	$valid_booking_statuses = array( 'pending', 'start', 'processing', 'end', 'completed' );
-
-	if ( isset( $filters['status'] ) && in_array( $filters['status'], $valid_booking_statuses ) ) {
-		$args          .= $i === 0 ? ' WHERE status = %s' : ' AND status = %s';
-		$placeholders[] = 'wceb-' . $filters['status'];
-		++$i;
-	} else {
-		$args          .= ' WHERE status != %s';
-		$placeholders[] = 'wceb-completed';
-		++$i;
-	}
-
-	// Filter products.
-	if ( isset( $filters['product_ids'] ) && is_numeric( $filters['product_ids'] ) ) {
-		$args          .= $i === 0 ? ' WHERE product_id = %d' : ' AND product_id = %d';
-		$placeholders[] = $filters['product_ids'];
-		++$i;
-	}
-
-	// Filter start date.
-	if ( isset( $filters['start_date'] ) && wceb_is_valid_date( $filters['start_date'] ) ) {
-		$args          .= $i === 0 ? ' WHERE start = %s' : ' AND start = %s';
-		$placeholders[] = $filters['start_date'];
-		++$i;
-	}
-
-	// Filter end date.
-	if ( isset( $filters['end_date'] ) && wceb_is_valid_date( $filters['end_date'] ) ) {
-		$args          .= $i === 0 ? ' WHERE end = %s' : ' AND end = %s';
-		$placeholders[] = $filters['end_date'];
-		++$i;
-	}
-
-	$valid_order_by = array( 'status', 'order_id', 'product_id', 'start', 'end' );
-
-	// If no sort, default to order ID
-	$orderby = isset( $filters['orderby'] ) && in_array( $filters['orderby'], $valid_order_by ) ? $filters['orderby'] : 'order_id';
-
-	// If no order (asc or desc), default to asc
-	$order = isset( $filters['order'] ) && $filters['order'] === 'asc' ? 'ASC' : 'DESC';
-
-	return array(
-		'sql'          => $sql . $args,
-		'args'         => $args,
-		'sort'         => ' ORDER BY ' . $orderby . ' ' . $order,
-		'placeholders' => $placeholders,
-	);
+	return $delete;
 }
 
 /**

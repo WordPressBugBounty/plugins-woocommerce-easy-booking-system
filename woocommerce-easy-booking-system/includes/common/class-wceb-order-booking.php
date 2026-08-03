@@ -17,6 +17,7 @@ class Order_Booking extends Booking {
 
 	protected $order_item_id = 0;
 	protected $order_id;
+	protected $exists = false;
 
 	/**
 	 *
@@ -42,6 +43,8 @@ class Order_Booking extends Booking {
 	public function read() {
 		global $wpdb;
 
+		$this->exists = false;
+
 		$order_item_id = $this->get_order_item_id();
 
 		$data = $wpdb->get_row(
@@ -59,7 +62,7 @@ class Order_Booking extends Booking {
 			return false;
 		}
 
-		$this->set_props(
+		$result = $this->set_props(
 			array(
 				'product_id' => $data->product_id,
 				'start'      => $data->start,
@@ -69,6 +72,14 @@ class Order_Booking extends Booking {
 				'order_id'   => $data->order_id,
 			)
 		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$this->exists = true;
+
+		return true;
 	}
 
 	/**
@@ -87,6 +98,10 @@ class Order_Booking extends Booking {
 				$data,
 				array( '%d', '%d', '%s', '%s', '%s', '%d', '%d' )
 			);
+
+			if ( false !== $save ) {
+				$this->exists = true;
+			}
 
 			return $save;
 
@@ -156,6 +171,15 @@ class Order_Booking extends Booking {
 		return $this->get_prop( 'order_id' );
 	}
 
+	/**
+	 * Check whether the booking exists in the database.
+	 *
+	 * @return bool
+	 */
+	public function exists() {
+		return $this->exists;
+	}
+
 	/*
 	|--------------------------------------------------------------------------
 	| Setters
@@ -167,9 +191,10 @@ class Order_Booking extends Booking {
 	 * Set booking order item ID.
 	 *
 	 * @param int - $id
+	 * @return true|\WP_Error
 	 **/
 	public function set_order_item_id( $id ) {
-		$this->set_prop( 'order_item_id', $id );
+		return $this->set_prop( 'order_item_id', $id );
 	}
 
 	/**
@@ -177,9 +202,10 @@ class Order_Booking extends Booking {
 	 * Set booking order ID.
 	 *
 	 * @param int - $order_id
+	 * @return true|\WP_Error
 	 **/
 	public function set_order_id( $order_id ) {
-		$this->set_prop( 'order_id', $order_id );
+		return $this->set_prop( 'order_id', $order_id );
 	}
 
 	/*

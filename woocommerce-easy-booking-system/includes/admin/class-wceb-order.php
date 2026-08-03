@@ -222,6 +222,10 @@ class Order {
 
 		$order = wc_get_order( $order_id );
 
+		if ( ! $order ) {
+			return false;
+		}
+
 		if ( $order->get_items() ) {
 			foreach ( $order->get_items() as $item_id => $item ) {
 
@@ -233,7 +237,7 @@ class Order {
 					continue;
 				}
 
-				if ( $item->get_quantity() === $refunded_qty ) {
+				if ( $refunded_qty >= $item->get_quantity() ) {
 
 					// Item was fully refunded, delete booking
 					wceb_delete_order_booking( $item_id );
@@ -268,6 +272,10 @@ class Order {
 	public function update_order_booking_after_refund_delete( $refund_id, $order_id ) {
 
 		$order = wc_get_order( $order_id );
+
+		if ( ! $order ) {
+			return false;
+		}
 
 		if ( $order->get_items() ) {
 			foreach ( $order->get_items() as $item_id => $item ) {

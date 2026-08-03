@@ -215,12 +215,12 @@ function wceb_get_product_custom_booking_duration( $_product ) {
  *
  * Get all booked products from orders.
  *
- * @deprecated 3.3.0 use wceb_get_order_bookings() instead.
+ * @deprecated 3.3.0 use wceb_get_bookings() instead.
  * @param bool - $past - False to get only "processing" orders, true to get all orders.
  * @return array - $booked
  **/
 function wceb_get_booked_items_from_orders( $past = true ) {
-	return wceb_get_order_bookings();
+	return wceb_get_bookings( array(), 'order' );
 }
 
 /**

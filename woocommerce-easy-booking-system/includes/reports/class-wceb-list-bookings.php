@@ -284,7 +284,7 @@ class List_Bookings extends \WP_List_Table {
 
 		// Filter bookings
 		$filters  = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reading data
-		$bookings = apply_filters( 'wceb_reports_booked_products', wceb_get_filtered_bookings( $filters ) );
+		$bookings = apply_filters( 'wceb_reports_booked_products', wceb_get_bookings( $filters ) );
 
 		$total_items = count( $bookings );
 		$min         = ( $current_page - 1 ) * $per_page;

@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Admin assets.
  *
-* @version 3.2.0
+ * @version 3.5.1
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -125,9 +125,12 @@ class Admin_Assets {
 			'wceb-admin-js',
 			'const wceb_admin = ' . json_encode(
 				array(
-					'ajax_url'          => esc_url( admin_url( 'admin-ajax.php' ) ),
-					'hide_notice_nonce' => wp_create_nonce( 'wceb-hide-notice' ),
-					'db_update_text'    => esc_html__( 'Thank you! The database update is running in the background.', 'woocommerce-easy-booking-system' ),
+					'ajax_url'                 => esc_url( admin_url( 'admin-ajax.php' ) ),
+					'hide_notice_nonce'        => wp_create_nonce( 'wceb-hide-notice' ),
+					'rebuild_bookings_nonce'   => wp_create_nonce( 'wceb-rebuild-order-bookings' ),
+					'rebuild_bookings_confirm' => esc_html__( 'Rebuild order bookings from WooCommerce orders?', 'woocommerce-easy-booking-system' ),
+					'rebuild_bookings_error'   => esc_html__( 'The order bookings rebuild could not continue. Please try again.', 'woocommerce-easy-booking-system' ),
+					'rebuild_bookings_stalled' => esc_html__( 'The order bookings rebuild stopped because no progress was detected. Please reload the page and try again.', 'woocommerce-easy-booking-system' ),
 				)
 			),
 			'before'

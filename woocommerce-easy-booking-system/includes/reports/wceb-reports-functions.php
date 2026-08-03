@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  **/
 function wceb_get_calendar_report() {
 
-	$bookings = wceb_get_filtered_bookings(
+	$bookings = wceb_get_bookings(
 		array(
 			'orderby' => 'start',
 			'order'   => 'asc',

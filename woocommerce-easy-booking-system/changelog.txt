@@ -1,3 +1,21 @@
+= 3.5.3 - 2026-08-03 =
+
+* Add - Added a tool to rebuild order bookings from WooCommerce orders.
+* Add - Added a shared query API for retrieving bookings from orders and extension sources.
+* Tweak - Refactored booking and order booking data handling.
+* Tweak - Added exact occupied-date calculation with Days and Nights mode support.
+* Tweak - Improved booking synchronization after order updates, refunds and deletions.
+* Tweak - Improved database update workflow and HPOS compatibility.
+* Tweak - Preserved deprecated booking functions in the legacy compatibility layer.
+
+= 3.5.2 - 2026-08-01 =
+
+* Fix - Variation booking settings not being saved.
+
+= 3.5.1 - 2026-07-13 =
+
+* Fix - "Please choose valid dates" error message when booking duration was not 1 and product has booking min/booking max set.
+
 = 3.4.9 - 2026-03-05 =
 
 * Fix - Fatal error with some themes with outdated WooCommerce templates.

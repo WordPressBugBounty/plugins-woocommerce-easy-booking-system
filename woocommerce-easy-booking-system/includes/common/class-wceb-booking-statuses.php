@@ -36,7 +36,7 @@ class Booking_Statuses {
 	 **/
 	public function update_booking_statuses() {
 
-		$order_bookings = wceb_get_order_bookings();
+		$order_bookings = wceb_get_bookings( array(), 'order' );
 
 		if ( $order_bookings ) {
 			foreach ( $order_bookings as $booking ) :

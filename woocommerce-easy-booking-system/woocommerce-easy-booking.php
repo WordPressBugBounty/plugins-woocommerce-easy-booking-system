@@ -3,7 +3,7 @@
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
 * Description: A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
-* Version: 3.5.2
+* Version: 3.5.3
 * Author: Noushka
 * Author URI: https://noushka.dev
 * Requires at least: 5.0
@@ -21,7 +21,7 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 
 		protected static $_instance = null;
 
-		private const PLUGIN_VERSION = '3.5.2';
+		private const PLUGIN_VERSION = '3.5.3';
 
 		public static function instance() {
 
@@ -85,8 +85,12 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 		 **/
 		public function wceb_activate() {
 
-			// Store plugin table version in DB
-			add_option( 'wceb_version', WCEB_VERSION );
+			// add_option() returns true only on the first plugin activation.
+			$is_new_install = add_option( 'wceb_version', WCEB_VERSION );
+
+			if ( $is_new_install ) {
+				EasyBooking\Update_Manager::initialize_db_version();
+			}
 
 			// Init plugin settings with default values
 			foreach ( EasyBooking\Settings_Helper::get_settings() as $name => $setting ) {
@@ -144,12 +148,16 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 
 			// Legacy
 			require_once __DIR__ . '/includes/legacy/wceb-legacy-functions.php';
+			require_once __DIR__ . '/includes/legacy/wceb-booking-functions.php';
 
 			// Functions
 			require_once __DIR__ . '/includes/common/functions/wceb-core-functions.php';
 			require_once __DIR__ . '/includes/common/functions/wceb-misc-functions.php';
 			require_once __DIR__ . '/includes/common/functions/wceb-date-functions.php';
 			require_once __DIR__ . '/includes/common/functions/wceb-product-functions.php';
+
+			// Bookings query and functions
+			require_once __DIR__ . '/includes/common/class-wceb-bookings-query.php';
 			require_once __DIR__ . '/includes/common/functions/wceb-bookings-functions.php';
 			require_once __DIR__ . '/includes/common/functions/wceb-order-booking-functions.php';
 
@@ -193,6 +201,7 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 
 			require_once __DIR__ . '/includes/admin/class-wceb-admin-assets.php';
 			require_once __DIR__ . '/includes/admin/class-wceb-admin-ajax.php';
+			require_once __DIR__ . '/includes/admin/class-wceb-order-bookings-tool.php';
 
 			// Settings
 			require_once __DIR__ . '/includes/legacy/wceb-legacy-settings-functions.php';

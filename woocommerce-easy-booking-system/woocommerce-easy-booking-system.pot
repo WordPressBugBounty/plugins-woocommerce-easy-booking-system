@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Easy Booking for WooCommerce\n"
-"POT-Creation-Date: 2026-07-09 15:48+0200\n"
+"POT-Creation-Date: 2026-08-03 14:51+0200\n"
 "PO-Revision-Date: 2019-10-14 14:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -24,8 +24,18 @@ msgstr ""
 msgid "Booking statuses successfully initialized!"
 msgstr ""
 
-#: includes/admin/class-wceb-admin-assets.php:130
-msgid "Thank you! The database update is running in the background."
+#: includes/admin/class-wceb-admin-assets.php:131
+msgid "Rebuild order bookings from WooCommerce orders?"
+msgstr ""
+
+#: includes/admin/class-wceb-admin-assets.php:132
+msgid "The order bookings rebuild could not continue. Please try again."
+msgstr ""
+
+#: includes/admin/class-wceb-admin-assets.php:133
+msgid ""
+"The order bookings rebuild stopped because no progress was detected. Please "
+"reload the page and try again."
 msgstr ""
 
 #: includes/admin/class-wceb-admin-product.php:54
@@ -52,21 +62,83 @@ msgstr ""
 msgid "Easy Booking table creation failed. %s"
 msgstr ""
 
-#: includes/admin/class-wceb-update-manager.php:124
+#: includes/admin/class-wceb-order-bookings-tool.php:48
+msgid "You do not have permission to do this."
+msgstr ""
+
+#: includes/admin/class-wceb-order-bookings-tool.php:86
+#, php-format
+msgid ""
+"Order bookings rebuilt successfully. %1$d orders processed, %2$d bookings "
+"synchronized and %3$d obsolete bookings removed."
+msgstr ""
+
+#: includes/admin/class-wceb-order-bookings-tool.php:122
+msgid ""
+"The order bookings rebuild failed. Please check the WooCommerce logs and try "
+"again."
+msgstr ""
+
+#: includes/admin/class-wceb-order-bookings-tool.php:148
+msgid "Another administrator is already rebuilding order bookings."
+msgstr ""
+
+#: includes/admin/class-wceb-order-bookings-tool.php:155
+msgid ""
+"This order bookings rebuild can no longer be resumed. Please reload the page."
+msgstr ""
+
+#: includes/admin/class-wceb-order-bookings-tool.php:489
+#, php-format
+msgid ""
+"Checking existing bookings: %1$d of %2$d checked, %3$d obsolete bookings "
+"removed."
+msgstr ""
+
+#: includes/admin/class-wceb-order-bookings-tool.php:498
+#, php-format
+msgid ""
+"Batch %1$d of %2$d: %3$d orders processed and %4$d bookings synchronized."
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:143
 msgid "You do not have permission to perform this action."
 msgstr ""
 
-#: includes/admin/class-wceb-update-manager.php:171
+#: includes/admin/class-wceb-update-manager.php:185
 msgid "Easy Booking database is already up to date."
 msgstr ""
 
-#: includes/admin/class-wceb-update-manager.php:218
-#, php-format
-msgid "Easy Booking database update failed at version %1$s. Error: %2$s"
+#: includes/admin/class-wceb-update-manager.php:200
+msgid ""
+"Easy Booking could not update its database tables. Please check the "
+"WooCommerce logs."
 msgstr ""
 
-#: includes/admin/class-wceb-update-manager.php:228
-msgid "Easy Booking database update complete. Thank you!"
+#: includes/admin/class-wceb-update-manager.php:205
+msgid "Easy Booking database tables checked successfully."
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:222
+#, php-format
+msgid "Easy Booking database update %s could not be found."
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:241
+#, php-format
+msgid ""
+"Easy Booking could not complete database update %s. Please check the "
+"WooCommerce logs."
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:266
+msgid ""
+"Database tables updated. Please rebuild order bookings from Easy Booking > "
+"Tools."
+msgstr ""
+
+#: includes/admin/class-wceb-update-manager.php:269
+msgid "Easy Booking database update complete."
 msgstr ""
 
 #: includes/admin/functions/wceb-admin-product-functions.php:53
@@ -75,6 +147,16 @@ msgstr ""
 
 #: includes/admin/functions/wceb-admin-product-functions.php:77
 msgid "First available date must be inferior to last available date."
+msgstr ""
+
+#: includes/admin/views/notices/html-wceb-notice-rebuild-order-bookings.php:16
+msgid ""
+"The Easy Booking database structure has been updated. Please rebuild order "
+"bookings from WooCommerce orders to synchronize existing bookings."
+msgstr ""
+
+#: includes/admin/views/notices/html-wceb-notice-rebuild-order-bookings.php:21
+msgid "Open Easy Booking tools"
 msgstr ""
 
 #: includes/admin/views/notices/html-wceb-notice-update-database.php:17
@@ -174,7 +256,7 @@ msgid "Number of consecutive days/nights forming a block."
 msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:63
-#: includes/admin/views/products/html-wceb-variation-options.php:57
+#: includes/admin/views/products/html-wceb-variation-options.php:62
 #: includes/settings/class-wceb-settings.php:66
 msgid "Minimum duration"
 msgstr ""
@@ -186,7 +268,7 @@ msgid ""
 msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:82
-#: includes/admin/views/products/html-wceb-variation-options.php:75
+#: includes/admin/views/products/html-wceb-variation-options.php:83
 #: includes/settings/class-wceb-settings.php:72
 msgid "Maximum duration"
 msgstr ""
@@ -198,7 +280,7 @@ msgid ""
 msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:105
-#: includes/admin/views/products/html-wceb-variation-options.php:95
+#: includes/admin/views/products/html-wceb-variation-options.php:106
 #: includes/settings/class-wceb-settings.php:78
 msgid "First available date"
 msgstr ""
@@ -210,7 +292,7 @@ msgid ""
 msgstr ""
 
 #: includes/admin/views/products/html-wceb-product-options.php:126
-#: includes/admin/views/products/html-wceb-variation-options.php:113
+#: includes/admin/views/products/html-wceb-variation-options.php:127
 #: includes/settings/class-wceb-settings.php:84
 msgid "Last available date"
 msgstr ""
@@ -268,28 +350,34 @@ msgstr ""
 msgid "Sorry there was a problem. Please try again."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:151
+#: includes/common/abstract-wceb-booking.php:193
+#, php-format
+msgid "Invalid booking property: %s"
+msgstr ""
+
+#: includes/common/abstract-wceb-booking.php:220
 #, php-format
 msgid "Error setting booking property: %s"
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:228
+#: includes/common/abstract-wceb-booking.php:304
 msgid "Invalid product ID."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:242
+#: includes/common/abstract-wceb-booking.php:318
 msgid "Invalid start date."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:256
+#: includes/common/abstract-wceb-booking.php:332
 msgid "Invalid end date."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:272
+#: includes/common/abstract-wceb-booking.php:348
 msgid "Invalid booking status."
 msgstr ""
 
-#: includes/common/abstract-wceb-booking.php:286
+#: includes/common/abstract-wceb-booking.php:362
+#: includes/common/abstract-wceb-booking.php:366
 msgid "Invalid quantity."
 msgstr ""
 
@@ -302,21 +390,21 @@ msgstr ""
 msgid "Please select valid dates."
 msgstr ""
 
-#: includes/common/class-wceb-date-selection-helper.php:96
+#: includes/common/class-wceb-date-selection-helper.php:94
 #: includes/common/class-wceb-date-selection-helper.php:104
 msgid "Please choose valid dates"
 msgstr ""
 
-#: includes/common/class-wceb-order-booking.php:99
+#: includes/common/class-wceb-order-booking.php:114
 #, php-format
 msgid "Error saving booking: %s"
 msgstr ""
 
-#: includes/common/class-wceb-order-booking.php:203
+#: includes/common/class-wceb-order-booking.php:229
 msgid "Invalid order item ID."
 msgstr ""
 
-#: includes/common/class-wceb-order-booking.php:219
+#: includes/common/class-wceb-order-booking.php:245
 msgid "Invalid order ID."
 msgstr ""
 
@@ -476,7 +564,7 @@ msgstr ""
 
 #: includes/settings/class-wceb-settings-page.php:30
 #: includes/settings/class-wceb-settings-page.php:31
-#: woocommerce-easy-booking.php:251
+#: woocommerce-easy-booking.php:260
 msgid "Settings"
 msgstr ""
 
@@ -619,10 +707,21 @@ msgstr ""
 
 #: includes/settings/views/html-wceb-tools-page.php:46
 #: includes/settings/views/html-wceb-tools-page.php:53
-msgid "Initialize booking statuses"
+msgid "Rebuild order bookings"
 msgstr ""
 
 #: includes/settings/views/html-wceb-tools-page.php:47
+msgid ""
+"This tool rebuilds the order bookings table from WooCommerce orders. Orders "
+"are processed in small batches, and no WooCommerce order data is deleted."
+msgstr ""
+
+#: includes/settings/views/html-wceb-tools-page.php:65
+#: includes/settings/views/html-wceb-tools-page.php:72
+msgid "Initialize booking statuses"
+msgstr ""
+
+#: includes/settings/views/html-wceb-tools-page.php:66
 msgid ""
 "This tool will initialize booking statuses by getting all bookings made on "
 "your store (from orders and imports)."
@@ -636,6 +735,6 @@ msgstr ""
 msgid "Select date(s)"
 msgstr ""
 
-#: woocommerce-easy-booking.php:252
+#: woocommerce-easy-booking.php:261
 msgid "PRO version"
 msgstr ""
