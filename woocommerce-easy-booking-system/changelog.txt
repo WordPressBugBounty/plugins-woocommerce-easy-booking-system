@@ -1,3 +1,8 @@
+= 3.5.4 - 2026-08-06 =
+
+* Fix - Unable to add or modify booking dates in orders since WooCommerce 11.0.
+* Fix - End date can no longer be inferior to start date when modifying dates in order page.
+
 = 3.5.3 - 2026-08-03 =
 
 * Add - Added a tool to rebuild order bookings from WooCommerce orders.

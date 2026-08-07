@@ -4,7 +4,7 @@
  * Orders action hooks.
  *
  * @package Easy_Booking
- * @version 3.5.0
+ * @version 3.5.4
  */
 
 namespace EasyBooking;
@@ -13,11 +13,21 @@ defined( 'ABSPATH' ) || exit;
 
 class Order {
 
+	/**
+	 * Booking metadata submitted through the order item editor.
+	 *
+	 * @var array
+	 */
+	private $submitted_booking_data = array();
+
 	public function __construct() {
 
 		// Display order item meta.
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_order_item_booking_data' ), 10, 1 );
 		add_action( 'woocommerce_before_order_itemmeta', array( $this, 'display_order_item_booking_data' ), 10, 3 );
+
+		add_action( 'woocommerce_before_save_order_items', array( $this, 'capture_order_item_booking_data' ), 10, 2 );
+		add_action( 'woocommerce_before_save_order_item', array( $this, 'apply_order_item_booking_data' ), 10, 1 );
 
 		// Data validation.
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'check_booking_dates' ), 10, 1 );
@@ -116,6 +126,67 @@ class Order {
 			include 'views/order-items/html-wceb-edit-order-item-meta.php';
 
 		}
+	}
+
+	/**
+	 * Capture Easy Booking metadata before WooCommerce filters reserved keys.
+	 *
+	 * @param int   $order_id Order ID.
+	 * @param array $items    Submitted order item data.
+	 */
+	public function capture_order_item_booking_data( $order_id, $items ) {
+
+		$this->submitted_booking_data = array();
+
+		if ( empty( $items['meta_key'] ) || empty( $items['meta_value'] ) ) {
+			return;
+		}
+
+		$allowed_keys = array(
+			'_booking_start_date',
+			'_booking_end_date',
+			'_booking_status',
+		);
+
+		foreach ( $items['meta_key'] as $item_id => $meta_keys ) {
+
+			foreach ( $meta_keys as $meta_id => $meta_key ) {
+				$meta_key = sanitize_key( wp_unslash( $meta_key ) );
+
+				if ( ! in_array( $meta_key, $allowed_keys, true )
+					|| ! isset( $items['meta_value'][ $item_id ] )
+					|| ! array_key_exists( $meta_id, $items['meta_value'][ $item_id ] )
+				) {
+					continue;
+				}
+
+				$this->submitted_booking_data[ absint( $item_id ) ][ $meta_key ] = sanitize_text_field( wp_unslash( $items['meta_value'][ $item_id ][ $meta_id ] ) );
+			}
+		}
+	}
+
+	/**
+	 * Apply Easy Booking metadata to the item before it is saved.
+	 *
+	 * @param WC_Order_Item $item Order item.
+	 */
+	public function apply_order_item_booking_data( $item ) {
+
+		if ( ! is_a( $item, 'WC_Order_Item_Product' ) ) {
+			return;
+		}
+
+		$item_id = $item->get_id();
+
+		if ( empty( $this->submitted_booking_data[ $item_id ] ) ) {
+			return;
+		}
+
+		foreach ( $this->submitted_booking_data[ $item_id ] as $meta_key => $meta_value ) {
+			$item->update_meta_data( $meta_key, $meta_value );
+		}
+
+		unset( $this->submitted_booking_data[ $item_id ] );
 	}
 
 	/**

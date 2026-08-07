@@ -1,124 +1,78 @@
-(function($) {
+(function( $ ) {
 
-	$(document).ready(function() {
+	'use strict';
+
+	$( function() {
 
 		$.extend( $.fn.pickadate.defaults, {
-			hiddenName  : true,
-			selectYears : true,
-  			selectMonths: true
-		});
+			hiddenName   : true,
+			selectYears  : true,
+			selectMonths : true
+		} );
 
-		var format = $.fn.pickadate.defaults.format;
+		$( '#woocommerce-order-items' ).on( 'click', 'a.edit-order-item', function() {
 
-		var item_picker = $('#woocommerce-order-items').on( 'click', 'a.edit-order-item', function() {
+			let $line       = $( this ).closest( 'tr' );
+			let $startInput = $line.find( '.wceb_datepicker[class*="wceb_datepicker_start--"]' );
+			let $endInput   = $line.find( '.wceb_datepicker[class*="wceb_datepicker_end--"]' );
 
-			var line            = $(this).parents( 'tr' );
-			var datepickerInput = line.find( '.wceb_datepicker' );
-			var item_id         = $( '.order_item_id' ).val();
+			if ( ! $startInput.length || $startInput.data( 'wceb-order-picker-initialized' ) ) {
+				return;
+			}
 
-			var $input = datepickerInput.pickadate();
+			$startInput.data( 'wceb-order-picker-initialized', true );
+			$startInput.pickadate();
 
-			if ( datepickerInput.length && item_id.length ) {
+			let pickerStart = $startInput.pickadate( 'picker' );
+			let setStart    = $startInput.data( 'value' );
 
-				var $inputStart = $( '.wceb_datepicker_start--' + item_id ).pickadate();
-				var pickerStart = $inputStart.pickadate( 'picker' );
-				var setStart    = $( '.wceb_datepicker_start--' + item_id ).data( 'value' );
-
-				if ( $( '.wceb_datepicker_end--' + item_id ).length > 0 ) {
-					dateFormat = 'two';
-				} else {
-					dateFormat = 'one';
-				}
-
-				if ( dateFormat === 'two' ) {
-					var $inputEnd = $( '.wceb_datepicker_end--' + item_id ).pickadate();
-					var pickerEnd = $inputEnd.pickadate( 'picker' );
-					var setEnd    = $( '.wceb_datepicker_end--' + item_id ).data( 'value' );
-				}
-
-				pickerStart.on({
-					set: function(startTime) {
-
-						if ( typeof startTime.clear != 'undefined' && startTime.clear == null ) {
-
-							if ( dateFormat === 'two' ) {
-								pickerEnd.set( 'min', false );
-							}
-
-						} else if ( startTime.select && typeof startTime.select != 'undefined' && dateFormat === 'two' ) {
-
-							startPickerData = pickerStart.get( 'select' );
-
-							if ( wceb_admin_order.booking_mode === 'days' ) {
-
-								pickerEnd.set(
-									'min',
-									[startPickerData.year, startPickerData.month, startPickerData.date]
-								);
-
-							} else {
-
-								pickerEnd.set(
-									'min',
-									[startPickerData.year, startPickerData.month, startPickerData.date + 1]
-								);
-
-							}
-
-						}
-						
-					}
-
-				});
-
-				if ( dateFormat === 'two' ) {
-
-					pickerEnd.on({
-						set: function( endTime ) {
-
-							if ( typeof endTime.clear != 'undefined' && endTime.clear == null ) {
-
-								pickerStart.set( 'max', false );
-
-							} else if ( endTime.select && typeof endTime.select != 'undefined' ) {
-
-								endPickerData = pickerEnd.get( 'select' );
-
-								if ( wceb_admin_order.booking_mode === 'days' ) {
-
-									pickerStart.set(
-										'max',
-										[endPickerData.year, endPickerData.month, endPickerData.date]
-									);
-
-								} else {
-
-									pickerStart.set(
-										'max',
-										[endPickerData.year, endPickerData.month, endPickerData.date - 1]
-									);
-
-								}
-
-							}
-							
-						}
-					});
-
-				}
-
-				if ( setStart != '' ) {
+			if ( ! $endInput.length ) {
+				if ( setStart ) {
 					pickerStart.set( 'select', setStart, { format: 'yyyy-mm-dd' } );
 				}
 
-				if ( dateFormat === 'two' && setEnd != '' ) {
-					pickerEnd.set( 'select', setEnd, { format: 'yyyy-mm-dd' } );
-				}
-
+				return;
 			}
 
-		});
+			$endInput.pickadate();
 
-	});
+			let pickerEnd = $endInput.pickadate( 'picker' );
+			let setEnd    = $endInput.data( 'value' );
+			let dayOffset = wceb_admin_order.booking_mode === 'days' ? 0 : 1;
 
-})(jQuery);
+			function getLimit( picker, offset ) {
+				let selected = picker.get( 'select' );
+
+				return selected ? [selected.year, selected.month, selected.date + offset] : false;
+			}
+
+			pickerStart.on( 'set', function( event ) {
+				if ( Object.prototype.hasOwnProperty.call( event, 'clear' ) ) {
+					pickerEnd.set( 'min', false );
+				} else if ( Object.prototype.hasOwnProperty.call( event, 'select' ) ) {
+					pickerEnd.set( 'min', getLimit( pickerStart, dayOffset ) );
+				}
+			} );
+
+			pickerEnd.on( 'set', function( event ) {
+				if ( Object.prototype.hasOwnProperty.call( event, 'clear' ) ) {
+					pickerStart.set( 'max', false );
+				} else if ( Object.prototype.hasOwnProperty.call( event, 'select' ) ) {
+					pickerStart.set( 'max', getLimit( pickerEnd, -dayOffset ) );
+				}
+			} );
+
+			if ( setStart ) {
+				pickerStart.set( 'select', setStart, { format: 'yyyy-mm-dd' } );
+			}
+
+			if ( setEnd ) {
+				pickerEnd.set( 'select', setEnd, { format: 'yyyy-mm-dd' } );
+			}
+
+			pickerEnd.set( 'min', getLimit( pickerStart, dayOffset ) );
+			pickerStart.set( 'max', getLimit( pickerEnd, -dayOffset ) );
+		} );
+	} );
+
+})( jQuery );
