@@ -449,6 +449,8 @@
 
 				});
 
+				this.initDateRangeHighlight();
+
 			}
 
 			/**
@@ -775,6 +777,140 @@
 
 				return costs;
 
+			}
+
+			/**
+			* Highlight the selected booking range and preview it while editing.
+			**/
+			initDateRangeHighlight() {
+
+				if ( this.dateRangeHighlightInitialized || this.product.booking_dates !== 'two' ) {
+					return;
+				}
+
+				this.dateRangeHighlightInitialized = true;
+
+				this.StartPicker.pickerObject.on({
+					open: () => this.restoreDateRangeAfterOpen( this.StartPicker ),
+					render: () => this.decorateDateRange( this.StartPicker ),
+					set: ( data ) => {
+
+						if ( typeof data.select !== 'undefined' || typeof data.clear !== 'undefined' ) {
+							this.dateRangeEditing = false;
+							this.decorateDateRange( this.StartPicker );
+							this.decorateDateRange( this.EndPicker );
+						}
+					},
+					close: () => { this.dateRangeEditing = false; }
+				});
+
+				this.EndPicker.pickerObject.on({
+					open: () => this.restoreDateRangeAfterOpen( this.EndPicker ),
+					render: () => this.decorateDateRange( this.EndPicker ),
+					set: ( data ) => {
+
+						if ( typeof data.select !== 'undefined' || typeof data.clear !== 'undefined' ) {
+							this.dateRangeEditing = false;
+							this.decorateDateRange( this.StartPicker );
+							this.decorateDateRange( this.EndPicker );
+						}
+					},
+					close: () => { this.dateRangeEditing = false; }
+				});
+
+				this.EndPicker.pickerObject.$root.on( 'mouseenter', '.picker__day:not(.picker__day--disabled)', ( event ) => {
+					if ( this.StartPicker.isSet() ) this.previewDateRange( this.EndPicker, Number( $( event.currentTarget ).data( 'pick' ) ), 'end' );
+				}).on( 'mouseleave', '.picker__day', () => this.decorateDateRange( this.EndPicker ) );
+
+				this.StartPicker.pickerObject.$root.on( 'mouseenter', '.picker__day:not(.picker__day--disabled)', ( event ) => {
+					if ( this.EndPicker.isSet() ) this.previewStartDateRange( this.StartPicker, Number( $( event.currentTarget ).data( 'pick' ) ), 'start' );
+				}).on( 'mouseleave', '.picker__day', () => this.decorateDateRange( this.StartPicker ) );
+
+			}
+
+			restoreDateRangeAfterOpen( picker ) {
+
+				setTimeout( () => {
+					this.dateRangeEditing = false;
+					this.decorateDateRange( picker );
+				}, 0 );
+			}
+
+			beginDateRangeEdit( picker, type ) {
+				this.dateRangeEditing = { type: type };
+				this.decorateDateRange( picker );
+			}
+
+			decorateDateRange( picker ) {
+
+				this.clearDateRange( picker );
+
+				if ( this.dateRangeEditing ) {
+					this.hideEditingDate( picker );
+					this.markDateRangeAnchor( picker );
+					return;
+				}
+
+				if ( this.StartPicker.isSet() && this.EndPicker.isSet() ) {
+					this.addDateRangeClass( picker, this.getSelectedDatePick( this.StartPicker ), this.getSelectedDatePick( this.EndPicker ) );
+				}
+			}
+
+			previewDateRange( picker, end, type ) {
+
+				if ( ! this.dateRangeEditing ) this.beginDateRangeEdit( picker, type );
+
+				this.clearDateRange( picker );
+				if ( this.StartPicker.isSet() && end ) this.addDateRangeClass( picker, this.getSelectedDatePick( this.StartPicker ), end );
+				this.markDateRangeAnchor( picker );
+			}
+
+			previewStartDateRange( picker, start, type ) {
+
+				if ( ! this.dateRangeEditing ) this.beginDateRangeEdit( picker, type );
+
+				this.clearDateRange( picker );
+				if ( this.EndPicker.isSet() && start ) this.addDateRangeClass( picker, start, this.getSelectedDatePick( this.EndPicker ) );
+				this.markDateRangeAnchor( picker );
+			}
+
+			addDateRangeClass( picker, start, end ) {
+
+				if ( end < start ) return;
+
+				picker.pickerObject.$root.find( '.picker__day' ).each( function() {
+					const $day = $( this );
+					const date = Number( $day.data( 'pick' ) );
+					if ( date >= start && date <= end ) $day.addClass( 'picker__day--inrange' );
+				});
+			}
+
+			clearDateRange( picker ) {
+				picker.pickerObject.$root.find( '.picker__day--inrange' ).removeClass( 'picker__day--inrange' );
+			}
+
+			getSelectedDatePick( picker ) {
+
+				const selected = picker.pickerObject.get( 'select', 'yyyy-mm-dd' );
+
+				return selected ? new Date( `${selected}T00:00:00` ).getTime() : false;
+			}
+
+			hideEditingDate( picker ) {
+				picker.pickerObject.$root.find( '.picker__day--selected, .picker__day--highlighted' ).removeClass( 'picker__day--selected picker__day--highlighted' );
+			}
+
+			markDateRangeAnchor( picker ) {
+
+				if ( ! this.dateRangeEditing ) return;
+
+				const anchor = this.dateRangeEditing.type === 'end' ? this.StartPicker : this.EndPicker;
+				if ( ! anchor.isSet() ) return;
+
+				const pick = this.getSelectedDatePick( anchor );
+				picker.pickerObject.$root.find( '.picker__day' ).filter( function() {
+					return Number( $( this ).data( 'pick' ) ) === pick;
+				} ).addClass( 'picker__day--inrange' );
 			}
 			
 		}

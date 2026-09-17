@@ -28,6 +28,10 @@ class Admin_Ajax {
 
 		check_admin_referer( 'wceb-hide-notice', 'security' );
 
+		if ( ! current_user_can( apply_filters( 'easy_booking_settings_capability', 'manage_options', 'easy-booking' ) ) ) {
+			wp_die( esc_html__( 'You don&#8217;t have permission to do this.', 'woocommerce-easy-booking-system' ) );
+		}
+
 		$notice = isset( $_POST['notice'] ) ? sanitize_text_field( wp_unslash( $_POST['notice'] ) ) : '';
 
 		if ( get_option( 'easy_booking_display_notice_' . $notice ) !== '1' ) {

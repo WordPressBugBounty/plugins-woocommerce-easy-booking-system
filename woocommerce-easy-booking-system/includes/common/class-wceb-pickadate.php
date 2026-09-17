@@ -112,6 +112,7 @@ class Pickadate {
 		$text_color     = wc_format_hex( get_option( 'wceb_text_color', '#000000' ) );
 		$accent_color   = wc_format_hex( get_option( 'wceb_main_color', '#999999' ) );
 		$accent_lighter = wc_hex_lighter( $accent_color, 75 );
+		$accent_darker  = wc_hex_darker( $accent_color, 10 );
 
 		$css = sprintf(
 			':root {
@@ -119,11 +120,13 @@ class Pickadate {
                 --wceb-text: %2$s;
                 --wceb-accent: %3$s;
                 --wceb-accent-lighter:%4$s;
+				--wceb-accent-darker:%5$s;
             }',
 			$bg_color,
 			$text_color,
 			$accent_color,
-			$accent_lighter
+			$accent_lighter,
+			$accent_darker
 		);
 
 		wp_add_inline_style( 'picker', $css );

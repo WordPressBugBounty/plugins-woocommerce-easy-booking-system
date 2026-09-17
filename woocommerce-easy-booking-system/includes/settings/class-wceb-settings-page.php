@@ -39,6 +39,35 @@ class Settings_Page {
 
 		// Add a "Help" tab at the top of the settings page.
 		add_action( 'load-' . $settings_page, array( $this, 'add_help_tab' ) );
+		add_filter( 'admin_footer_text', array( $this, 'add_review_footer' ), 20, 1 );
+	}
+
+	/**
+	 * Display a friendly review request in the settings footer.
+	 *
+	 * @param string $footer_text Default admin footer text.
+	 * @return string
+	 */
+	public function add_review_footer( $footer_text ) {
+
+		if ( ! current_user_can( apply_filters( 'easy_booking_settings_capability', 'manage_options', 'easy-booking' ) ) ) {
+			return $footer_text;
+		}
+
+		$current_screen = get_current_screen();
+
+		if ( isset( $current_screen->parent_base ) && 'easy-booking' === $current_screen->parent_base ) {
+
+			return sprintf( 
+				esc_html__( 'Enjoying Easy Booking? A %s★★★★★%s review on WordPress.org would mean a lot and help support the plugin\'s continued development &hearts;', 'woocommerce-easy-booking-system' ),
+				'<a href="https://wordpress.org/support/plugin/woocommerce-easy-booking-system/reviews?rate=5#new-post" target="_blank" rel="noopener noreferrer">',
+				'</a>'
+			);
+
+		}
+
+		return $footer_text;
+
 	}
 
 	/**

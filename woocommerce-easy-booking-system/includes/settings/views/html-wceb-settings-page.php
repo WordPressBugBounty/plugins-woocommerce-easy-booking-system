@@ -27,6 +27,21 @@ defined( 'ABSPATH' ) || exit;
 	?>
 
 	<?php require_once 'html-wceb-pro-reminder.php'; ?>
+
+	<?php if ( '1' !== get_option( 'easy_booking_display_notice_google_calendar_sync' ) ) : ?>
+		<div class="notice notice-info easy-booking-notice is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'New: Google Calendar Sync for Easy Booking', 'woocommerce-easy-booking-system' ); ?></strong><br>
+				<?php esc_html_e( 'Automatically send bookings, date changes and cancellations to Google Calendar with the new Easy Booking add-on.', 'woocommerce-easy-booking-system' ); ?>
+			</p>
+			<p>
+				<a href="https://easy-booking.pro/google-calendar-sync/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Discover Google Calendar Sync →', 'woocommerce-easy-booking-system' ); ?></a>
+			</p>
+			<button type="button" class="notice-dismiss easy-booking-notice-close" data-notice="google_calendar_sync">
+				<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'woocommerce-easy-booking-system' ); ?></span>
+			</button>
+		</div>
+	<?php endif; ?>
 	
 	<form method="post" action="options.php">
 

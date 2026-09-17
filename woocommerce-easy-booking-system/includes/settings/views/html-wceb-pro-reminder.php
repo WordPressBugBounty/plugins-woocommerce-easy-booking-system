@@ -27,7 +27,7 @@ if ( is_multisite() ) {
 
 		<p>
 			<a
-				href="https://easy-booking.pro/pro/"
+				href="https://easy-booking.pro/pricing/"
 				class="button easy-booking-button"
 				target="_blank">
 				<?php esc_html_e( 'Upgrade to PRO', 'woocommerce-easy-booking-system' ); ?>

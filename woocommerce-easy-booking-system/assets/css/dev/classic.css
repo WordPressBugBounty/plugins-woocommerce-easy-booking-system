@@ -433,10 +433,18 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   background: var(--wceb-accent);
   border-color: var(--wceb-accent);
 }
-.picker__day--inrange.picker__day--disabled,
-.picker__day--inrange.picker__day--disabled:hover {
-  background: var(--wceb-accent);
-  border-color: var(--wceb-accent);
+.wceb_picker_wrap .picker__day--inrange,
+.wceb_picker_wrap .picker__day--inrange.picker__day--highlighted,
+.wceb_picker_wrap .picker__day--inrange.picker__day--selected {
+  color: var(--wceb-bg) !important;
+  background: var(--wceb-accent) !important;
+  border-color: var(--wceb-accent) !important;
+}
+.wceb_picker_wrap .picker__day--inrange.picker__day--disabled,
+.wceb_picker_wrap .picker__day--inrange.picker__day--disabled:hover {
+  color: var(--wceb-text) !important;
+  background: var(--wceb-accent-darker) !important;
+  border-color: var(--wceb-accent-darker) !important;
 }
 
 /* ==========================================================================

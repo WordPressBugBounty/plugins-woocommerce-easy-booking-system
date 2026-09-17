@@ -3,9 +3,9 @@
 Contributors: @morki
 Tags: woocommerce, booking, appointment, reservation, calendar
 Requires at least: 5.0
-Stable tag: 3.5.4
-Tested up to: 7.0.2
-WC tested up to: 11.0.0
+Stable tag: 3.5.5
+Tested up to: 7.1
+WC tested up to: 11.1.0
 License: GPLv3
 
 A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
@@ -37,7 +37,7 @@ Perfect for rentals, event bookings, or any date-based service, Easy Booking giv
 - **Date selection on shop page**: Let customers choose dates directly from the product listing, with real-time filtering of available products.
 - **Manual booking import**: Add reservations manually without creating orders, ideal for phone bookings or external systems.
 
-Unlock the full potential of your booking system with [Easy Booking PRO](https://easy-booking.pro/pro/).
+Unlock the full potential of your booking system with [Easy Booking PRO](https://easy-booking.pro/pricing/).
 
 = Looking for time-based bookings instead? =
 
@@ -79,6 +79,11 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 5. Manage bookings from your dashboard with list and calendar views.
 
 == Changelog ==
+
+= 3.5.5 - 2026-17-09 =
+
+* Add - Selected date range is now highlighted.
+* Add - Dismissible admin notice for the new Google Calendar Sync add-on.
 
 = 3.5.4 - 2026-08-06 =
 

@@ -16,7 +16,8 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: includes/admin/class-wceb-admin-ajax.php:49
+#: includes/admin/class-wceb-admin-ajax.php:32
+#: includes/admin/class-wceb-admin-ajax.php:53
 msgid "You don&#8217;t have permission to do this."
 msgstr ""
 
@@ -737,4 +738,31 @@ msgstr ""
 
 #: woocommerce-easy-booking.php:261
 msgid "PRO version"
+msgstr ""
+
+#: includes/settings/views/html-wceb-settings-page.php:34
+msgid "New: Google Calendar Sync for Easy Booking"
+msgstr ""
+
+#: includes/settings/views/html-wceb-settings-page.php:35
+msgid "Automatically send bookings, date changes and cancellations to Google Calendar with the new Easy Booking add-on."
+msgstr ""
+
+#: includes/settings/views/html-wceb-settings-page.php:38
+msgid "Discover Google Calendar Sync →"
+msgstr ""
+
+#: includes/settings/views/html-wceb-settings-page.php:40
+msgid "Dismiss"
+msgstr ""
+
+#: includes/settings/views/html-wceb-settings-page.php:43
+msgid "Dismiss this notice."
+msgstr ""
+
+#: includes/settings/class-wceb-settings-page.php:62
+#, php-format
+msgid ""
+"Enjoying Easy Booking? A %s★★★★★%s review on WordPress.org would mean a lot and "
+"help support the plugin's continued development &hearts;"
 msgstr ""

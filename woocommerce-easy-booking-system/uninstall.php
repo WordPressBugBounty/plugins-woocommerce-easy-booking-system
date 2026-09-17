@@ -32,6 +32,7 @@ delete_option( 'wceb_set_processing_booking_status' );
 delete_option( 'wceb_set_end_status' );
 delete_option( 'wceb_keep_end_status_for' );
 delete_option( 'wceb_set_completed_booking_status' );
+delete_option( 'easy_booking_display_notice_google_calendar_sync' );
 
 // DB and plugin version.
 delete_option( 'easy_booking_db_version' );
