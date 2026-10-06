@@ -252,6 +252,7 @@
 				this.$picker_wrap        = this.$cart.find('.wceb_picker_wrap');
 				this.$reset_dates        = this.$cart.find('a.reset_dates');
 				this.$booking_price      = this.$cart.find('.booking_price');
+				this.$booking_summary    = this.$cart.find('.booking_summary');
 				this.$add_to_cart_button = this.$cart.find('.single_add_to_cart_button');
 				this.$qty_input          = this.$cart.find('input[name="quantity"]');
 				this.$main_qty_input     = this.$qty_input; // Tweak for grouped and bundle products
@@ -496,6 +497,7 @@
 				this.$booking_price.find( '.price' ).html('');
 
 				this.$cart.find( '.booking_details' ).html('');
+				this.$booking_summary.addClass( 'is-empty' );
 				this.$add_to_cart_button.addClass( 'date-selection-needed' );
 
 			}
@@ -560,6 +562,8 @@
 							response.fragments.booking_regular_price !== '' ? response.fragments.booking_regular_price : response.fragments.booking_price,
 							false
 						);
+
+						self.$booking_summary.removeClass( 'is-empty' );
 
 					}
 
@@ -667,13 +671,15 @@
 			**/
 			updatePrice( price, regularPrice, perDay = true ) {
 				
+				this.$booking_summary.removeClass( 'is-empty' );
+
 				// Update booking_price and booking_regular_price data-attributes
 				this.$booking_price.attr( 'data-booking_price', parseFloat( price ) );
 				this.$booking_price.attr( 'data-booking_regular_price', parseFloat( regularPrice ) );
 
 				// Update price HTML
-				this.$booking_price.html( this.getPriceHtml( perDay ) );
-
+				this.$booking_price.find( '.booking_price__value' ).html( this.getPriceHtml( perDay ) );
+				
 			}
 
 			/**

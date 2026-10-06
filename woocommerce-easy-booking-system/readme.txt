@@ -3,41 +3,41 @@
 Contributors: @morki
 Tags: woocommerce, booking, appointment, reservation, calendar
 Requires at least: 5.0
-Stable tag: 3.5.5
-Tested up to: 7.1
-WC tested up to: 11.1.0
+Stable tag: 3.5.6
+Tested up to: 7.1.2
+WC tested up to: 11.1.2
 License: GPLv3
 
 A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
 
 == Description ==
 
-Easy Booking is a powerful yet intuitive WooCommerce booking and rental plugin, fully compatible with simple, variable, grouped, and bundle products. Designed to seamlessly integrate with your existing WooCommerce setup.
+Easy Booking is a powerful yet intuitive WooCommerce booking and rental plugin, fully compatible with simple, variable, grouped, and bundle products.
 
-- **Flexible booking modes**: Choose between Days or Nights mode, and set custom booking durations and limits to match your business model.
-- **Date selection**: offer single or dual-date bookings (e.g., check-in/check-out) for maximum flexibility.
+- **Flexible booking modes**: Choose between Days or Nights mode, and set custom booking durations and limits.
+- **Date selection**: offer single or dual-date bookings (e.g., check-in/check-out).
 - **Dashboard management**: Easily track and manage processing or upcoming bookings directly from your WordPress admin.
-- **Developer-friendly**: Extend functionality with filters and action hooks for custom integrations.
+- **Developer-friendly**: Extend functionality with filters and action hooks.
+
+Perfect for rentals, event bookings, or any date-based service.
 
 [Official website](https://easy-booking.pro/) | [Demo](https://demo.easy-booking.pro/) | [Documentation](https://easy-booking.pro/documentation/) | [FAQ](https://easy-booking.pro/faq/)
 
 = Why choose Easy Booking? =
 
 - **No complex setup**: Works natively with WooCommerce, no extra product types or complicated configurations.
-- **Adaptable to your needs**: Whether you rent equipment, manage event registrations, or offer seasonal services, Easy Booking adjusts to your workflow.
-- **Responsive support & clear documentation** : Get help when you need it, with detailed documentaiton and a quick, friendly developer ready to assist you.
-
-Perfect for rentals, event bookings, or any date-based service, Easy Booking gives you the tools to streamline reservations.
+- **Adaptable**: Whether you rent equipment, manage event registrations, or offer seasonal services, Easy Booking adjusts to your workflow.
+- **Responsive support & clear documentation** : Get help when you need it, with detailed documentation and a quick, friendly developer ready to assist you.
 
 = Upgrade to Easy Booking PRO for advanced features =
 
 - **Stock management by date**: Automatic availability management for each date individually, ensuring no overbookings.
-- **Disabled dates**: Block specific dates (holidays, closures, etc.) to match your business schedule.
-- **Advanced pricing**: Set prices by date, season, or booking duration for maximum flexibility.
+- **Disabled dates**: Block specific dates (holidays, closures, etc.).
+- **Advanced pricing**: Set prices by date, season, or booking duration.
 - **Date selection on shop page**: Let customers choose dates directly from the product listing, with real-time filtering of available products.
 - **Manual booking import**: Add reservations manually without creating orders, ideal for phone bookings or external systems.
 
-Unlock the full potential of your booking system with [Easy Booking PRO](https://easy-booking.pro/pricing/).
+Learn more about [Easy Booking PRO](https://easy-booking.pro/features/).
 
 = Looking for time-based bookings instead? =
 
@@ -79,6 +79,13 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 5. Manage bookings from your dashboard with list and calendar views.
 
 == Changelog ==
+
+= 3.5.6 - 2026-10-06 =
+
+* Improved product page appearance and booking details.
+* Tweak - Hide redundant labels on product pages.
+* Tweak - Moved availability display CSS to PRO version.
+* Tweak - Small CSS improvements for the datepicker.
 
 = 3.5.5 - 2026-17-09 =
 

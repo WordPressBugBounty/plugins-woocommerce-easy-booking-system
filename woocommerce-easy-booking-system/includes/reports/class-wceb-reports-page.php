@@ -66,7 +66,7 @@ class Reports_Page {
 			'wceb-bookings-reports-styles',
 			wceb_get_file_path( 'admin', 'wceb-reports', 'css' ),
 			array( 'picker', 'woocommerce_admin_styles' ),
-			1.0
+			WCEB_VERSION
 		);
 
 		if ( ! isset( $_GET['tab'] ) || ( isset( $_GET['tab'] ) && wp_unslash( $_GET['tab'] ) === 'bookings' ) ) {  // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -95,7 +95,7 @@ class Reports_Page {
 			'wceb-calendar-reports-picker',
 			wceb_get_file_path( 'admin', 'wceb-calendar-reports-picker', 'css' ),
 			array( WC_ADMIN_APP ),
-			true
+			WCEB_VERSION
 		);
 
 		if ( isset( $_GET['tab'] ) && wp_unslash( $_GET['tab'] ) === 'calendar' ) {  // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized

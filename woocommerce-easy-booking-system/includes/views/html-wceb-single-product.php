@@ -8,7 +8,7 @@
  * Do not remove input attributes (classes, ids, etc.).
  * Please make sure to keep your template up-to-date if you modify it.
  *
- * @version 3.4.4
+ * @version 3.5.6
  **/
 
 defined( 'ABSPATH' ) || exit;
@@ -21,13 +21,13 @@ defined( 'ABSPATH' ) || exit;
 	
 	<?php // Start datepicker ?>
 	<p class="form-row form-row-wide">
-		<label for="start_date-<?php echo absint( $product_id ); ?>"><?php esc_html_e( $start_date_text ); ?></label>
+		<label class="screen-reader-text" for="start_date-<?php echo absint( $product_id ); ?>"><?php esc_html_e( $start_date_text ); ?></label>
 		<input type="text" name="start_date" id="start_date-<?php echo absint( $product_id ); ?>" class="wceb_datepicker wceb_datepicker_start" data-value="" placeholder="<?php esc_attr_e( $start_date_text ); ?>">
 	</p>
 
 	<?php // End datepicker | For one date selection products, we need to keep the end datepicker, but it is hidden with CSS ?>
 	<p class="form-row form-row-wide show_if_two_dates" style="display:<?php echo ( $number_of_dates === 'one' ) ? 'none' : 'block'; ?>">
-		<label for="end_date-<?php echo absint( $product_id ); ?>"><?php esc_html_e( $end_date_text ); ?></label>
+		<label class="screen-reader-text" for="end_date-<?php echo absint( $product_id ); ?>"><?php esc_html_e( $end_date_text ); ?></label>
 		<input type="text" name="end_date" id="end_date-<?php echo absint( $product_id ); ?>" class="wceb_datepicker wceb_datepicker_end" data-value="" placeholder="<?php esc_attr_e( $end_date_text ); ?>">
 	</p>
 
@@ -36,25 +36,22 @@ defined( 'ABSPATH' ) || exit;
 	<?php // Reset dates button ?>
 	<a href="#" class="reset_dates" data-ids=""><?php esc_html_e( 'Clear dates', 'woocommerce-easy-booking-system' ); ?></a>
 
+	<?php do_action( 'easy_booking_before_booking_details', $product ); ?>
+
+	<div class="booking_summary">
+
+		<div class="booking_details"></div>
+
+		<?php do_action( 'easy_booking_before_booking_price', $product ); ?>
+
+		<div class="booking_price booking_detail booking_detail--total" data-booking_price="<?php echo esc_attr( $product->get_price() ); ?>" data-booking_regular_price="<?php echo esc_attr( $product->get_regular_price() ); ?>">
+			
+		<span class="booking_detail__label"><?php esc_html_e( 'Total price', 'woocommerce-easy-booking-system' ); ?></span>
+			<span class="booking_price__value"></span>
+		</div>
+
+		<?php do_action( 'easy_booking_after_booking_price', $product ); ?>
+
+	</div>
+
 </div>
-
-<?php do_action( 'easy_booking_before_booking_details', $product ); ?>
-
-<div class="booking_details"></div>
-
-<?php do_action( 'easy_booking_before_booking_price', $product ); ?>
-
-<p class="booking_price" data-booking_price="<?php echo esc_attr( $product->get_price() ); ?>" data-booking_regular_price="<?php echo esc_attr( $product->get_regular_price() ); ?>">
-
-	<?php
-
-	// For variable products, the price will be displayed with Javascript for each variation.
-	if ( ! $product->is_type( 'variable' ) ) {
-		echo '<span class="price"></span>';
-	}
-
-	?>
-
-</p>
-
-<?php do_action( 'easy_booking_after_booking_price', $product ); ?>

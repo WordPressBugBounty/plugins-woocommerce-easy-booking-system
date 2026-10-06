@@ -149,8 +149,8 @@ class Admin_Assets {
 		wp_register_style(
 			'wceb-admin-css',
 			wceb_get_file_path( 'admin', 'wceb-admin', 'css' ),
-			WCEB_PLUGIN_FILE,
-			'3.4.8'
+			array(),
+			WCEB_VERSION
 		);
 	}
 }

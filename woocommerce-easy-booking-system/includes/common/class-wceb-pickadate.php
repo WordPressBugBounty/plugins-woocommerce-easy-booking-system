@@ -94,7 +94,8 @@ class Pickadate {
 		wp_register_style(
 			'picker',
 			plugins_url( 'assets/css/' . $theme . '.min.css', WCEB_PLUGIN_FILE ),
-			true
+			array(),
+			WCEB_VERSION
 		);
 
 		// Pickadate right-to-left CSS
@@ -103,7 +104,8 @@ class Pickadate {
 			wp_register_style(
 				'rtl-style',
 				wceb_get_file_path( '', 'rtl', 'css' ),
-				true
+				array(),
+				WCEB_VERSION
 			);
 		}
 

@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Date selection.
  *
-* @version 3.4.7
+* @version 3.5.6
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -160,19 +160,21 @@ class Date_Selection {
 	 *
 	 * Get booking price details.
 	 *
-	 * @param WC_Product - $product
-	 * @param array -      $booking_data
-	 * @param str -        $price_type
-	 * @return str - $details
+	 * @param WC_Product $product
+	 * @param array      $data
+	 * @param string     $new_price
+	 * @return string    $details
 	 **/
 	private static function get_booking_price_details( $product, $data, $new_price ) {
 
 		$details = '';
 
-		if ( wceb_get_product_booking_dates( $product ) === 'two' ) {
+		$booking_mode    = get_option( 'wceb_booking_mode' );
+		$number_of_dates = wceb_get_product_booking_dates( $product );
 
-			$average_price = floatval( $new_price / $data['duration'] );
-			$booking_mode  = get_option( 'wceb_booking_mode' );
+		// Booking duration.
+		if ( 'two' === $number_of_dates
+		&& true === apply_filters( 'easy_booking_display_booking_duration', true, $product->get_id() ) ) {
 
 			// Get total booking duration (multiply selected duration by product booking duration)
 			$booking_duration = wceb_get_product_booking_duration( $product );
@@ -180,45 +182,78 @@ class Date_Selection {
 
 			$unit = $booking_mode === 'nights' ? _n( 'night', 'nights', $duration, 'woocommerce-easy-booking-system' ) : _n( 'day', 'days', $duration, 'woocommerce-easy-booking-system' );
 
-			$details .= '<p>';
+			$details .= '<div class="booking_detail booking_detail--duration">';
+			$details .= '<span class="booking_detail__label">' . esc_html__( 'Booking duration', 'woocommerce-easy-booking-system' ) . '</span>';
+			$details .= '<span class="booking_detail__value">';
 
 			$details .= apply_filters(
 				'easy_booking_total_booking_duration_text',
-				sprintf(
-					__( 'Total booking duration: %1$s %2$s', 'woocommerce-easy-booking-system' ),
-					absint( $duration ),
-					esc_html( $unit )
-				),
+				absint( $duration ) . ' ' . esc_html( $unit ),
 				$duration,
 				$unit
 			);
 
-			$details .= '</p>';
+			$details .= '</span></div>';
 
-			// Maybe display average price (if there are price variations. E.g Duration discounts or custom pricing)
-			if ( true === apply_filters( 'easy_booking_display_average_price', false, $product->get_id() ) ) {
+		}
 
-				$details .= '<p>';
+		// Quantity.
+		if ( ! $product->is_sold_individually()
+		&& true === apply_filters( 'easy_booking_display_quantity', true, $product->get_id() ) ) {
 
-				$details .= apply_filters(
-					'easy_booking_average_price_text',
-					sprintf(
-						__( 'Average price %1$s: %2$s', 'woocommerce-easy-booking-system' ),
-						wceb_get_product_price_suffix( $product ),
-						wc_price( $average_price )
-					),
-					$product,
-					$average_price
-				);
+			$details .= '<div class="booking_detail booking_detail--quantity">';
+			$details .= '<span class="booking_detail__label">' . esc_html__( 'Quantity', 'woocommerce-easy-booking-system' ) . '</span>';
+			$details .= '<span class="booking_detail__value">';
 
-				$details .= '</p>';
+			$details .= apply_filters(
+				'easy_booking_quantity_text',
+				absint( $data['quantity'] ),
+				$product,
+				$data['quantity']
+			);
 
-			}
+			$details .= '</span></div>';
+
+		}
+
+		// Average price per day.
+		if ( 'two' === $number_of_dates
+		&& true === apply_filters( 'easy_booking_display_average_price', false, $product->get_id() ) ) {
+
+			$average_price = floatval( $new_price / $data['duration'] );
+
+			$label = $booking_mode === 'nights' ? __( 'Price per night', 'woocommerce-easy-booking-system' ) : __( 'Price per day', 'woocommerce-easy-booking-system' );
+			
+			$details .= '<div class="booking_detail booking_detail--average-price">';
+			$details .= '<span class="booking_detail__label">' . esc_html( $label ) . '</span>';
+			$details .= '<span class="booking_detail__value">';
+
+			$details .= apply_filters(
+				'easy_booking_average_price_text',
+				wc_price( $average_price ),
+				$product,
+				$average_price
+			);
+
+			$details .= '</span></div>';
+
 		}
 
 		return apply_filters( 'easy_booking_booking_price_details', $details, $product, $data );
 	}
 
+	/**
+	 *
+	 * Get price to display  (regular or sale).
+	 *
+	 * @param string  $price
+	 * @param string  $type
+	 * @param int     $qty
+	 * @param int     $_product_id
+	 * @param array   $data
+	 * 
+	 * @return string $price
+	 **/
 	private static function get_price_to_display( $price, $type, $qty, $_product_id, $data ) {
 
 		$args = array(

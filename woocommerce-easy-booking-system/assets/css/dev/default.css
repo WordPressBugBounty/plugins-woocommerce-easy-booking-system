@@ -1,14 +1,75 @@
 /* ==========================================================================
-   Reset styles to prevent conflict with themes
+   Reset styles to prevent conflict with themes and style product page
    ========================================================================== */
-.wceb_picker_wrap {
+
+.cart .wceb_picker_wrap {
   position: relative;
+  width: 100%;
 }
-.wceb_picker_wrap:after {
+
+.cart .wceb_picker_wrap:after {
   content: '';
   display: table;
   clear: both;
 }
+
+.cart .wceb_picker_wrap .form-row {
+    width: 100%;
+    margin-bottom: 1em;
+    padding: 0;
+}
+
+.cart .wceb_picker_wrap .reset_dates {
+  font-size: 0.8em;
+}
+.cart .booking_summary {
+  clear: both;
+  width: 100%;
+  margin: 1em 0;
+  padding: 0 1em;
+  background: #f2f2f28f;
+}
+
+.cart .booking_summary.is-empty {
+  display: none;
+}
+
+.cart .booking_detail {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  margin: 0;
+  padding: 0.75em 0;
+  border-top: 1px solid #ebebeb;
+}
+
+.cart .booking_detail:first-of-type {
+  border-top: none;
+}
+
+.cart .booking_detail__value,
+.cart .booking_price__value {
+  text-align: right;
+}
+
+.cart .booking_detail--total, .cart .booking_detail--total ins {
+  font-weight: 700;
+}
+
+@media screen and (max-width: 480px) {
+  .cart .booking_detail {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25em;
+  }
+
+  .cart .booking_detail__value,
+  .cart .booking_price__value {
+    text-align: left;
+  }
+}
+
 input[readonly] {
     cursor: pointer !important;
 }
@@ -18,7 +79,6 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   border: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  border: none !important;
   font-size: 16px !important;
 }
 
@@ -154,7 +214,6 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
     border: 1px solid #e5e5e5;
     border-top-color: #bfbfbf;
     border-bottom-width: 0;
-    border-radius: 5px 5px 0 0;
     box-shadow: 0 12px 36px 16px rgba(0, 0, 0, 0.24);
   }
 }
@@ -162,29 +221,21 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   .picker__box {
     font-size: 1.5em;
     border-bottom-width: 1px;
-    border-radius: 5px;
   }
 }
 /**
  * When the picker opens...
  */
 .picker--opened .picker__holder {
-  -ms-transform: translateY(0);
-      transform: translateY(0);
+  transform: translateY(0);
   background: transparent;
-  filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#1E000000,endColorstr=#1E000000)";
-  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#1E000000,endColorstr=#1E000000)";
   zoom: 1;
   background: rgba(0, 0, 0, 0.32);
   transition: background 0.15s ease-out;
 }
 .picker--opened .picker__frame {
   margin: 0 auto;
-  -ms-transform: translateY(0);
-      transform: translateY(0);
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-  filter: alpha(opacity=100);
-  -moz-opacity: 1;
+  transform: translateY(0);
   opacity: 1;
 }
 @media (min-height: 33.875em) {
@@ -346,7 +397,7 @@ select.picker__select--year:focus {
 .picker__weekday {
   width: 14.285714286%;
   font-size: .75em;
-  padding-bottom: .25em;
+  padding: .25em 0;
   color: #999;
   font-weight: 500;
   text-align: center;
@@ -355,7 +406,7 @@ select.picker__select--year:focus {
 }
 @media (min-height: 33.875em) {
   .picker__weekday {
-    padding-bottom: .5em;
+    padding: .5em 0;
   }
 }
 /**
@@ -372,14 +423,14 @@ select.picker__select--year:focus {
   position: relative;
 }
 .picker__day--today:before {
-  content: " ";
+  content: "";
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 0;
-  height: 0;
-  border-top: 0.5em solid var(--wces-accent);
-  border-left: .5em solid transparent;
+  top: -1px;
+  left: -1px;
+  width: 5px;
+  height: 5px;
+  z-index: 999;
+  background: var(--wceb-accent);
 }
 .picker__day--disabled:before {
   border-top-color: #aaa;
@@ -399,8 +450,8 @@ select.picker__select--year:focus {
 .picker__day--highlighted:hover,
 .picker--focused .picker__day--highlighted {
   cursor: pointer;
-  background: var(--wceb-accent);
-  color: var(--wceb-bg);
+ color: var(--wceb-text);
+  background: var(--wceb-accent-lighter);
 }
 .picker__day--selected,
 .picker__day--selected:hover,
@@ -430,27 +481,28 @@ select.picker__select--year:focus {
 .picker__button--clear,
 .picker__button--close {
   border: 1px solid var(--wceb-bg);
-  background: var(--wceb-bg);
-  color: var(--wceb-text);
+  background-color: var(--wceb-bg) !important;
+  color: var(--wceb-text) !important;
   font-size: .8em;
   padding: .66em 0;
   font-weight: bold;
   width: 33%;
   display: inline-block;
   vertical-align: bottom;
+  border-radius: 0;
 }
 .picker__button--today:hover,
 .picker__button--close:hover,
 .picker__button--clear:hover {
   cursor: pointer;
-  color: var(--wceb-text);
-  background: var(--wceb-accent-lighter);
+  color: var(--wceb-text) !important;
+  background-color: var(--wceb-accent-lighter) !important;
   border-color: var(--wceb-accent-lighter);
 }
 .picker__button--today:focus,
 .picker__button--clear:focus,
 .picker__button--close:focus {
-  background: var(--wceb-accent-lighter);
+  background-color: var(--wceb-accent-lighter) !important;
   border-color: var(--wceb-accent);
   outline: none;
 }
@@ -467,10 +519,10 @@ select.picker__select--year:focus {
   margin-right: .45em;
 }
 .picker__button--today:before {
-  top: -0.05em;
-  width: 0;
-  border-top: 0.66em solid var(--wces-accent);
-  border-left: .66em solid transparent;
+  top: -1px;
+  width: 8px;
+  height: 8px;
+  background: var(--wceb-accent);
 }
 .picker__button--clear:before {
   top: -0.25em;
@@ -512,82 +564,6 @@ select.picker__select--year:focus {
   color: var(--wceb-text) !important;
   background: var(--wceb-accent-darker) !important;
   border-color: var(--wceb-accent-darker) !important;
-}
-
-/* ==========================================================================
-   Availability
-   ========================================================================== */
-
-.picker__day.booked {
-  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAPElEQVQYV2NkIADOnj37nxGfGpACY2NjRpyKYApAhmBVhKwAqyJ0BRiKsClAUYRLAVwRPgVgRYQUgBQBAKv8I3BUT3C3AAAAAElFTkSuQmCC) repeat;
-}
-
-.picker__day--stock {
-  position: relative;
-  padding: .3125em 50% .3125em 0;
-}
-
-.picker__day--status {
-  position: relative;
-}
-
-.wceb-stock-status {
-  box-sizing: border-box;
-  height: 5px;
-  width: 5px;
-  border-radius: 50%;
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-}
-
-.picker__day--background:not(.picker__day--selected):not(.picker__day--highlighted).in_stock:not(:hover) {
-  background: #5fa644;
-  border: 1px solid #e5e5e5;
-}
-
-.picker__day--background:not(.picker__day--selected):not(.picker__day--highlighted).low:not(:hover) {
-  background: #e49518;
-  border: 1px solid #e5e5e5;
-}
-
-.wceb-stock-status.in_stock {
-  background: #5fa644;
-}
-
-.wceb-stock-status.low {
-  background: #e49518;
-}
-
-.wceb-stock-amount {
-  box-sizing: border-box;
-  height: 100%;
-  width: 50%;
-  font-size: 0.8em;
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: .525em 0 .525em 0;
-  background: #e5e5e5;
-  text-align: center;
-}
-
-.wceb-stock-amount.in_stock {
-  color: #5fa644;
-}
-
-.wceb-stock-amount.low {
-  color: #e49518;
-}
-
-@media (max-width: 480px) {
-  .wceb-stock-amount, .wceb-stock-status {
-    display: none;
-  }
-}
-
-.picker__day--highlighted .wceb-stock-amount {
-  color: var(--wceb-text);
 }
 
 button.date-selection-needed {
