@@ -1,3 +1,20 @@
+= 3.5.7 - 2026-10-19 =
+
+* Fix - Set default calendar theme for new installations.
+* Tweak - Small changes to datepicker appearance.
+
+= 3.5.6 - 2026-10-06 =
+
+* Improved product page appearance and booking details.
+* Tweak - Hide redundant labels on product pages.
+* Tweak - Moved availability display CSS to PRO version.
+* Tweak - Small CSS improvements for the datepicker.
+
+= 3.5.5 - 2026-17-09 =
+
+* Add - Selected date range is now highlighted.
+* Add - Dismissible admin notice for the new Google Calendar Sync add-on.
+
 = 3.5.4 - 2026-08-06 =
 
 * Fix - Unable to add or modify booking dates in orders since WooCommerce 11.0.

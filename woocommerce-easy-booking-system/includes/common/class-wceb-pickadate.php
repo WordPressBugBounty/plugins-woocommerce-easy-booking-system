@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Functions to register pickadate scripts and styles.
  *
-* @version 3.4.8
+* @version 3.5.7
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -89,7 +89,7 @@ class Pickadate {
 	public static function register_styles() {
 
 		// Get calendar theme - Force "Default" theme in admin.
-		$theme = is_admin() ? 'default' : get_option( 'wceb_calendar_theme' );
+		$theme = is_admin() ? 'default' : get_option( 'wceb_calendar_theme', 'classic' );
 
 		wp_register_style(
 			'picker',

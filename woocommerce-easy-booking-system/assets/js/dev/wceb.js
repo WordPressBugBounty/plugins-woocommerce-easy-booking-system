@@ -268,10 +268,20 @@
 				if ( typeof this.product.id !== 'undefined' ) {
 
 					// Start picker
-					this.$inputStart = this.$cart.find('.wceb_datepicker_start').pickadate();
+					this.$inputStart = this.$cart.find('.wceb_datepicker_start').pickadate({
+						today: '',
+						clear: '',
+						close: '',
+						formatSubmit: 'yyyy-mm-dd'
+					});
 
 					// End picker
-					this.$inputEnd = this.$cart.find('.wceb_datepicker_end').pickadate();
+					this.$inputEnd = this.$cart.find('.wceb_datepicker_end').pickadate({
+						today: '',
+						clear: '',
+						close: '',
+						formatSubmit: 'yyyy-mm-dd'
+					});
 
 					// Create pickers
 					this.createPickers();

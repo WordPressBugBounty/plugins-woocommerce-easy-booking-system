@@ -19,8 +19,11 @@
 }
 
 .cart .wceb_picker_wrap .reset_dates {
-  font-size: 0.8em;
+  display: inline-block;
+  margin: 0 0 1em 0;
+  font-size: 0.9em;
 }
+
 .cart .booking_summary {
   clear: both;
   width: 100%;
@@ -96,6 +99,8 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   text-align: left;
   line-height: 1.2;
   color: var(--wceb-text);
+  position: absolute;
+  z-index: 10000;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
@@ -140,9 +145,6 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
 .picker__holder {
   position: absolute;
   background: var(--wceb-bg);
-  border: 1px solid #e7e7e7;
-  border-top-width: 0;
-  border-bottom-width: 0;
   box-sizing: border-box;
   min-width: 176px;
   max-width: 466px;
@@ -168,8 +170,6 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
 .picker--opened .picker__holder {
   max-height: 25em;
   opacity: 1;
-  border-top-width: 1px;
-  border-bottom-width: 1px;
   transform: translateY(0);
   transition: transform .12s ease-out, opacity .12s ease-out, max-height 0s, border-width 0s;
   box-shadow: 0 6px 18px 1px rgba(0, 0, 0, 0.12);
@@ -182,7 +182,7 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
  * The picker box.
  */
 .picker__box {
-  padding: 0 1em;
+  padding: 0 .5em;
 }
 /**
  * The header containing the month and year stuff.
@@ -190,7 +190,7 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
 .picker__header {
   text-align: center;
   position: relative;
-  margin-top: .75em;
+  margin: 1em 0;
 }
 /**
  * The month and year labels.
@@ -214,6 +214,7 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
 .picker select.picker__select--year {
   border: 1px solid #b7b7b7;
   height: 2em;
+  padding: .5em;
   margin-left: .25em;
   margin-right: .25em;
 }
@@ -252,7 +253,7 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   }
 }
 .picker__nav--prev {
-  left: -1em;
+  left: 0;
   padding-right: 1.25em;
 }
 @media (min-width: 24.5em) {
@@ -261,7 +262,7 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   }
 }
 .picker__nav--next {
-  right: -1em;
+  right: 0;
   padding-left: 1.25em;
 }
 @media (min-width: 24.5em) {
@@ -309,8 +310,9 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
   table-layout: fixed;
   font-size: inherit;
   width: 100%;
-  margin-top: .75em;
-  margin-bottom: .5em;
+  margin-top: .75em !important;
+  margin-bottom: .5em !important;
+  border: none;
 }
 @media (min-height: 33.875em) {
   .picker__table {
@@ -328,14 +330,15 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
 /**
  * The weekday labels
  */
-.picker__weekday {
+th.picker__weekday {
   width: 14.285714286%;
   font-size: .75em;
-  padding: .25em 0;
+  padding: .75em;
   color: #999;
   font-weight: 500;
   text-align: center;
-  /* Increase the spacing a tad */
+  border: none;
+  border-width: 0;
 }
 @media (min-height: 33.875em) {
   .picker__weekday {
@@ -346,10 +349,13 @@ table.picker_table th, table.picker__table tr, table.picker__table td {
  * The days on the calendar
  */
 .picker__day {
-  padding: .3125em 0;
+  padding: .5em;
   font-weight: 200;
   border: 1px solid transparent;
   text-align: center;
+}
+.picker__day--stock {
+  padding: .5em 50% .5em 0 !important;
 }
 .picker__day--today {
   position: relative;

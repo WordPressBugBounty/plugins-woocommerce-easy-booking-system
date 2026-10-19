@@ -3,9 +3,9 @@
 Contributors: @morki
 Tags: woocommerce, booking, appointment, reservation, calendar
 Requires at least: 5.0
-Stable tag: 3.5.6
-Tested up to: 7.1.2
-WC tested up to: 11.1.2
+Stable tag: 3.5.7
+Tested up to: 7.1.3
+WC tested up to: 11.2.1
 License: GPLv3
 
 A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
@@ -79,6 +79,11 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 5. Manage bookings from your dashboard with list and calendar views.
 
 == Changelog ==
+
+= 3.5.7 - 2026-10-19 =
+
+* Fix - Set default calendar theme for new installations.
+* Tweak - Small changes to datepicker appearance.
 
 = 3.5.6 - 2026-10-06 =
 

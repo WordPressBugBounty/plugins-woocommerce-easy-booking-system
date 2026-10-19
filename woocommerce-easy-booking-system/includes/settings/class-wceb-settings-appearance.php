@@ -8,7 +8,7 @@ use EasyBooking\Settings;
 *
 * Admin: appearance settings.
  *
-* @version 3.0.6
+* @version 3.5.7
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -121,7 +121,7 @@ class Settings_Appearance {
 			array(
 				'id'          => 'calendar_theme',
 				'name'        => 'wceb_calendar_theme',
-				'value'       => get_option( 'wceb_calendar_theme', 'default' ),
+				'value'       => get_option( 'wceb_calendar_theme', 'classic' ),
 				'options'     => array(
 					'default' => esc_html__( 'Overlay', 'woocommerce-easy-booking-system' ),
 					'classic' => esc_html__( 'Dropdown', 'woocommerce-easy-booking-system' ),
