@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Settings.
  *
-* @version 3.4.8
+* @version 3.5.8
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -101,7 +101,7 @@ class Settings_Helper {
 		$appearance_settings = array(
 			'calendar_theme'   => array(
 				'type'    => 'string',
-				'default' => 'dropdown',
+				'default' => 'classic',
 				'title'   => __( 'Display mode', 'woocommerce-easy-booking-system' ),
 				'section' => 'easy_booking_main_settings',
 			),

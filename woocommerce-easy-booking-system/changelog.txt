@@ -1,3 +1,17 @@
+= 3.5.8 - 2026-10-29 =
+
+* Add - Compatibility with WooCommerce Add to Cart + Options blocks for variable and grouped products, while preserving classic templates.
+* Fix - Booking calculations in pages containing multiple Single Product blocks, including fixed variations.
+* Fix - Quantity changes now recalculate booking prices with the current quantity and ignore outdated quantity or product selections.
+* Fix - Prevent date fields from flashing before product selection and preserve grouped booking dates when quantities change.
+* Fix - Keep booking summary quantities consistent with pricing and hide the parent quantity for grouped products.
+* Fix - Apply the correct default calendar theme on new installations.
+* Fix - Highlight the selected date instead of the minimum date when reopening the calendar.
+* Fix - Prevent WordPress admin styles from overriding calendar styles on mobile.
+* Tweak - Improved calendar appearance, date range highlighting, animations and input styling.
+* Tweak - Calculate booking prices without fetching or verifying a nonce.
+* Dev - Document the public, read-only date-selection endpoint and security requirements for hook callbacks. Legacy nonce helpers remain available for compatibility.
+
 = 3.5.7 - 2026-10-19 =
 
 * Fix - Set default calendar theme for new installations.

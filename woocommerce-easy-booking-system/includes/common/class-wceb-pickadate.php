@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Functions to register pickadate scripts and styles.
  *
-* @version 3.5.7
+* @version 3.5.8
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -113,7 +113,7 @@ class Pickadate {
 		$bg_color       = wc_format_hex( get_option( 'wceb_background_color', '#ffffff' ) );
 		$text_color     = wc_format_hex( get_option( 'wceb_text_color', '#000000' ) );
 		$accent_color   = wc_format_hex( get_option( 'wceb_main_color', '#999999' ) );
-		$accent_lighter = wc_hex_lighter( $accent_color, 75 );
+		$accent_lighter = wc_hex_lighter( $accent_color, 50 );
 		$accent_darker  = wc_hex_darker( $accent_color, 10 );
 
 		$css = sprintf(

@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Load frontend assets.
  *
-* @version 3.4.8
+* @version 3.5.8
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -69,8 +69,11 @@ class Frontend_Assets {
 
 			// Load scripts only if product is bookable
 			if ( wceb_is_bookable( $product ) ) {
-				$products[]      = $product;
-				$product_types[] = $product->get_type();
+
+				$products[] = $product;
+				// A fixed variation uses the simple form, as in WooCommerce's block template.
+				$product_types[] = $product->is_type( 'variation' ) ? 'simple' : $product->get_type();
+
 			}
 		}
 
@@ -206,7 +209,8 @@ class Frontend_Assets {
 								continue;
 							}
 
-							$product_params[ $variation_id ] = $this->get_variation_settings( $variation );
+							// Keep full settings when this variation also has its own Single Product block.
+							$product_params[ $variation_id ] = array_merge( $product_params[ $variation_id ] ?? array(), $this->get_variation_settings( $variation ) );
 
 						}
 					}

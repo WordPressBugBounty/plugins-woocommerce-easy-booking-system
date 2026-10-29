@@ -3,11 +3,11 @@
 * Plugin Name: Easy Booking for WooCommerce
 * Plugin URI: https://easy-booking.pro/
 * Description: A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
-* Version: 3.5.7
+* Version: 3.5.8
 * Author: Noushka
 * Author URI: https://noushka.dev
-* Requires at least: 5.0
-* Tested up to: 7.1.3
+* Requires at least: 6.0
+* Tested up to: 7.1.4
 * WC tested up to: 11.2.1
 * Requires Plugins: woocommerce
 * Licence : GPLv3
@@ -21,7 +21,7 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 
 		protected static $_instance = null;
 
-		private const PLUGIN_VERSION = '3.5.7';
+		private const PLUGIN_VERSION = '3.5.8';
 
 		public static function instance() {
 
@@ -119,6 +119,7 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 		 **/
 		public function register_easy_booking_rest_routes() {
 
+			// Retain the nonce endpoint for cached scripts and existing integrations.
 			register_rest_route(
 				'easybooking/v1',
 				'/get-fresh-nonce/',
@@ -129,13 +130,14 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 				)
 			);
 
+			// Public, read-only calculation. Hook callbacks must not rely on authentication or a nonce.
 			register_rest_route(
 				'easybooking/v1',
 				'/date-selection/',
 				array(
 					'methods'             => 'POST',
 					'callback'            => array( 'EasyBooking\Date_Selection', 'handle_date_selection' ),
-					'permission_callback' => array( 'EasyBooking\Date_Selection', 'check_date_selection_nonce' ),
+					'permission_callback' => '__return_true',
 				)
 			);
 		}
@@ -240,6 +242,9 @@ if ( ! class_exists( 'Easy_Booking' ) ) :
 
 			// Product page
 			require_once __DIR__ . '/includes/wceb-single-product.php';
+
+			// Block product forms
+			require_once __DIR__ . '/includes/blocks/class-wceb-add-to-cart-with-options.php';
 
 			// Frontend assets
 			require_once __DIR__ . '/includes/class-wceb-assets.php';

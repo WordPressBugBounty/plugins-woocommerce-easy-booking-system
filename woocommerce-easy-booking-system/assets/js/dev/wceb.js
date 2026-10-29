@@ -269,17 +269,15 @@
 
 					// Start picker
 					this.$inputStart = this.$cart.find('.wceb_datepicker_start').pickadate({
-						today: '',
-						clear: '',
-						close: '',
+						today: false,
+						clear: false,
 						formatSubmit: 'yyyy-mm-dd'
 					});
 
 					// End picker
 					this.$inputEnd = this.$cart.find('.wceb_datepicker_end').pickadate({
-						today: '',
-						clear: '',
-						close: '',
+						today: false,
+						clear: false,
 						formatSubmit: 'yyyy-mm-dd'
 					});
 
@@ -296,7 +294,7 @@
 
 				}
 
-				// Instance globale
+				// Legacy nonce manager for integrations; price requests no longer use it.
 				this.dynamicNonce = new DynamicNonce();
 
 			}
@@ -336,11 +334,29 @@
 				self.$qty_input.on(
 					'change',
 					function (e) {
-						
-						// Make sure we only trigger function if quantity was updated
-						if ( self.qty !== $(this).val() ) {
-							self.qty = $(this).val();
-							self.updateTotals();
+						const updateQuantity = () => {
+							const quantity = $(this).val();
+
+							if ( self.qty !== quantity ) {
+								self.qty = quantity;
+								self.quantityRevision = ( self.quantityRevision || 0 ) + 1;
+								self.updateTotals();
+							}
+						};
+
+						if ( self.$cart.is( '.wp-block-woocommerce-add-to-cart-with-options' ) ) {
+							// WooCommerce emits change before updating the input's value.
+							if ( typeof self.quantityFrame === 'number' ) {
+								window.cancelAnimationFrame( self.quantityFrame );
+							}
+							self.quantityFrame = window.requestAnimationFrame( () => {
+								self.quantityFrame = null;
+								if ( this.isConnected ) {
+									updateQuantity();
+								}
+							} );
+						} else {
+							updateQuantity();
 						}
 
 						e.stopPropagation();
@@ -377,7 +393,7 @@
 
 				self.$add_to_cart_button.on( 'click', function(e) {
 		
-					if ( $(this).is( '.disabled, .date-selection-needed' ) && ! $(this).hasClass( 'wc-variation-selection-needed' ) && ! $(this).hasClass( 'wc-variation-is-unavailable' ) ) {
+					if ( $(this).hasClass( 'date-selection-needed' ) && ! $(this).hasClass( 'wc-variation-selection-needed' ) && ! $(this).hasClass( 'wc-variation-is-unavailable' ) ) {
 		
 						e.preventDefault();
 						window.alert( self.product.select_dates_message );
@@ -519,6 +535,9 @@
 			async calcBookingPrice() {
 
 				var self = this;
+				const variationRevision = self.variationRevision;
+				const groupSelectionRevision = self.groupSelectionRevision;
+				const quantityRevision = self.quantityRevision;
 
 				let data = {
 					product_id     : self.product.id,
@@ -542,17 +561,21 @@
 				
 				try {
 
-					const nonce = await this.dynamicNonce.getNonce();
-
+					// Public, read-only calculation. No nonce is required.
 					const request = await fetch( EASYBOOKING.rest_url + 'easybooking/v1/date-selection/', {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify({ security: nonce, ...data })
+						body: JSON.stringify( data )
 					});
 
 					const response = await request.json();
+
+					// Ignore a price calculated before the variation, group or quantity changed.
+					if ( variationRevision !== self.variationRevision || groupSelectionRevision !== self.groupSelectionRevision || quantityRevision !== self.quantityRevision ) {
+						return;
+					}
 
 					if ( ! response.success && ( response.message || response.error ) ) {
 						throw new Error( response.message || response.error );
@@ -584,6 +607,10 @@
 					self.$add_to_cart_button.removeClass( 'date-selection-needed' );
 
 				} catch ( error ) {
+
+					if ( variationRevision !== self.variationRevision || groupSelectionRevision !== self.groupSelectionRevision || quantityRevision !== self.quantityRevision ) {
+						return;
+					}
 					
 					// Display error
 					self.$picker_wrap.prepend( `<div class="wceb_error woocommerce-error">${error.message}</div>` );
@@ -860,6 +887,8 @@
 			decorateDateRange( picker ) {
 
 				this.clearDateRange( picker );
+				this.markStartDateOnEndPicker( picker );
+				this.markEndDateOnStartPicker( picker );
 
 				if ( this.dateRangeEditing ) {
 					this.hideEditingDate( picker );
@@ -878,6 +907,7 @@
 
 				this.clearDateRange( picker );
 				if ( this.StartPicker.isSet() && end ) this.addDateRangeClass( picker, this.getSelectedDatePick( this.StartPicker ), end );
+				this.markStartDateOnEndPicker( picker );
 				this.markDateRangeAnchor( picker );
 			}
 
@@ -887,6 +917,7 @@
 
 				this.clearDateRange( picker );
 				if ( this.EndPicker.isSet() && start ) this.addDateRangeClass( picker, start, this.getSelectedDatePick( this.EndPicker ) );
+				this.markEndDateOnStartPicker( picker );
 				this.markDateRangeAnchor( picker );
 			}
 
@@ -902,7 +933,33 @@
 			}
 
 			clearDateRange( picker ) {
-				picker.pickerObject.$root.find( '.picker__day--inrange' ).removeClass( 'picker__day--inrange' );
+				picker.pickerObject.$root.find( '.picker__day--inrange, .picker__day--booking-start, .picker__day--booking-end' ).removeClass( 'picker__day--inrange picker__day--booking-start picker__day--booking-end' );
+			}
+
+			/**
+			* Mark the selected start date in the end datepicker.
+			**/
+			markStartDateOnEndPicker( picker ) {
+
+				if ( picker !== this.EndPicker || ! this.StartPicker.isSet() ) return;
+
+				const pick = this.getSelectedDatePick( this.StartPicker );
+				picker.pickerObject.$root.find( '.picker__day' ).filter( function() {
+					return Number( $( this ).data( 'pick' ) ) === pick;
+				} ).addClass( 'picker__day--booking-start' );
+			}
+
+			/**
+			* Mark the selected end date in the start datepicker.
+			**/
+			markEndDateOnStartPicker( picker ) {
+
+				if ( picker !== this.StartPicker || ! this.EndPicker.isSet() ) return;
+
+				const pick = this.getSelectedDatePick( this.EndPicker );
+				picker.pickerObject.$root.find( '.picker__day' ).filter( function() {
+					return Number( $( this ).data( 'pick' ) ) === pick;
+				} ).addClass( 'picker__day--booking-end' );
 			}
 
 			getSelectedDatePick( picker ) {
@@ -913,7 +970,7 @@
 			}
 
 			hideEditingDate( picker ) {
-				picker.pickerObject.$root.find( '.picker__day--selected, .picker__day--highlighted' ).removeClass( 'picker__day--selected picker__day--highlighted' );
+				picker.pickerObject.$root.find( '.picker__day--highlighted' ).removeClass( 'picker__day--highlighted' );
 			}
 
 			markDateRangeAnchor( picker ) {
@@ -1107,14 +1164,19 @@
 				this.pickerItem.min  = EasyBooking.DateHelper.createDateObject( min );
 				this.pickerItem.max  = EasyBooking.DateHelper.createDateObject( max );
 
-				let highlight = new Date( min );
+				// If current picker is set, highlight is set to selected date
+				if ( ! this.isSet() ) {
+				
+					let highlight = new Date( min );
 
-				while ( true === EasyBooking.DateHelper.isDisabled( this.getDisabled(), highlight ) ) {
-					highlight.setDate( highlight.getDate() + 1 );
+					while ( true === EasyBooking.DateHelper.isDisabled( this.getDisabled(), highlight ) ) {
+						highlight.setDate( highlight.getDate() + 1 );
+					}
+
+					this.pickerItem.highlight = EasyBooking.DateHelper.createDateObject( highlight );
+					this.pickerItem.view      = EasyBooking.DateHelper.createDateObject( new Date( highlight.getFullYear(), highlight.getMonth(), 1 ) );
+
 				}
-
-				this.pickerItem.highlight = EasyBooking.DateHelper.createDateObject( highlight );
-				this.pickerItem.view      = EasyBooking.DateHelper.createDateObject( new Date( highlight.getFullYear(), highlight.getMonth(), 1 ) );
 
 				this.$cart.trigger( `set_${this.type}_picker` );
 
@@ -1518,7 +1580,8 @@
 		}
 
 		/**
-		 * Simple dynamic nonce manager to avoid cache issues.
+		 * Legacy nonce manager retained for existing integrations.
+		 * Price calculations no longer require or request a nonce.
 		**/
 		class DynamicNonce {
 

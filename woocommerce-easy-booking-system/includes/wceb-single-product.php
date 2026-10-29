@@ -4,7 +4,7 @@
  *
  * Template hooks for product pages.
  *
- * @version 3.4.9
+ * @version 3.5.8
  **/
 
 defined( 'ABSPATH' ) || exit;
@@ -24,7 +24,17 @@ function wceb_single_product_html() {
 		$end_date_text   = wceb_get_end_text( $product );
 		$number_of_dates = wceb_get_product_number_of_dates_to_select( $product );
 
+		ob_start();
 		include wceb_load_template( 'includes/views', 'html-wceb-single-product.php' );
+		$html = ob_get_clean();
+
+		/**
+		 * Filter the datepicker markup, including theme template overrides.
+		 *
+		 * @param string     $html    Datepicker markup.
+		 * @param WC_Product $product Current product.
+		 */
+		echo apply_filters( 'easy_booking_single_product_html', $html, $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The template escapes its output.
 
 	}
 }

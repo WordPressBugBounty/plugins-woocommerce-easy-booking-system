@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Date selection.
  *
-* @version 3.5.6
+* @version 3.5.8
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -15,7 +15,8 @@ class Date_Selection {
 
 	/**
 	 *
-	 * Creates a fresh nonce to avoid cache issues.
+	 * Legacy nonce endpoint retained for cached scripts and existing integrations.
+	 * Date selection no longer requires this nonce.
 	 *
 	 * @return WP_REST_Response
 	 **/
@@ -28,7 +29,9 @@ class Date_Selection {
 	}
 	/**
 	 *
-	 * Check nonce.
+	 * Legacy nonce check retained for existing integrations.
+	 * This method is no longer used as the date-selection permission callback.
+	 * A valid nonce does not grant permission to perform sensitive operations.
 	 *
 	 * @param WP_REST_Request
 	 * @return mixed WP_Error | bool
@@ -49,6 +52,10 @@ class Date_Selection {
 	/**
 	 *
 	 * Validate data, calculate booking price and update page details.
+	 *
+	 * This public endpoint does not require a nonce. Its hooks receive visitor-supplied
+	 * data and must remain read-only. Extensions that perform sensitive operations
+	 * must use a separate endpoint with appropriate authorization and CSRF protection.
 	 *
 	 * @param WP_REST_Request
 	 **/
@@ -116,6 +123,18 @@ class Date_Selection {
 		// Fetch product objects
 		$product  = wc_get_product( $product_id );
 		$_product = ( $product_id !== $id ) ? wc_get_product( $id ) : $product;
+
+		// A Single Product block can display a fixed variation directly.
+		if ( $product && $product->is_type( 'variation' ) ) {
+			if ( $variation_id && $variation_id !== $product_id ) {
+				throw new \Exception( __( 'Please select a product option.', 'woocommerce-easy-booking-system' ) );
+			}
+
+			$variation_id = $product_id;
+			$id           = $product_id;
+			$_product     = $product;
+			$product      = wc_get_product( $_product->get_parent_id() );
+		}
 
 		// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 
@@ -199,7 +218,7 @@ class Date_Selection {
 
 		// Quantity.
 		if ( ! $product->is_sold_individually()
-		&& true === apply_filters( 'easy_booking_display_quantity', true, $product->get_id() ) ) {
+		&& true === apply_filters( 'easy_booking_display_quantity', ! $product->is_type( 'grouped' ), $product->get_id() ) ) {
 
 			$details .= '<div class="booking_detail booking_detail--quantity">';
 			$details .= '<span class="booking_detail__label">' . esc_html__( 'Quantity', 'woocommerce-easy-booking-system' ) . '</span>';
@@ -296,6 +315,11 @@ class Date_Selection {
 			$bundle_qty = $data['product']->is_type( 'bundle' ) && ! $data['_product']->is_type( 'bundle' ) ? $booking_data[ $id ]['quantity'] : 1;
 
 			$qty = apply_filters( 'easy_booking_selected_quantity', $data['quantity'] * $bundle_qty, $_product_id, $data );
+
+			// Keep the displayed quantity consistent with the quantity used for pricing.
+			if ( $_product_id === $id && $data['product']->is_type( array( 'simple', 'variable' ) ) ) {
+				$booking_data[ $id ]['quantity'] = $qty;
+			}
 
 			$price_to_display = self::get_price_to_display( $data['new_price'], 'price', $qty, $_product_id, $data );
 
