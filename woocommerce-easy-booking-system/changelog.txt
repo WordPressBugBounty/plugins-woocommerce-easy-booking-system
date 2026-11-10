@@ -1,3 +1,10 @@
+= 3.5.9 - 2026-11-10 =
+
+* Fix - The average price shown in the booking summary now accounts for the quantity selected and labels multi-day or multi-night periods clearly.
+* Tweak - Refined the booking calendar in both themes. The Classic theme now loads if a saved theme is unavailable.
+* Fix - Booking price calculations now show an error for invalid booking details or product add-on selections.
+* Requirements - Minimum versions are WordPress 6.0, WooCommerce 10.0 and PHP 7.4.
+
 = 3.5.8 - 2026-10-29 =
 
 * Add - Compatibility with WooCommerce Add to Cart + Options blocks for variable and grouped products, while preserving classic templates.

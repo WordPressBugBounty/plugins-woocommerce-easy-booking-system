@@ -80,11 +80,24 @@ button.date-selection-needed {
   cursor: not-allowed;
 }
 
+/**
+ * The picker input element.
+ */
+.wp-admin:not(.post-type-shop_order) .picker__input {
+  cursor: default;
+  background-color: #FFFFFF !important;
+}
+
+.post-type-shop_order .picker__input {
+  width: auto !important;
+  padding: 0 4px !important;
+  border-bottom: 1px solid #8c8f94 !important;
+}
 /* ================================================================
 Reset styles to prevent conflict with themes and style product page
 ================================================================ */
 
-input.wceb_datepicker[readonly] {
+input[class*="wceb_datepicker"][readonly] {
     cursor: pointer !important;
 }
 
@@ -126,6 +139,12 @@ input.wceb_datepicker[readonly] {
   text-align: center;
 }
 
+@media (max-width: 320px) {
+  .picker table.picker__table tr > td {
+    font-size: 14px;
+  }
+}
+
 /* Prevent generated table labels and decorative elements. */
 .picker table.picker__table tr > th::before,
 .picker table.picker__table tr > th::after,
@@ -135,277 +154,267 @@ input.wceb_datepicker[readonly] {
   display: none !important;
 }
 
-/* =========
-$BASE-PICKER
-========= */
+/* ========
+BASE-PICKER
+======== */
 
 /**
- * Note: the root picker element should __NOT__ be styled
- * more than what’s here. Style the `.picker__holder` instead.
+ * Note: the root picker element should *NOT* be styled more than what’s here.
  */
-
 .picker {
-  position: absolute;
-  z-index: 1000;
   font-size: 16px;
   text-align: left;
   line-height: 1.2;
   color: var(--wceb-text);
+  position: absolute;
+  z-index: 10000;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
   outline: none;
 }
-
 /**
- * The picker input element.
- */
-.picker__input {
-  cursor: default;
-}
-/**
- * When the picker is opened, the input element is “activated”.
- */
-.picker__input.picker__input--active {
-  border-color: var(--wceb-accent);
-}
-/**
- * The holder is the only “scrollable” top-level container element.
- */
-.picker__holder {
-  width: 100%;
-  overflow-y: auto;
-}
-
-/*!
- * Default mobile-first, responsive styling for pickadate.js
- * Demo: http://amsul.github.io/pickadate.js
- */
-/**
- * Make the holder and frame fullscreen.
- */
-.picker__holder,
-.picker__frame {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  transform: translateY(100%);
-}
-/**
- * The holder should overlay the entire screen.
+ * The holder is the only scrollable top-level container.
  */
 .picker__holder {
   position: fixed;
-  transition: background 0.24s ease, transform 0s linear 0.24s;
-  backface-visibility: hidden;
+  inset: 0;
+  width: 100%;
+  display: flex;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.24s ease,
+    visibility 0s linear 0.24s;
+  container: zone / inline-size;
 }
 /**
- * The frame that bounds the box contents of the picker.
+ * The frame that bounds the picker contents.
  */
 .picker__frame {
-  position: absolute;
-  margin: 0 auto;
   min-width: 256px;
   max-width: 666px;
-  width: 100%;
+  margin: auto;
   opacity: 0;
-  transform: scale(0.96);
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease;
-}
-@media (min-height: 33.875em) {
-  .picker__frame {
-    overflow: visible;
-    top: auto;
-    bottom: 25%;
-    max-height: 80%;
-  }
-}
-@media (min-height: 40.125em) {
-  .picker__frame {
-    bottom: 25%;
-  }
-}
-/**
- * The wrapper sets the stage to vertically align the box contents.
- */
-.picker__wrap {
-  display: table;
-  width: 100%;
-  height: 100%;
-}
-@media (min-height: 33.875em) {
-  .picker__wrap {
-    display: block;
-  }
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease;
 }
 /**
  * The box contains all the picker contents.
  */
 .picker__box {
-  background:var(--wceb-bg);
-  display: table-cell;
-  vertical-align: middle;
-  border: 1px solid #e5e5e5;
+  margin: 2em 0;
+  padding: 1.25em .5em .5em .5em;
+  background: var(--wceb-bg);
+  border: 1px solid var(--wceb-bg-darker);
 }
 @media (max-width: 666px) {
   .picker__box {
     border: none;
   }
 }
-@media (min-height: 26.5em) {
-  .picker__box {
-    font-size: 1.25em;
-  }
-}
-@media (min-height: 33.875em) {
-  .picker__box {
-    font-size: 1.33em;
-    /* box-shadow: 0 12px 36px 16px rgba(0, 0, 0, 0.24); */
-  }
-}
-@media (min-height: 40.125em) {
-  .picker__box {
-    font-size: 1.5em;
-  }
-}
 /**
  * When the picker opens...
  */
 .picker--opened .picker__holder {
-  transform: translateY(0);
-  background: transparent;
-  zoom: 1;
+  opacity: 1;
+  visibility: visible;
   background: rgba(0, 0, 0, 0.5);
-  transition: background 0.24s ease;
+  transition:
+    opacity 0.24s ease,
+    visibility 0s;
+}
+.picker--opened .picker__frame {
+  opacity: 1;
 }
 @media (max-width: 666px) {
   .picker--opened .picker__holder {
     background: var(--wceb-bg);
   }
 }
-.picker--opened .picker__frame {
-  margin: 0 auto;
-  transform: scale(1);
-  opacity: 1;
+/**
+ * The footer containing the "today", "clear" and "close" buttons.
+ */
+.picker .picker__button--today,
+.picker .picker__button--clear,
+.picker .picker__button--close {
+  flex: 1;
+  border: none !important;
+  background-color: transparent !important;
+  color: var(--wceb-text) !important;
+  font-size: 12px;
+  padding: .66em 0;
+  font-weight: bold;
 }
-@media (prefers-reduced-motion: reduce) {
-  .picker__holder,
-  .picker__frame {
-    transition-duration: 0.01ms;
-  }
+.picker .picker__button--today:hover,
+.picker .picker__button--clear:hover,
+.picker .picker__button--close:hover {
+  cursor: pointer;
+  color: var(--wceb-text) !important;
+  background-color: transparent !important;
+  border: none !important;
 }
-@media (min-height: 33.875em) {
-  .picker--opened .picker__frame {
-    top: auto;
-    bottom: 25%;
-  }
+.picker .picker__button--today:focus,
+.picker .picker__button--clear:focus,
+.picker .picker__button--close:focus {
+  background-color: transparent !important;
+  border: none !important;
+  outline: none;
 }
-
-.picker__title {
-  padding-top: 1em;
-  text-align:center;
+.picker .picker__button--today:before,
+.picker .picker__button--clear:before,
+.picker .picker__button--close:before {
+  position: relative;
+  display: inline-block;
+  height: 0;
 }
-
-/* ==============
-$BASE-DATE-PICKER
-============== */
-
+.picker .picker__button--today:before,
+.picker .picker__button--clear:before {
+  content: " ";
+  margin-right: .45em;
+}
+.picker .picker__button--today:before {
+  top: -1px;
+  width: 5px;
+  height: 5px;
+  background: var(--wceb-accent);
+}
+.picker .picker__button--clear:before {
+  top: -0.25em;
+  width: .66em;
+  border-top: 3px solid #ee2200;
+}
+.picker .picker__button--close:before {
+  content: "\D7";
+  vertical-align: top;
+  font-size: 1.1em;
+  margin-right: .35em;
+  color: #777;
+}
+.picker .picker__button--today[disabled],
+.picker .picker__button--today[disabled]:hover {
+  background: #e5e5e5;
+  border-color: #e5e5e5;
+  color: #bfbfbf;
+  cursor: default;
+}
+.picker .picker__button--today[disabled]:before {
+  border-top-color: #aaaaaa;
+}
+/* ========
+DATE-PICKER
+======== */
 /**
  * The picker box.
  */
-.picker__box {
+.picker .picker__box {
   padding: 1em 2em 2em 2em;
 }
 @media (max-width: 666px) {
-  .picker__box {
+  .picker .picker__box {
     padding-bottom: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .picker .picker__box {
+    padding: 2em .5em 1em .5em;
   }
 }
 /**
  * The header containing the month and year stuff.
  */
-.picker__header {
+.picker .picker__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 1em 0;
 }
 /**
+ * The picker title.
+ */
+.picker__title {
+  padding-top: 1em;
+  text-align:center;
+}
+/**
  * The month and year labels.
  */
-.picker__month,
-.picker__year {
-  font-size: .8em;
+.picker .picker__month,
+.picker .picker__year {
+  font-size: 16px;
   font-weight: 600;
   margin-left: .25em;
   margin-right: .25em;
 }
-.picker__month {
+.picker .picker__month {
   order: 3;
 }
-.picker__year {
-  color: #767676;
+.picker .picker__year {
   font-style: normal;
+  font-weight: normal;
   order: 2;
 }
 
 /**
  * The month and year selectors.
  */
-select.picker__select--month,
-select.picker__select--year {
+.picker select.picker__select--month,
+.picker select.picker__select--year {
   margin-left: .25em;
   margin-right: .25em;
 }
-select.picker__select--month {
+.picker select.picker__select--month {
   order: 2;
 }
-select.picker__select--year {
+.picker select.picker__select--year {
   order: 3;
 }
 /**
  * The month navigation buttons.
  */
-.picker__nav--prev,
-.picker__nav--next {
+.picker .picker__nav--prev,
+.picker .picker__nav--next {
   padding: 0 .75em;
   box-sizing: border-box;
 }
-.picker__nav--prev {
+.picker .picker__nav--prev {
   order: 1;
   margin-right: auto;
 }
-.picker__nav--next {
+.picker .picker__nav--next {
   order: 4;
   margin-left: auto;
 }
-.picker__nav--prev:before,
-.picker__nav--next:before {
-  font-size: 32px;
+.picker .picker__nav--prev:before,
+.picker .picker__nav--next:before {
+  font-size: 24px
 }
-.picker__nav--prev::before {
+.picker .picker__nav--prev::before {
   content: "‹";
 }
-.picker__nav--next::before {
+.picker .picker__nav--next::before {
   content: "›";
 }
-.picker__nav--prev:hover,
-.picker__nav--next:hover {
+.picker .picker__nav--prev:hover,
+.picker .picker__nav--next:hover {
   cursor: pointer;
 }
-.picker__nav--disabled,
-.picker__nav--disabled:hover,
-.picker__nav--disabled::before,
-.picker__nav--disabled:hover::before {
+.picker .picker__nav--disabled,
+.picker .picker__nav--disabled:hover,
+.picker .picker__nav--disabled::before,
+.picker .picker__nav--disabled:hover::before {
   cursor: default;
-  color: #bfbfbf;
+  color: var(--wceb-bg-darker);
 }
 /**
  * The calendar table of dates
  */
-table.picker__table {
+.picker table.picker__table {
   text-align: center;
   border-collapse: collapse;
   border-spacing: 0;
@@ -415,172 +424,117 @@ table.picker__table {
   margin: 0 !important;
   border: none;
 }
-table.picker__table td {
+.picker table.picker__table td {
   margin: 0;
   padding: 0;
-}
-@media (min-height: 33.875em) {
-  .picker__table {
-    margin-bottom: .75em;
-  }
 }
 
 /**
  * The weekday labels
  */
-table.picker__table thead tr th.picker__weekday {
+.picker table.picker__table thead tr th.picker__weekday {
   width: 14.285714286%;
-  font-size: .75em;
+  font-size: 12px;
   padding: .75em;
-  color: #999;
-  font-weight: 600;
+  color: var(--wceb-text);
+  font-weight: normal;
+  font-style: italic;
   border: none;
   text-align: center !important;
   background: transparent !important;
 
 }
-@media (min-height: 33.875em) {
-  table.picker__table thead tr th.picker__weekday {
-    padding: .5em 0;
+@media (max-width: 480px) {
+  .picker table.picker__table thead tr th.picker__weekday {
+    font-size: 10px;
+  }
+}
+@container zone (width < 300px) {
+  .picker table.picker__table thead tr th.picker__weekday {
+    font-size: 8px;
   }
 }
 /**
  * The days on the calendar
  */
-.picker__day {
-  padding: .5em;
-  font-weight: 400;
-  border: 1px solid transparent;
+.picker .picker__day {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: .75em .25em;
+  font-weight: 400 !important;
   text-align: center;
+  color: var(--wceb-text);
+  background: var(--wceb-bg);
+  border-color: var(--wceb-bg);
+  border-style: solid !important;
+  border-width: 1px !important
 }
-.picker__day--today {
-  font-weight: 600;
+@container zone (width < 300px) {
+  .picker .picker__day {
+    font-size: 12px;
+  }
 }
-.picker__day--infocus:hover,
-.picker__day--outfocus:hover {
+.picker .picker__day--today {
+  font-weight: 600 !important;
+}
+.picker .picker__day--infocus:hover,
+.picker .picker__day--outfocus:hover {
   cursor: pointer;
   background: var(--wceb-accent-lighter);
 }
-.picker__day--highlighted:hover,
-.picker--focused .picker__day--highlighted {
+.picker .picker__day--highlighted:hover,
+.picker.picker--focused .picker__day--highlighted {
   cursor: pointer;
 }
-.picker__day--selected,
-.picker__day--selected:hover,
-.picker--focused .picker__day--selected {
+.picker .picker__day--selected,
+.picker .picker__day--selected:hover,
+.picker.picker--focused .picker__day--selected {
   background: var(--wceb-accent);
   color: var(--wceb-bg);
 }
-.picker__day--disabled,
-.picker__day--disabled:hover,
-.picker--focused .picker__day--disabled {
+.picker .picker__day--disabled,
+.picker .picker__day--disabled:hover,
+.picker.picker--focused .picker__day--disabled {
   background: var(--wceb-bg);
   border-color: var(--wceb-bg);
-  color: #bfbfbf;
-  font-weight: 200;
+  color: var(--wceb-bg-darker);
+  font-weight: 200 !important;
   cursor: default;
 }
 /**
  * The highlighted daterange.
  */
-.picker__day--inrange,
-.picker__day--inrange.picker__day--highlighted {
+.picker .picker__day.picker__day--inrange,
+.picker .picker__day.picker__day--inrange.picker__day--highlighted,
+.picker .picker__day.picker__day--inrange.picker__day--disabled {
   color: var(--wceb-text) !important;
   background: var(--wceb-accent-lighter) !important;
   border-color: var(--wceb-accent-lighter) !important;
 }
-.picker__day--booking-start,
-.picker__day--inrange.picker__day--selected,
-.picker__day--booking-end,
-.picker__day--inrange.picker__day--selected {
-    color: var(--wceb-bg) !important;
-    background: var(--wceb-accent) !important;
-    border-color: var(--wceb-accent) !important;
+.picker .picker__day.picker__day--booking-start,
+.picker .picker__day.picker__day--inrange.picker__day--booking-start,
+.picker .picker__day.picker__day--inrange.picker__day--selected,
+.picker .picker__day.picker__day--booking-end,
+.picker .picker__day.picker__day--inrange.picker__day--booking-end,
+.picker .picker__day.picker__day--inrange.picker__day--selected {
+  color: var(--wceb-bg) !important;
+  background: var(--wceb-accent) !important;
+  border-color: var(--wceb-accent) !important;
 }
 /**
  * The footer containing the "today" and "clear" buttons.
  */
-.picker__footer {
+.picker .picker__footer {
   display: flex;
+  justify-content: center;
   margin-top: 1em;
 }
 @media (min-width: 666px) {
-  body:not(.wp-admin) .picker__footer {
+  body:not(.wp-admin) .picker .picker__footer {
     display: none;
   }
 }
-.picker__button--today,
-.picker__button--clear,
-.picker__button--close {
-  flex: 1;
-  width: auto;
-  border: none !important;
-  background-color: transparent !important;
-  color: var(--wceb-text) !important;
-  font-size: 14px;
-  padding: .66em 0;
-  font-weight: bold;
-  width: 33%;
-  display: inline-block;
-  vertical-align: bottom;
-  border-radius: 0;
-}
-.picker__button--today:hover,
-.picker__button--clear:hover,
-.picker__button--close:hover {
-  cursor: pointer;
-  color: var(--wceb-text) !important;
-  background-color: transparent !important;
-  border: none !important;
-}
-.picker__button--today:focus,
-.picker__button--clear:focus,
-.picker__button--close:focus {
-  background-color: transparent !important;
-  border: none !important;
-  outline: none;
-}
-.picker__button--today:before,
-.picker__button--clear:before,
-.picker__button--close:before {
-  position: relative;
-  display: inline-block;
-  height: 0;
-}
-.picker__button--today:before,
-.picker__button--clear:before {
-  content: " ";
-  margin-right: .45em;
-}
-.picker__button--today:before {
-  top: -1px;
-  width: 5px;
-  height: 5px;
-  background: var(--wceb-accent);
-}
-.picker__button--clear:before {
-  top: -0.25em;
-  width: .66em;
-  border-top: 3px solid #ee2200;
-}
-.picker__button--close:before {
-  content: "\D7";
-  vertical-align: top;
-  font-size: 1.1em;
-  margin-right: .35em;
-  color: #777;
-}
-.picker__button--today[disabled],
-.picker__button--today[disabled]:hover {
-  background: #e5e5e5;
-  border-color: #e5e5e5;
-  color: #bfbfbf;
-  cursor: default;
-}
-.picker__button--today[disabled]:before {
-  border-top-color: #aaaaaa;
-}
-
 /* Restore the calendar layout inside WordPress admin list tables. */
 @media screen and (max-width: 782px) {
   .wp-admin .picker table.picker__table {
@@ -617,4 +571,10 @@ table.picker__table thead tr th.picker__weekday {
     content: none !important;
     display: none !important;
   }
+}
+
+/* Reset the former shared animation and the RTL triangle navigation for dates only. */
+.picker .picker__nav--prev::before,
+.picker .picker__nav--next::before {
+  border: 0;
 }

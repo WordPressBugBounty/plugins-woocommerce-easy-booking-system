@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Date selection.
  *
-* @version 3.5.8
+* @version 3.5.9
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -97,7 +97,7 @@ class Date_Selection {
 	/**
 	 * Sanitize and prepare booking data from the request.
 	 *
-	 * @param WP_REST_Request $request The REST request object.
+	 * @param array $data Decoded JSON booking data.
 	 * @return array {
 	 *     @type int    $id           The product or variation ID to use.
 	 *     @type object $product      The product object.
@@ -110,6 +110,8 @@ class Date_Selection {
 	 * }
 	 */
 	private static function sanitize_booking_data( $data ) {
+
+		self::validate_booking_data_types( $data );
 
 		// Sanitize and set default values
 		$product_id   = absint( $data['product_id'] ?? 0 );
@@ -176,6 +178,41 @@ class Date_Selection {
 	}
 
 	/**
+	 * Check input types before conversions, preserving numeric browser strings.
+	 *
+	 * @param mixed $data Decoded JSON booking data.
+	 * @throws \InvalidArgumentException When a known field has an invalid type.
+	 */
+	private static function validate_booking_data_types( $data ) {
+		if ( ! is_array( $data ) ) {
+			throw new \InvalidArgumentException( __( 'Invalid booking data.', 'woocommerce-easy-booking-system' ) );
+		}
+
+		foreach ( array( 'product_id', 'variation_id', 'quantity' ) as $field ) {
+			if ( isset( $data[ $field ] ) && '' !== $data[ $field ] && ( ! is_numeric( $data[ $field ] ) || ! is_finite( (float) $data[ $field ] ) ) ) {
+				throw new \InvalidArgumentException( __( 'Invalid booking data.', 'woocommerce-easy-booking-system' ) );
+			}
+		}
+
+		foreach ( array( 'start_format', 'end_format' ) as $field ) {
+			if ( isset( $data[ $field ] ) && ! is_string( $data[ $field ] ) ) {
+				throw new \InvalidArgumentException( __( 'Invalid booking data.', 'woocommerce-easy-booking-system' ) );
+			}
+		}
+
+		if ( isset( $data['children'] ) ) {
+			if ( ! is_array( $data['children'] ) ) {
+				throw new \InvalidArgumentException( __( 'Invalid booking data.', 'woocommerce-easy-booking-system' ) );
+			}
+			foreach ( $data['children'] as $child_id => $quantity ) {
+				if ( ! is_numeric( $child_id ) || ( '' !== $quantity && ( ! is_numeric( $quantity ) || ! is_finite( (float) $quantity ) ) ) ) {
+					throw new \InvalidArgumentException( __( 'Invalid booking data.', 'woocommerce-easy-booking-system' ) );
+				}
+			}
+		}
+	}
+
+	/**
 	 *
 	 * Get booking price details.
 	 *
@@ -216,6 +253,42 @@ class Date_Selection {
 
 		}
 
+		// Average price per booking unit.
+		if ( 'two' === $number_of_dates
+		&& true === apply_filters( 'easy_booking_display_average_price', false, $product->get_id() ) ) {
+
+			// Grouped products keep an average for the whole selection.
+			$booking_duration = wceb_get_product_booking_duration( $product );
+			$quantity         = $product->is_type( 'grouped' ) ? 1 : max( 1, $data['quantity'] );
+			$average_price    = floatval( $new_price / ( $data['duration'] * $quantity ) );
+
+			$label = $booking_mode === 'nights' ? __( 'Price per night', 'woocommerce-easy-booking-system' ) : __( 'Price per day', 'woocommerce-easy-booking-system' );
+
+			if ( $booking_duration > 1 ) {
+				if ( 'nights' === $booking_mode ) {
+					/* translators: %s: Number of nights per booking unit. */
+					$label = sprintf( _n( 'Price for %s night', 'Price for %s nights', $booking_duration, 'woocommerce-easy-booking-system' ), number_format_i18n( $booking_duration ) );
+				} else {
+					/* translators: %s: Number of days per booking unit. */
+					$label = sprintf( _n( 'Price for %s day', 'Price for %s days', $booking_duration, 'woocommerce-easy-booking-system' ), number_format_i18n( $booking_duration ) );
+				}
+			}
+
+			$details .= '<div class="booking_detail booking_detail--average-price">';
+			$details .= '<span class="booking_detail__label">' . esc_html( $label ) . '</span>';
+			$details .= '<span class="booking_detail__value">';
+
+			$details .= apply_filters(
+				'easy_booking_average_price_text',
+				wc_price( $average_price ),
+				$product,
+				$average_price
+			);
+
+			$details .= '</span></div>';
+
+		}
+
 		// Quantity.
 		if ( ! $product->is_sold_individually()
 		&& true === apply_filters( 'easy_booking_display_quantity', ! $product->is_type( 'grouped' ), $product->get_id() ) ) {
@@ -229,29 +302,6 @@ class Date_Selection {
 				absint( $data['quantity'] ),
 				$product,
 				$data['quantity']
-			);
-
-			$details .= '</span></div>';
-
-		}
-
-		// Average price per day.
-		if ( 'two' === $number_of_dates
-		&& true === apply_filters( 'easy_booking_display_average_price', false, $product->get_id() ) ) {
-
-			$average_price = floatval( $new_price / $data['duration'] );
-
-			$label = $booking_mode === 'nights' ? __( 'Price per night', 'woocommerce-easy-booking-system' ) : __( 'Price per day', 'woocommerce-easy-booking-system' );
-			
-			$details .= '<div class="booking_detail booking_detail--average-price">';
-			$details .= '<span class="booking_detail__label">' . esc_html( $label ) . '</span>';
-			$details .= '<span class="booking_detail__value">';
-
-			$details .= apply_filters(
-				'easy_booking_average_price_text',
-				wc_price( $average_price ),
-				$product,
-				$average_price
 			);
 
 			$details .= '</span></div>';

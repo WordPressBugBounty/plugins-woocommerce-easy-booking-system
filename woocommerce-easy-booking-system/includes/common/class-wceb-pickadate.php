@@ -6,7 +6,7 @@ namespace EasyBooking;
 *
 * Functions to register pickadate scripts and styles.
  *
-* @version 3.5.8
+* @version 3.5.9
 */
 
 defined( 'ABSPATH' ) || exit;
@@ -90,6 +90,9 @@ class Pickadate {
 
 		// Get calendar theme - Force "Default" theme in admin.
 		$theme = is_admin() ? 'default' : get_option( 'wceb_calendar_theme', 'classic' );
+		if ( ! in_array( $theme, array( 'classic', 'default' ), true ) ) {
+			$theme = 'classic';
+		}
 
 		wp_register_style(
 			'picker',
@@ -111,24 +114,24 @@ class Pickadate {
 
 		// Add custom color variables to picker CSS
 		$bg_color       = wc_format_hex( get_option( 'wceb_background_color', '#ffffff' ) );
+		$bg_darker      = wc_hex_darker( $bg_color, 15 );
 		$text_color     = wc_format_hex( get_option( 'wceb_text_color', '#000000' ) );
 		$accent_color   = wc_format_hex( get_option( 'wceb_main_color', '#999999' ) );
 		$accent_lighter = wc_hex_lighter( $accent_color, 50 );
-		$accent_darker  = wc_hex_darker( $accent_color, 10 );
 
 		$css = sprintf(
 			':root {
                 --wceb-bg: %1$s;
-                --wceb-text: %2$s;
-                --wceb-accent: %3$s;
-                --wceb-accent-lighter:%4$s;
-				--wceb-accent-darker:%5$s;
+				--wceb-bg-darker: %2$s;
+                --wceb-text: %3$s;
+                --wceb-accent: %4$s;
+                --wceb-accent-lighter:%5$s;
             }',
 			$bg_color,
+			$bg_darker,
 			$text_color,
 			$accent_color,
-			$accent_lighter,
-			$accent_darker
+			$accent_lighter
 		);
 
 		wp_add_inline_style( 'picker', $css );

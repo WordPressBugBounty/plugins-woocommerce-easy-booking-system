@@ -4,7 +4,7 @@
  *
  * Action hooks and filters related to WooCommerce Product Add-Ons.
  *
- * @version 3.4.6
+ * @version 3.5.9
  **/
 
 defined( 'ABSPATH' ) || exit;
@@ -203,9 +203,26 @@ function wceb_pao_sanitize_selected_addons( $sanitized_data, $data ) {
 
 	$addons = array();
 
+	// The browser sends zero when no add-on form is present.
+	if ( ! isset( $data['additional_cost'] ) || in_array( $data['additional_cost'], array( 0, 0.0, '0' ), true ) ) {
+		$sanitized_data['selected_addons'] = $addons;
+		return $sanitized_data;
+	}
+	if ( ! is_array( $data['additional_cost'] ) ) {
+		throw new \InvalidArgumentException( __( 'Invalid product add-on data.', 'woocommerce-easy-booking-system' ) );
+	}
+
 	// Sanitize
 	if ( isset( $data['additional_cost'] ) ) {
 		foreach ( $data['additional_cost'] as $i => $additional_cost ) {
+
+			if ( ! is_array( $additional_cost )
+				|| ! isset( $additional_cost['cost'], $additional_cost['id'], $additional_cost['value'] )
+				|| ! is_numeric( $additional_cost['cost'] ) || ! is_finite( (float) $additional_cost['cost'] )
+				|| ! is_scalar( $additional_cost['id'] ) || is_bool( $additional_cost['id'] )
+				|| ! is_scalar( $additional_cost['value'] ) || is_bool( $additional_cost['value'] ) ) {
+				throw new \InvalidArgumentException( __( 'Invalid product add-on data.', 'woocommerce-easy-booking-system' ) );
+			}
 
 			$addons[ $i ] = array(
 				'cost'  => (float) $additional_cost['cost'],

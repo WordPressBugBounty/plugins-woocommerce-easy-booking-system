@@ -3,9 +3,11 @@
 Contributors: @morki
 Tags: woocommerce, booking, appointment, reservation, calendar
 Requires at least: 6.0
-Stable tag: 3.5.8
+Requires PHP: 7.4
+Stable tag: 3.5.9
 Tested up to: 7.1.4
-WC tested up to: 11.2.1
+WC requires at least: 10.0.0
+WC tested up to: 11.2.2
 License: GPLv3
 
 A simple and flexible WooCommerce booking & reservation plugin to manage dates, availability and pricing on your products.
@@ -53,8 +55,9 @@ See Easy Booking in action: Check out the [demo](http://demo.easy-booking.pro/) 
 
 = Requirements =
 
-WordPress 5.0 or greater
-WooCommerce 4.0 or greater
+WordPress 6.0 or greater
+PHP 7.4 or greater
+WooCommerce 10.0 or greater
 
 Make sure WooCommerce is installed and activated before starting.
 
@@ -78,17 +81,14 @@ Check the FAQ [here](https://easy-booking.pro/faq/).
 4. Easy Booking PRO features: stock management by date and advanced pricing.
 5. Manage bookings from your dashboard with list and calendar views.
 
-== Developer notes ==
-
-= Public price calculation endpoint =
-
-`POST /wp-json/easybooking/v1/date-selection/` is a public, read-only endpoint for calculating booking prices and displaying booking details and availability. It no longer requires a nonce or a `security` field. The request method, booking parameters, response format and existing hooks are unchanged.
-
-Callbacks attached to this calculation, including `easy_booking_sanitized_booking_data`, price filters, `easy_booking_selected_quantity` and `easy_booking_fragments`, can run for anonymous visitors with visitor-supplied data. Keep these callbacks read-only: do not create bookings, reserve stock, modify the cart or perform privileged operations in them. Neither reaching a hook nor receiving a legacy nonce proves authorization. Sensitive operations belong in a separate endpoint with appropriate server-side permissions, input validation and CSRF protection.
-
-Server-side booking validation and cart price calculation remain in place. The displayed price is not trusted as the cart price. The legacy `/easybooking/v1/get-fresh-nonce/` endpoint, PHP nonce helpers and JavaScript `DynamicNonce` export remain available for cached scripts and existing integrations, but the current price calculation no longer uses them. Integrations can stop requesting or sending this nonce for price calculations.
-
 == Changelog ==
+
+= 3.5.9 - 2026-11-10 =
+
+* Fix - The average price shown in the booking summary now accounts for the quantity selected and labels multi-day or multi-night periods clearly.
+* Tweak - Refined the booking calendar in both themes. The Classic theme now loads if a saved theme is unavailable.
+* Fix - Booking price calculations now show an error for invalid booking details or product add-on selections.
+* Requirements - Minimum versions are WordPress 6.0, WooCommerce 10.0 and PHP 7.4.
 
 = 3.5.8 - 2026-10-29 =
 
